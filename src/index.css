@@ -1,0 +1,169 @@
+@import "tailwindcss";
+@import "katex/dist/katex.min.css";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.01em;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* High-Contrast Crisp Border Defaults for Professional Legibility */
+  * {
+    border-color: rgba(71, 85, 105, 0.45);
+  }
+}
+
+/* Enhanced Pure Math KaTeX Legibility & Scale */
+.katex {
+  font-size: 1.15em !important;
+  text-rendering: optimizeLegibility;
+}
+
+.katex-display {
+  margin: 0.75em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.katex-display > .katex {
+  font-size: 1.28em !important;
+}
+
+/* Touch-optimized custom range sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #334155;
+  height: 8px;
+  border-radius: 9999px;
+  outline: none;
+  touch-action: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: 3px solid #0f172a;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+  background: #0284c7;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: 3px solid #0f172a;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+/* Custom scrollbar for mobile drawers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Sleek subtle scrollbar for desktop studio panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+/* GPU Acceleration for Math Canvases & 3D WebGL Views */
+canvas {
+  image-rendering: -webkit-optimize-contrast;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Premium Motion & Aesthetic Utilities */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(0.99);
+  }
+}
+
+@keyframes neon-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.75));
+  }
+}
+
+.animate-float-gentle {
+  animation: float-gentle 4s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+.animate-neon-glow {
+  animation: neon-glow 2.5s ease-in-out infinite;
+}
+
+.glass-panel-premium {
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  box-shadow: 0 20px 40px -15px rgba(2, 6, 23, 0.7);
+}
+
+

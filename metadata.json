@@ -1,0 +1,6 @@
+{
+  "name": "Math Time Lab",
+  "description": "Mobile-first, touch-responsive 3D and 2D math simulators for Classes 8–12: Algebra Tiles, Balance Scale, Compound Interest, Conic Sections, Calculus, and 3D Geometry.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
