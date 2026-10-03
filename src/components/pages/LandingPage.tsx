@@ -346,7 +346,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* 2. THE PROBLEM / SOLUTION SECTION */}
-      <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-12">
+      <section className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-12">
         <div className="text-center space-y-3 max-w-3xl mx-auto">
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/60">
             A New Way of Learning
@@ -424,7 +424,7 @@ export const LandingPage: React.FC = () => {
 
       {/* 3. SIMULATOR SHOWCASE CAROUSEL (Mobile-First) */}
       <section className="w-full bg-slate-900/40 border-y border-slate-900 py-16 sm:py-20 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
+        <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 space-y-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
             <div className="space-y-2">
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
@@ -564,127 +564,9 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Meet the Educator: Alka Sharma (Alka Ma'am) */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full">
+      <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6">
         <AuthorSpotlightSection />
       </div>
-
-      {/* 5. FOOTER */}
-      <footer className="w-full bg-slate-950 border-t border-slate-900 py-12 px-4 sm:px-6 text-slate-400 text-xs">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
-          {/* Col 1: Brand */}
-          <div className="col-span-2 sm:col-span-1 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-cyan-500 flex items-center justify-center text-slate-950 font-black text-xs">
-                MT
-              </div>
-              <span className="font-extrabold text-sm text-white tracking-tight">Math Time Lab</span>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Real-time interactive physics &amp; mathematics laboratory for High School classes 9–12.
-            </p>
-          </div>
-
-          {/* Col 2: Curriculum Grades */}
-          <div className="space-y-2">
-            <h5 className="font-mono uppercase font-bold text-white text-[11px] tracking-wider">Curriculum Grades</h5>
-            <ul className="space-y-1.5 text-[11px]">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGradeFilter('class-9');
-                    navigateTo('home');
-                  }}
-                  className="hover:text-cyan-300 transition-colors"
-                >
-                  Class 9: Coordinate Geometry
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGradeFilter('class-10');
-                    navigateTo('home');
-                  }}
-                  className="hover:text-cyan-300 transition-colors"
-                >
-                  Class 10: Trigonometry &amp; Waves
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGradeFilter('class-11');
-                    navigateTo('home');
-                  }}
-                  className="hover:text-cyan-300 transition-colors"
-                >
-                  Class 11: 3D Conic Sections
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGradeFilter('class-12');
-                    navigateTo('home');
-                  }}
-                  className="hover:text-cyan-300 transition-colors"
-                >
-                  Class 12: Calculus &amp; 3D Vectors
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: Teachers */}
-          <div className="space-y-2">
-            <h5 className="font-mono uppercase font-bold text-white text-[11px] tracking-wider">Educators</h5>
-            <ul className="space-y-1.5 text-[11px]">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => navigateTo('teacher')}
-                  className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 transition-colors"
-                >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span>Teacher Portal &amp; Analytics</span>
-                </button>
-              </li>
-              <li>
-                <span className="text-slate-400">Class Code System (e.g. {activeTeacherCode})</span>
-              </li>
-              <li>
-                <span className="text-slate-400">Struggling Concept Diagnosis</span>
-              </li>
-              <li>
-                <span className="text-slate-400">Export Class Gradebook JSON</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 4: Platform */}
-          <div className="space-y-2">
-            <h5 className="font-mono uppercase font-bold text-white text-[11px] tracking-wider">Features</h5>
-            <ul className="space-y-1.5 text-[11px] text-slate-400">
-              <li>60fps WebGL / Three.js</li>
-              <li>Matter.js 2D Physics Engine</li>
-              <li>Zustand Gamification &amp; XP</li>
-              <li>Mathematical Singularity Guard</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
-          <span>&copy; {new Date().getFullYear()} Math Time Lab. All mathematics and physical models verified.</span>
-          <span className="font-mono text-cyan-400">Live Interactive Science</span>
-        </div>
-        <p className="max-w-6xl mx-auto pt-3 text-[10px] text-slate-500 leading-normal border-t border-slate-900/60 mt-4">
-          Disclaimer: Math Time Lab is an independent open educational laboratory. CBSE, ICSE, Cambridge Assessment International Education, NCERT, and other educational boards/institutions are trademarks or registered trademarks of their respective authorities. Reference to them is made solely to indicate curriculum syllabus alignment for educational reference purposes only and does not imply any affiliation, sponsorship, or endorsement.
-        </p>
-      </footer>
     </div>
   );
 };

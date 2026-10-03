@@ -427,14 +427,14 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
     <>
       <header 
         ref={headerRef}
-        className="sticky top-0 z-50 w-full select-none transition-all shadow-xl"
+        className="sticky top-0 z-50 w-full select-none transition-all shadow-2xl"
       >
         {/* ========================================================================= */}
         {/* TIER 1: SLIM TOP UTILITY & STATUS BAR (RELIANCE SCHEME)                    */}
         {/* ========================================================================= */}
         {!isSimulator && (
-          <div className="w-full bg-[#050b18] border-b border-slate-800/80 text-[11px] text-slate-300 py-1 px-3 sm:px-6">
-            <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+          <div className="w-full bg-gradient-to-r from-[#071026] via-[#0b183a] to-[#071026] border-b border-blue-900/40 text-[11px] text-slate-300 py-1 px-3 sm:px-6 shadow-inner">
+            <div className="w-full max-w-[1720px] mx-auto px-1 sm:px-3 flex items-center justify-between gap-3">
               {/* Left: Curriculum & Live Status Ticker */}
               <div className="flex items-center gap-2.5 truncate font-medium">
                 <span className="flex items-center gap-1.5 text-emerald-400 font-semibold shrink-0">
@@ -503,22 +503,33 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
         {/* ========================================================================= */}
         {/* TIER 2: MAIN NAVIGATION BAR                                               */}
         {/* ========================================================================= */}
-        <div className="w-full h-14 sm:h-16 bg-[#070e1e]/95 backdrop-blur-xl border-b border-slate-800/90 relative">
-          <div className="max-w-7xl mx-auto h-full px-2.5 sm:px-4 lg:px-6 flex items-center justify-between gap-3">
-            {/* ZONE 1: OFFICIAL MATH TIME LOGO + BREADCRUMB */}
+        <div className="w-full h-14 sm:h-16 bg-gradient-to-r from-[#0a1532] via-[#0f1f48] to-[#0a1532] backdrop-blur-2xl border-b border-blue-500/25 relative shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
+          {/* Luminous bottom accent glow line */}
+          <div className="absolute bottom-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/80 via-emerald-400/90 to-transparent pointer-events-none" />
+
+          <div className="w-full max-w-[1720px] mx-auto h-full px-2.5 sm:px-4 lg:px-6 flex items-center justify-between gap-3">
+            {/* ZONE 1: OFFICIAL MATH TIME LOGO + LAB PILL + BREADCRUMB */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => handleOpenPage('home')}
-                className="flex items-center gap-2 group cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg p-0.5"
+                className="flex items-center gap-2 group cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-xl p-0.5 transition-all"
                 title="Math Time Lab - Explore All 50 Interactive Simulators"
                 aria-label="Math Time Lab Homepage"
               >
-                <img 
-                  src="/math-time-logo.png" 
-                  alt="Math Time BY ALKA MA'AM" 
-                  className="h-8 sm:h-9 md:h-10 w-auto object-contain hover:opacity-95 transition-opacity select-none"
-                />
+                {/* High-visibility Brand Crest Badge */}
+                <div className="relative p-1 sm:p-1.5 rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 border border-blue-400/40 shadow-[0_0_15px_rgba(59,130,246,0.25)] group-hover:border-emerald-400/60 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.35)] transition-all flex items-center justify-center shrink-0">
+                  <img 
+                    src="/math-time-logo.png" 
+                    alt="Math Time by Alka Ma'am" 
+                    className="h-7 sm:h-8 md:h-9 w-auto object-contain brightness-110 contrast-125 filter drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] select-none transition-transform group-hover:scale-105"
+                  />
+                </div>
+
+                {/* LAB Pill directly beside the logo */}
+                <span className="inline-flex items-center px-2 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-black tracking-widest uppercase bg-gradient-to-r from-emerald-400 via-cyan-400 to-teal-300 text-slate-950 shadow-[0_0_12px_rgba(52,211,153,0.5)] border border-emerald-300/40 leading-none group-hover:scale-105 transition-transform">
+                  LAB
+                </span>
               </button>
 
               {/* Active Simulator Breadcrumb Chip */}
@@ -749,7 +760,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
               onMouseLeave={handleDropdownLeave}
             >
               <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-200">
                   <div className="flex items-center gap-2.5">
                     <span className="font-extrabold text-xs uppercase tracking-wider text-slate-900">
@@ -822,7 +833,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
               onMouseLeave={handleDropdownLeave}
             >
               <div className="h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-cyan-500" />
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-200">
                   <div className="flex items-center gap-2.5">
                     <span className="font-extrabold text-xs uppercase tracking-wider text-slate-900">
@@ -883,7 +894,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
               onMouseLeave={handleDropdownLeave}
             >
               <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-200">
                   <div className="flex items-center gap-2.5">
                     <span className="font-extrabold text-xs uppercase tracking-wider text-slate-900">
@@ -980,7 +991,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
               onMouseLeave={handleDropdownLeave}
             >
               <div className="h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-500" />
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-200">
                   <div className="flex items-center gap-2.5">
                     <span className="font-extrabold text-xs uppercase tracking-wider text-slate-900">
@@ -1040,7 +1051,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
               onMouseLeave={handleDropdownLeave}
             >
               <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500" />
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-200">
                   <div className="flex items-center gap-2.5">
                     <span className="font-extrabold text-xs uppercase tracking-wider text-slate-900">
@@ -1153,14 +1164,21 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
         >
           {/* Mobile Drawer Brand Crest Header */}
           <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-            <img 
-              src="/math-time-logo.png" 
-              alt="Math Time BY ALKA MA'AM" 
-              className="h-8 w-auto object-contain select-none"
-            />
+            <div className="flex items-center gap-2">
+              <div className="p-1 rounded-lg bg-slate-900 border border-blue-400/40 shadow-[0_0_12px_rgba(59,130,246,0.25)] flex items-center justify-center">
+                <img 
+                  src="/math-time-logo.png" 
+                  alt="Math Time by Alka Ma'am" 
+                  className="h-7 w-auto object-contain brightness-110 contrast-125 select-none"
+                />
+              </div>
+              <span className="px-2 py-0.5 rounded-lg text-xs font-black tracking-widest uppercase bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 leading-none border border-emerald-300/40 shadow-sm">
+                LAB
+              </span>
+            </div>
             <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950/70 border border-emerald-800/60 px-2 py-0.5 rounded-full flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              50 Visual Labs
+              50 Labs
             </span>
           </div>
 

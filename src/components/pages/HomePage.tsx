@@ -1407,7 +1407,7 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-5 sm:space-y-8 overflow-x-hidden">
+    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-8 space-y-6 sm:space-y-10 overflow-x-hidden">
       {/* ======================================================== */}
       {/* DESKTOP Cockpit Experience (>= 768px): 100% UNTOUCHED!    */}
       {/* ======================================================== */}
@@ -1746,8 +1746,8 @@ export const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* DESKTOP Simulators Grid (3 Columns Responsive) */}
-        <section className={`grid ${desktopViewMode === 'compact' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'}`}>
+        {/* DESKTOP Simulators Grid (Responsive 3/4 Columns for Laptops & Desktops) */}
+        <section className={`grid ${desktopViewMode === 'compact' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6'}`}>
           {filteredSimulators.map((sim) => {
             const Icon = getSimulatorIcon(sim.id);
             const isDone = completedSimulators.includes(sim.id);

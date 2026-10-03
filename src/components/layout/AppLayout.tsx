@@ -53,6 +53,7 @@ import { ConceptLightningQuizModal } from '../modals/ConceptLightningQuizModal';
 import { MobileToolsDrawerModal } from '../modals/MobileToolsDrawerModal';
 import { MobileBottomNav } from './MobileBottomNav';
 import { GlobalHeader } from './GlobalHeader';
+import { GlobalFooter } from './GlobalFooter';
 
 const SIMULATOR_TITLES: Record<string, string> = {
   'drone-navigator': 'Drone Navigator',
@@ -233,6 +234,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {children}
         </MathErrorBoundary>
       </main>
+
+      {/* World-Class Comprehensive Footer (Home, Overview, Teacher Pages) */}
+      {!isSimulator && (
+        <GlobalFooter onOpenAuthorModal={() => setIsAuthorModalOpen(true)} />
+      )}
 
       {/* Mobile Fixed Bottom Navigation Bar - Only visible on Home/Landing/Teacher, NEVER during active simulator */}
       <MobileBottomNav />
