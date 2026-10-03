@@ -54,12 +54,12 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
   };
 
   return (
-    <footer className="w-full bg-[#060d21] border-t border-blue-900/40 text-slate-400 text-xs relative overflow-hidden select-none">
-      {/* Decorative top luminous accent line */}
-      <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/80 via-emerald-400/90 to-transparent pointer-events-none" />
+    <footer className="w-full bg-slate-950 border-t border-slate-800/90 text-slate-400 text-xs relative overflow-hidden select-none">
+      {/* Decorative top luminous accent line in soft sky & fuchsia */}
+      <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-sky-400/50 via-fuchsia-400/50 to-transparent pointer-events-none" />
 
       {/* Subtle background ambient radial glow */}
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-sky-500/5 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Main Footer Content Container */}
       <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-12 sm:py-16 space-y-12 relative z-10">
@@ -70,7 +70,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
           {/* Brand Presentation & Mission */}
           <div className="lg:col-span-6 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-xl bg-slate-900 border border-blue-400/40 shadow-[0_0_15px_rgba(59,130,246,0.25)] flex items-center justify-center">
+              <div className="p-1.5 rounded-xl bg-slate-900 border border-slate-700/80 shadow-sm flex items-center justify-center">
                 <img 
                   src="/math-time-logo.png" 
                   alt="Math Time by Alka Ma'am" 
@@ -97,12 +97,12 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 100% Free Open Educational Resource
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-800/80 text-[11px] text-cyan-300 font-semibold shadow-sm">
-                <Lock className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[11px] text-sky-300 font-semibold shadow-sm">
+                <Lock className="w-3.5 h-3.5 text-sky-400" />
                 Zero Sign-Up · Strict Privacy
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-800/80 text-[11px] text-purple-300 font-semibold shadow-sm">
-                <Cpu className="w-3.5 h-3.5 text-purple-400" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[11px] text-fuchsia-300 font-semibold shadow-sm">
+                <Cpu className="w-3.5 h-3.5 text-fuchsia-400" />
                 60 FPS WebGL Physics Engine
               </span>
             </div>
@@ -110,7 +110,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
 
           {/* Official YouTube Channel Spotlight Card */}
           <div className="lg:col-span-6">
-            <div className="rounded-2xl bg-gradient-to-br from-[#101b38] to-[#0a1228] border border-rose-500/30 p-5 sm:p-6 shadow-xl relative overflow-hidden group">
+            <div className="rounded-2xl bg-slate-900/80 border border-rose-500/30 p-5 sm:p-6 shadow-xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/10 blur-3xl rounded-full pointer-events-none" />
               
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">

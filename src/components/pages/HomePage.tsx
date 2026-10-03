@@ -1517,26 +1517,32 @@ export const HomePage: React.FC = () => {
           <DailyChallenge />
         </section>
 
-        {/* Desktop Coach's Desk: 100% untouched for laptops/desktops */}
-        <section className="rounded-3xl bg-slate-900/95 border border-slate-800 p-4 sm:p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <Lightbulb className="w-4 h-4" />
+        {/* Desktop Coach's Desk: High-Impact Conceptual Intuition Studio */}
+        <section className="relative rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-slate-800/90 p-5 sm:p-7 shadow-xl space-y-5 overflow-hidden">
+          {/* Subtle background ambient glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10 border-b border-amber-500/20 pb-3.5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-md">
+                <Lightbulb className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-sm sm:text-base font-extrabold text-white">
-                  {"Coach's Desk: Clear Your Biggest Math Roadblocks"}
+                <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                  <span>Coach&apos;s Desk: Clear Your Biggest Math Roadblocks</span>
+                  <span className="hidden md:inline text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded-full">
+                    By Alka Ma&apos;am
+                  </span>
                 </h2>
-                <p className="text-[11px] text-slate-400">
-                  {"Tap any core concept below to understand what textbooks never explained"}
+                <p className="text-xs text-slate-300 font-normal">
+                  Tap any core concept below to understand what textbooks never explained:
                 </p>
               </div>
             </div>
           </div>
 
           {/* Topic Quick Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 relative z-10">
             {SIMULATORS.map((s) => (
               <button
                 key={s.id}
@@ -1545,10 +1551,10 @@ export const HomePage: React.FC = () => {
                   lightTap();
                   setSelectedDoubtTopic(s.id);
                 }}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
                   selectedDoubtTopic === s.id
-                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-sm'
-                    : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-white'
+                    ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)] font-black scale-[1.03]'
+                    : 'bg-slate-950/80 text-slate-300 border-slate-700/80 hover:text-white hover:border-amber-500/40'
                 }`}
               >
                 {s.shortTitle}
@@ -1557,13 +1563,13 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Active Coach Roadblock Card */}
-          <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-amber-300 bg-amber-950/50 border border-amber-800/50 px-2 py-0.5 rounded-md">
+          <div className="p-5 rounded-2xl bg-slate-950/90 border border-amber-500/25 space-y-4 relative z-10 shadow-inner">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-mono font-black text-amber-300 bg-amber-950 border border-amber-800 px-2.5 py-0.5 rounded-lg shadow-xs">
                   {activeDoubtSim.grade}
                 </span>
-                <h3 className="font-bold text-sm text-white">{activeDoubtSim.title}</h3>
+                <h3 className="font-black text-sm sm:text-base text-white tracking-tight">{activeDoubtSim.title}</h3>
               </div>
 
               <button
@@ -1572,37 +1578,37 @@ export const HomePage: React.FC = () => {
                   lightTap();
                   navigateTo(activeDoubtSim.id);
                 }}
-                className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="self-start sm:self-auto px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-md hover:brightness-110 transition-all cursor-pointer active:scale-95"
               >
-                <span>Test on Simulator</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>Test on Live Simulator</span>
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
             </div>
 
-            {/* Textbook Trap vs Coach Secret */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-900/40 space-y-1">
-                <span className="font-bold text-rose-400 block text-[11px] uppercase tracking-wider">
+            {/* Textbook Trap vs Coach Secret (High-Contrast Split Cards) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 rounded-xl bg-rose-950/25 border border-rose-800/40 space-y-1.5 shadow-sm">
+                <span className="font-bold text-rose-400 block text-[11px] uppercase tracking-wider font-mono">
                   ❌ What Textbooks Say (The Confusion)
                 </span>
-                <p className="text-slate-300 leading-relaxed font-sans">
+                <p className="text-slate-200 leading-relaxed font-sans text-xs sm:text-[13px]">
                   {activeDoubtSim.textbookTrap}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-900/40 space-y-1">
-                <span className="font-bold text-emerald-400 block text-[11px] uppercase tracking-wider">
+              <div className="p-4 rounded-xl bg-emerald-950/25 border border-emerald-800/40 space-y-1.5 shadow-sm">
+                <span className="font-bold text-emerald-400 block text-[11px] uppercase tracking-wider font-mono">
                   💡 Coach Intuition (What Actually Happens)
                 </span>
-                <p className="text-slate-300 leading-relaxed font-sans">
+                <p className="text-slate-200 leading-relaxed font-sans text-xs sm:text-[13px]">
                   {activeDoubtSim.coachSecret}
                 </p>
               </div>
             </div>
 
             {/* Pure KaTeX Math Display */}
-            <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-center">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">
+            <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-center shadow-inner">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-mono font-bold block mb-1">
                 Exact Mathematical Formulation (KaTeX)
               </span>
               <BlockMath math={activeDoubtSim.latexFormula} className="my-1 text-cyan-300" />

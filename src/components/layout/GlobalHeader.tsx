@@ -433,7 +433,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
         {/* TIER 1: SLIM TOP UTILITY & STATUS BAR (RELIANCE SCHEME)                    */}
         {/* ========================================================================= */}
         {!isSimulator && (
-          <div className="w-full bg-gradient-to-r from-[#071026] via-[#0b183a] to-[#071026] border-b border-blue-900/40 text-[11px] text-slate-300 py-1 px-3 sm:px-6 shadow-inner">
+          <div className="w-full bg-slate-900/95 border-b border-slate-800/90 text-[11px] text-slate-300 py-1 px-3 sm:px-6">
             <div className="w-full max-w-[1720px] mx-auto px-1 sm:px-3 flex items-center justify-between gap-3">
               {/* Left: Curriculum & Live Status Ticker */}
               <div className="flex items-center gap-2.5 truncate font-medium">
@@ -468,8 +468,8 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                   <span>{streakDays}d</span>
                 </div>
                 <span className="text-slate-700 hidden sm:inline">|</span>
-                <div className="hidden sm:flex items-center gap-1 text-cyan-300 font-bold font-mono">
-                  <Sparkles className="w-3 h-3 text-cyan-400" />
+                <div className="hidden sm:flex items-center gap-1 text-sky-300 font-bold font-mono">
+                  <Sparkles className="w-3 h-3 text-sky-400" />
                   <span>{totalXp} XP</span>
                 </div>
                 <span className="text-slate-700 hidden md:inline">|</span>
@@ -503,9 +503,9 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
         {/* ========================================================================= */}
         {/* TIER 2: MAIN NAVIGATION BAR                                               */}
         {/* ========================================================================= */}
-        <div className="w-full h-14 sm:h-16 bg-gradient-to-r from-[#0a1532] via-[#0f1f48] to-[#0a1532] backdrop-blur-2xl border-b border-blue-500/25 relative shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
-          {/* Luminous bottom accent glow line */}
-          <div className="absolute bottom-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400/80 via-emerald-400/90 to-transparent pointer-events-none" />
+        <div className="w-full h-14 sm:h-16 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800 relative shadow-lg">
+          {/* Subtle luminous bottom accent line in soft light blue & magenta */}
+          <div className="absolute bottom-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-sky-400/50 via-fuchsia-400/50 to-transparent pointer-events-none" />
 
           <div className="w-full max-w-[1720px] mx-auto h-full px-2.5 sm:px-4 lg:px-6 flex items-center justify-between gap-3">
             {/* ZONE 1: OFFICIAL MATH TIME LOGO + LAB PILL + BREADCRUMB */}
@@ -518,7 +518,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                 aria-label="Math Time Lab Homepage"
               >
                 {/* High-visibility Brand Crest Badge */}
-                <div className="relative p-1 sm:p-1.5 rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 border border-blue-400/40 shadow-[0_0_15px_rgba(59,130,246,0.25)] group-hover:border-emerald-400/60 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.35)] transition-all flex items-center justify-center shrink-0">
+                <div className="relative p-1 sm:p-1.5 rounded-xl bg-slate-900 border border-slate-700/90 shadow-sm group-hover:border-emerald-400/60 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.25)] transition-all flex items-center justify-center shrink-0">
                   <img 
                     src="/math-time-logo.png" 
                     alt="Math Time by Alka Ma'am" 
@@ -527,7 +527,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                 </div>
 
                 {/* LAB Pill directly beside the logo */}
-                <span className="inline-flex items-center px-2 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-black tracking-widest uppercase bg-gradient-to-r from-emerald-400 via-cyan-400 to-teal-300 text-slate-950 shadow-[0_0_12px_rgba(52,211,153,0.5)] border border-emerald-300/40 leading-none group-hover:scale-105 transition-transform">
+                <span className="inline-flex items-center px-2 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-black tracking-widest uppercase bg-gradient-to-r from-emerald-400 via-cyan-400 to-teal-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.4)] border border-emerald-300/40 leading-none group-hover:scale-105 transition-transform">
                   LAB
                 </span>
               </button>
