@@ -28,6 +28,7 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { Eli13ExplainerCard } from '../common/Eli13ExplainerCard';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const QuadrilateralMorpherSimulator: React.FC = () => {
   const {
@@ -245,6 +246,14 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
 
   const controlsContent = (
     <div className="space-y-4 p-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="Quadrilateral Geometric Invariant"
+        badge={quadType.toUpperCase()}
+        symbolicLaw="\sum_{i=1}^4 \angle_i = 360^\circ, \quad \theta_{\text{diag}} = 90^\circ \iff \text{Rhombus/Kite/Square}"
+        substitutedLatex={`\\text{Shape: } ${quadType}, \\quad \\theta_{\\text{diagonals}} = ${diagonalAngleDeg.toFixed(1)}^\\circ`}
+        evaluatedLatex={`\\Sigma \\angle = 360.0^\\circ, \\quad d_1 \\perp d_2 \\implies ${Math.abs(diagonalAngleDeg - 90) < 1 ? '\\text{True (Perpendicular)}' : '\\text{False (Oblique)}'}`}
+      />
+
       {/* Shape Snap Buttons */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400">

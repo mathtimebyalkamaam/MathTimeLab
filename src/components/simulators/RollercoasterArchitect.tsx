@@ -28,6 +28,7 @@ import { RollercoasterPoint } from '../../types/simulators';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const RollercoasterArchitect: React.FC = () => {
   const {
@@ -1019,7 +1020,16 @@ export const RollercoasterArchitect: React.FC = () => {
         }
       >
         {/* Controls Tab */}
-        <div className="space-y-4">
+        <div className="space-y-3">
+          {/* Point 1 & 5: Live Substitution Card for Energy/Slope */}
+          <LiveSubstitutionCard
+            title="Spline Dynamics"
+            badge="Calculus"
+            symbolicLaw="v(s) = \sqrt{2g \cdot \Delta h - \mu \cdot s}, \quad \text{slope} = f'(x)"
+            substitutedLatex={`v = \\sqrt{2 \\cdot ${gravity} \\cdot \\Delta h - ${friction} \\cdot ${cartDistanceTravelled.toFixed(0)}}`}
+            evaluatedLatex={`v = ${currentSpeed.toFixed(1)}\\text{ px/s}, \\quad f'(x) = ${currentSlope.toFixed(3)}, \\quad G = ${currentGForce.toFixed(1)}`}
+            activeTerm={isPlaying ? `G-Force: ${currentGForce.toFixed(1)}` : undefined}
+          />
           <TouchSlider
             label="World Gravity (g)"
             min={4.0}

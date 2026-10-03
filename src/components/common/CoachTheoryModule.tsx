@@ -195,19 +195,21 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
             </div>
           )}
 
-          {/* Governing KaTeX LaTeX Formula */}
-          <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 shadow-sm flex flex-col gap-1">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-0.5">
+          {/* Governing KaTeX LaTeX Formula - Pure Mathematical Presentation */}
+          <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow-sm flex flex-col gap-1.5">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-1">
               <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1">
                 <GraduationCap className="w-3 h-3 text-cyan-400" />
                 <span>Governing Mathematical Law</span>
               </span>
-              <span className="text-[9px] font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-800/60 px-1.5 py-0.2 rounded">
-                Formula
+              <span className="text-[9px] font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-800/60 px-2 py-0.5 rounded">
+                Pure LaTeX
               </span>
             </div>
-            <div className="overflow-x-auto no-scrollbar py-0.5 text-center font-semibold text-slate-100">
-              <BlockMath math={sim.latexFormula} className="my-0.5 text-cyan-100 font-semibold" />
+            <div className="overflow-hidden py-1 px-1 text-center font-semibold text-slate-100 flex items-center justify-center min-h-[44px]">
+              <div className="w-full overflow-x-auto no-scrollbar text-center">
+                <BlockMath math={sim.latexFormula} className="!my-0 text-cyan-100 font-semibold text-xs sm:text-sm" />
+              </div>
             </div>
           </div>
 

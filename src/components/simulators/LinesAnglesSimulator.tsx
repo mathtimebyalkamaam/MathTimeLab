@@ -28,6 +28,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const LinesAnglesSimulator: React.FC = () => {
   const {
@@ -449,6 +450,26 @@ export const LinesAnglesSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-3">
+          <LiveSubstitutionCard
+            title={mode === 'transversal' ? 'Parallel Lines & Transversal Invariant' : 'M-Angle Zigzag Invariant'}
+            badge={mode === 'transversal' ? 'Two-Angle Rule' : '∠APB = ∠A + ∠B'}
+            symbolicLaw={
+              mode === 'transversal'
+                ? "\\theta + (180^\\circ - \\theta) = 180^\\circ, \\quad \\angle_{\\text{alt-int}} = \\theta"
+                : "\\angle APB = \\angle A + \\angle B \\quad (\\text{via auxiliary } EF \\parallel AB)"
+            }
+            substitutedLatex={
+              mode === 'transversal'
+                ? `\\theta = ${theta}^\\circ, \\quad 180^\\circ - ${theta}^\\circ = ${supplementary}^\\circ`
+                : `\\angle APB = ${(zigzagBendDeg / 2).toFixed(1)}^\\circ + ${(zigzagBendDeg / 2).toFixed(1)}^\\circ`
+            }
+            evaluatedLatex={
+              mode === 'transversal'
+                ? `\\text{Consecutive Interior Sum} = ${theta}^\\circ + ${supplementary}^\\circ = 180^\\circ`
+                : `\\angle APB = ${zigzagBendDeg}^\\circ`
+            }
+          />
+
           <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl">
             <button
               type="button"

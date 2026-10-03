@@ -23,12 +23,14 @@ import { TouchSlider } from '../common/TouchSlider';
 import { MathFormula } from '../common/MathFormula';
 import { CoachTheoryModule } from '../common/CoachTheoryModule';
 import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
-import { ScrubbableFormula } from '../common/ScrubbableFormula';
+import { BlockMath } from '../common/MathFormula';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
 import { MistakeDoctor } from '../common/MistakeDoctor';
+import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer } from '../../utils/canvasFx';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const DroneNavigator: React.FC = () => {
   const {
@@ -46,6 +48,7 @@ export const DroneNavigator: React.FC = () => {
   const { trackStruggle, trackEvent } = useAnalytics();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ghostDroneRef = useRef(new GhostTrailBuffer(900, 8));
   const [isDraggingDrone, setIsDraggingDrone] = useState(false);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDelivered, setIsDelivered] = useState(false);
@@ -189,12 +192,32 @@ export const DroneNavigator: React.FC = () => {
     rawX = Math.max(-9, Math.min(9, rawX));
     rawY = Math.max(-8, Math.min(8, rawY));
 
-    if (snapToGrid) {
-      rawX = Math.round(rawX);
-      rawY = Math.round(rawY);
-    } else {
-      rawX = Number(rawX.toFixed(1));
-      rawY = Number(rawY.toFixed(1));
+    // Point 3: Magnetic Landmark Snapping to Pythagorean Triples & integers
+    const canonicalPoints = [
+      { x: 3, y: 4 }, { x: 4, y: 3 }, { x: 6, y: 8 }, { x: 8, y: 6 },
+      { x: -3, y: 4 }, { x: -4, y: 3 }, { x: -6, y: 8 },
+      { x: targetX, y: targetY },
+    ];
+    let snapped = false;
+    for (const cp of canonicalPoints) {
+      if (Math.hypot(rawX - cp.x, rawY - cp.y) < 0.28) {
+        rawX = cp.x;
+        rawY = cp.y;
+        snapped = true;
+        lightTap();
+        playClick(1.3);
+        break;
+      }
+    }
+
+    if (!snapped) {
+      if (snapToGrid) {
+        rawX = Math.round(rawX);
+        rawY = Math.round(rawY);
+      } else {
+        rawX = Number(rawX.toFixed(1));
+        rawY = Number(rawY.toFixed(1));
+      }
     }
 
     updateDroneParams({ droneX: rawX, droneY: rawY });
@@ -472,9 +495,31 @@ export const DroneNavigator: React.FC = () => {
         }
       }
 
+      // Point 2: Transient Ghost Trails of Drone Motion
+      ghostDroneRef.current.push(droneScreen.sx, droneScreen.sy);
+      ghostDroneRef.current.draw(ctx, (pt, alpha) => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(56, 189, 248, ${alpha * 0.4})`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.7})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // Point 4: Direct On-Canvas Hover/Grip Affordance for Drone
+      const isBreached = !!breachedZone;
+      drawGripAffordance(ctx, droneScreen.sx, droneScreen.sy, {
+        color: isBreached ? '#ef4444' : isDelivered ? '#10b981' : '#38bdf8',
+        label: `Drone (${droneX}, ${droneY})`,
+        sublabel: isDraggingDrone ? 'Dragging' : 'Catch & Fly',
+        isDragging: isDraggingDrone,
+        isHovered: isDraggingDrone,
+        radius: 11,
+      });
+
       // 7. Draw the Quadcopter Drone Sprite
       const droneRadius = Math.max(16, scale * 0.8);
-      const isBreached = !!breachedZone;
 
       // Drone Shadow on ground
       ctx.beginPath();
@@ -821,54 +866,14 @@ export const DroneNavigator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-3">
-          {/* Priority 3 Pedagogy: Scrubbable Math Formula Two-Way Binding */}
-          <ScrubbableFormula
-            title="Two-Way Distance Formula (Scrub directly in math)"
-            equationLatexTemplate={(p) => {
-              const x = p.targetX ?? targetX;
-              const y = p.targetY ?? targetY;
-              const d = Math.sqrt(x * x + y * y);
-              return `d = \\sqrt{(${x})^2 + (${y})^2} = \\sqrt{${x * x} + ${y * y}} = ${d.toFixed(2)} \\text{ u}`;
-            }}
-            parameters={[
-              {
-                id: 'targetX',
-                symbol: 'x_2',
-                name: 'Target X (Δx)',
-                value: targetX,
-                min: -8,
-                max: 8,
-                step: 1,
-                color: 'text-sky-400',
-                landmarks: [
-                  { value: 0, label: 'Origin' },
-                  { value: 3, label: '3-4-5 Triplet' },
-                  { value: 6, label: '6-8-10 Triplet' },
-                  { value: -4, label: 'Q2 Clinic' },
-                ],
-              },
-              {
-                id: 'targetY',
-                symbol: 'y_2',
-                name: 'Target Y (Δy)',
-                value: targetY,
-                min: -8,
-                max: 8,
-                step: 1,
-                color: 'text-emerald-400',
-                landmarks: [
-                  { value: 0, label: 'Origin' },
-                  { value: 4, label: '3-4-5 Triplet' },
-                  { value: 8, label: '6-8-10 Triplet' },
-                  { value: 3, label: 'Q2 Clinic' },
-                ],
-              },
-            ]}
-            onParameterChange={(id, val) => {
-              if (id === 'targetX') updateDroneParams({ targetX: val });
-              if (id === 'targetY') updateDroneParams({ targetY: val });
-            }}
-            onReset={() => updateDroneParams({ targetX: 6, targetY: 8 })}
+          {/* Point 1 & 5: 3-Tier Live KaTeX Substitution with Synchronized Active Term Glow */}
+          <LiveSubstitutionCard
+            title="Euclidean Distance Progression"
+            badge="Pythagorean Metric"
+            symbolicLaw="d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2} = \sqrt{(\Delta x)^2 + (\Delta y)^2}"
+            substitutedLatex={`d = \\sqrt{(${targetX} - ${originX})^2 + (${targetY} - ${originY})^2} = \\sqrt{${Math.abs(targetX - originX)}^2 + ${Math.abs(targetY - originY)}^2}`}
+            evaluatedLatex={`d = \\sqrt{${Math.pow(targetX - originX, 2) + Math.pow(targetY - originY, 2)}} = ${Math.hypot(targetX - originX, targetY - originY).toFixed(2)} \\text{ u}`}
+            activeTerm={isDraggingDrone ? 'Target (Δx, Δy)' : undefined}
           />
 
           <div className="space-y-1.5">

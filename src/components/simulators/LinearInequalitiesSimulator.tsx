@@ -30,6 +30,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const LinearInequalitiesSimulator: React.FC = () => {
   const {
@@ -512,6 +513,14 @@ export const LinearInequalitiesSimulator: React.FC = () => {
         }
       >
         <div className="space-y-4 text-xs">
+          <LiveSubstitutionCard
+            title="Feasible Region Constraint Evaluation"
+            badge={isFeasible ? 'Feasible Point' : 'Violates Constraint'}
+            symbolicLaw="a x + b y \le c, \quad Z = p x + q y"
+            substitutedLatex={`(${a1})(${testPointX}) + (${b1})(${testPointY}) = ${(a1 * testPointX + b1 * testPointY).toFixed(1)} \\le ${c1}, \\; (${a2})(${testPointX}) + (${b2})(${testPointY}) = ${(a2 * testPointX + b2 * testPointY).toFixed(1)} \\le ${c2}`}
+            evaluatedLatex={`Z(${testPointX}, ${testPointY}) = ${objectiveP}(${testPointX}) + ${objectiveQ}(${testPointY}) = ${(objectiveP * testPointX + objectiveQ * testPointY).toFixed(2)}`}
+          />
+
           {/* Presets */}
           <div>
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">

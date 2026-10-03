@@ -7,7 +7,7 @@
  * - Triangle Centroid 2:1 median ratio visualizer
  * - 3 Progressive Board Exam challenges
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Crosshair, 
@@ -17,7 +17,12 @@ import {
   Share2, 
   Maximize2,
   CheckCircle2,
-  Triangle
+  Triangle,
+  Sliders,
+  Undo2,
+  Redo2,
+  FileText,
+  Columns
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -27,6 +32,12 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { InlineMath } from '../common/MathFormula';
+import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
+import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
+import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
 
 export const CoordinateSectionSimulator: React.FC = () => {
   const {
@@ -51,8 +62,21 @@ export const CoordinateSectionSimulator: React.FC = () => {
   } = coordinateSectionParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { playClick, playChime, playPitchTone } = useSound();
   const { trackEvent } = useAnalytics();
+
+  // Recommendations 11-15 state
+  const [showCheatSheet, setShowCheatSheet] = useState<boolean>(false);
+  const [showDualView, setShowDualView] = useState<boolean>(false);
+
+  // Recommendation 14: Time-Travel Parameter History
+  const { takeSnapshot, undo, redo, canUndo, canRedo } = useSnapshotHistory(
+    { pointAx, pointAy, pointBx, pointBy, ratioM1, ratioM2, divisionType, showCentroidTriangle },
+    (restored) => {
+      updateCoordinateSectionParams(restored);
+      playPitchTone(restored.ratioM1 / (restored.ratioM1 + restored.ratioM2), 220, 700);
+    }
+  );
 
   // Section formula calculations
   const divisor = divisionType === 'internal' ? ratioM1 + ratioM2 : ratioM1 - ratioM2;
@@ -161,7 +185,15 @@ export const CoordinateSectionSimulator: React.FC = () => {
   }, [ratioM1, ratioM2, pointAx, pointAy, pointBx, pointBy, divisionType, showCentroidTriangle, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="Section Formula Invariant"
+        badge={divisionType === 'internal' ? 'Internal Ratio' : 'External Ratio'}
+        symbolicLaw="P(x, y) = \left(\frac{m_1 x_2 \pm m_2 x_1}{m_1 \pm m_2}, \frac{m_1 y_2 \pm m_2 y_1}{m_1 \pm m_2}\right)"
+        substitutedLatex={`P = \\left(\\frac{(${ratioM1})(${pointBx}) ${divisionType === 'internal' ? '+' : '-'} (${ratioM2})(${pointAx})}{${ratioM1} ${divisionType === 'internal' ? '+' : '-'} ${ratioM2}}, \\frac{(${ratioM1})(${pointBy}) ${divisionType === 'internal' ? '+' : '-'} (${ratioM2})(${pointAy})}{${ratioM1} ${divisionType === 'internal' ? '+' : '-'} ${ratioM2}}\\right)`}
+        evaluatedLatex={`P(x, y) = (${pointPx.toFixed(2)}, ${pointPy.toFixed(2)}) \\quad [m_1:m_2 = ${ratioM1}:${ratioM2}]`}
+      />
+
       <div className="flex bg-slate-900 p-1 rounded-2xl border border-slate-800">
         <button
           onClick={() => {
@@ -296,6 +328,120 @@ export const CoordinateSectionSimulator: React.FC = () => {
         </button>
       </div>
 
+      {/* Point 8: Invariant Locking Badge & Point 10: 1-Tap Canonical Presets Bar */}
+      <div className="w-full max-w-4xl mx-auto mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <InvariantLockBadge
+          label="Section Formula Invariant"
+          invariantLatex="P = \left(\frac{m_1 x_2 \pm m_2 x_1}{m_1 \pm m_2}, \frac{m_1 y_2 \pm m_2 y_1}{m_1 \pm m_2}\right)"
+          currentValue={`P(${pointPx.toFixed(2)}, ${pointPy.toFixed(2)})`}
+          status="locked"
+        />
+
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 shadow-lg overflow-x-auto no-scrollbar max-w-full">
+          {/* Time-Travel Undo / Redo */}
+          <div className="flex items-center gap-0.5 border-r border-slate-700/80 pr-1.5 mr-0.5">
+            <button
+              type="button"
+              onClick={undo}
+              disabled={!canUndo}
+              title="Undo Parameter Change"
+              className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                canUndo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+              }`}
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={redo}
+              disabled={!canRedo}
+              title="Redo Parameter Change"
+              className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                canRedo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+              }`}
+            >
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* 5-Mark Proof Cheatsheet Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowCheatSheet(true);
+              lightTap();
+              playClick();
+            }}
+            className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-amber-500/50 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+          >
+            <FileText className="w-3 h-3 text-amber-400" />
+            5-Mark Proof
+          </button>
+
+          {/* Dual View Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowDualView(true);
+              lightTap();
+              playClick();
+            }}
+            className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+          >
+            <Columns className="w-3 h-3 text-emerald-400" />
+            Dual View
+          </button>
+
+          <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1.5 flex items-center gap-1 border-l border-slate-700/80 pl-1.5">
+            <Sliders className="w-3 h-3 text-cyan-400" />
+            Presets:
+          </span>
+          {[
+            { label: 'Midpoint (1:1)', m1: 1, m2: 1, ax: 2, ay: 2, bx: 8, by: 6, mode: 'internal' as const, centroid: false },
+            { label: 'Trisection (2:1)', m1: 2, m2: 1, ax: 0, ay: 0, bx: 6, by: 6, mode: 'internal' as const, centroid: false },
+            { label: 'Ratio 3:2', m1: 3, m2: 2, ax: 1, ay: 1, bx: 6, by: 6, mode: 'internal' as const, centroid: false },
+            { label: 'External (3:1)', m1: 3, m2: 1, ax: 2, ay: 2, bx: 6, by: 4, mode: 'external' as const, centroid: false },
+            { label: 'Centroid 2:1', m1: 2, m2: 1, ax: 2, ay: 2, bx: 8, by: 6, mode: 'internal' as const, centroid: true },
+          ].map((p, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => {
+                takeSnapshot({
+                  ratioM1: p.m1,
+                  ratioM2: p.m2,
+                  pointAx: p.ax,
+                  pointAy: p.ay,
+                  pointBx: p.bx,
+                  pointBy: p.by,
+                  divisionType: p.mode,
+                  showCentroidTriangle: p.centroid,
+                }, p.label);
+                updateCoordinateSectionParams({
+                  ratioM1: p.m1,
+                  ratioM2: p.m2,
+                  pointAx: p.ax,
+                  pointAy: p.ay,
+                  pointBx: p.bx,
+                  pointBy: p.by,
+                  divisionType: p.mode,
+                  showCentroidTriangle: p.centroid,
+                });
+                lightTap();
+                playClick();
+              }}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                ratioM1 === p.m1 && ratioM2 === p.m2 && divisionType === p.mode && showCentroidTriangle === p.centroid
+                  ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-extrabold shadow-sm'
+                  : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="w-full max-w-4xl mx-auto bg-slate-900/70 border border-slate-800/80 rounded-3xl p-5 sm:p-6 backdrop-blur-sm shadow-xl space-y-6">
           {/* Coordinates Header */}
           <div className="grid grid-cols-3 gap-3">
@@ -334,6 +480,28 @@ export const CoordinateSectionSimulator: React.FC = () => {
               {/* Axes */}
               <line x1="-8" y1="0" x2="14" y2="0" stroke="rgba(255,255,255,0.3)" strokeWidth="0.1" />
               <line x1="0" y1="-8" x2="0" y2="14" stroke="rgba(255,255,255,0.3)" strokeWidth="0.1" />
+
+              {/* Point 6: SVG Component Shadow Drops from P onto X and Y axes */}
+              <line
+                x1={pointPx}
+                y1={pointPy}
+                x2={pointPx}
+                y2="0"
+                stroke="#38bdf8"
+                strokeWidth="0.12"
+                strokeDasharray="0.3 0.3"
+              />
+              <line
+                x1={pointPx}
+                y1={pointPy}
+                x2="0"
+                y2={pointPy}
+                stroke="#f43f5e"
+                strokeWidth="0.12"
+                strokeDasharray="0.3 0.3"
+              />
+              <circle cx={pointPx} cy="0" r="0.2" fill="#38bdf8" />
+              <circle cx="0" cy={pointPy} r="0.2" fill="#f43f5e" />
 
               {/* Centroid Mode Triangle */}
               {showCentroidTriangle && (
@@ -399,6 +567,95 @@ export const CoordinateSectionSimulator: React.FC = () => {
       >
         {controlsContent}
       </BottomSheet>
+
+      {/* Point 13: CBSE Class 10 5-Mark Proof & Cheatsheet Modal */}
+      <ExamCheatSheetModal
+        isOpen={showCheatSheet}
+        onClose={() => setShowCheatSheet(false)}
+        topicTitle="CBSE Class 10: Coordinate Section Formula & Centroid"
+        chapterName="Chapter 7 — Coordinate Geometry (5-Mark Master Cheatsheet)"
+        fiveMarkQuestion="Derive the Section Formula for internal division of line segment joining A(x₁, y₁) and B(x₂, y₂) in ratio m₁ : m₂ using similar right triangles. Hence, find the coordinates of the centroid of a triangle with vertices (x₁, y₁), (x₂, y₂), (x₃, y₃)."
+        proofSteps={[
+          {
+            stepNumber: 1,
+            title: "Geometric Setup & Perpendicular Projections",
+            mathContent: "AL, PM, BN \\perp X\\text{-axis}, \\quad AQ \\perp PM, \\; PT \\perp BN",
+            explanation: "Drop perpendiculars from A, P, B onto the x-axis. Construct horizontal projections AQ and PT to form right triangles ΔPAQ and ΔBPT.",
+            marksAllocation: "1.0 Mark",
+          },
+          {
+            stepNumber: 2,
+            title: "AA Similarity of Right Triangles",
+            mathContent: "\\angle PQA = \\angle BTP = 90^\\circ, \\quad \\angle PAQ = \\angle BPT \\implies \\Delta PAQ \\sim \\Delta BPT \\; (AA)",
+            explanation: "Since corresponding angles of parallel lines are equal, the two right triangles are similar by AA similarity.",
+            marksAllocation: "1.0 Mark",
+          },
+          {
+            stepNumber: 3,
+            title: "Derivation of X and Y Coordinates",
+            mathContent: "\\frac{PA}{PB} = \\frac{AQ}{PT} \\implies \\frac{m_1}{m_2} = \\frac{x - x_1}{x_2 - x} \\implies x = \\frac{m_1 x_2 + m_2 x_1}{m_1 + m_2}",
+            explanation: "Cross-multiply and group terms containing x on the LHS: m₁x₂ - m₁x = m₂x - m₂x₁ ⟹ x(m₁ + m₂) = m₁x₂ + m₂x₁.",
+            marksAllocation: "2.0 Marks",
+          },
+          {
+            stepNumber: 4,
+            title: "Centroid 2:1 Median Ratio Theorem",
+            mathContent: "G = \\left(\\frac{x_1 + x_2 + x_3}{3}, \\frac{y_1 + y_2 + y_3}{3}\\right)",
+            explanation: "The centroid G divides the median from A to midpoint D in the ratio 2 : 1. Apply section formula with m₁=2, m₂=1 to derive the 3-vertex average.",
+            marksAllocation: "1.0 Mark",
+          },
+        ]}
+        topperShortcuts={[
+          "Cross-Multiplication Memory Hook: m₁ ALWAYS multiplies point B coordinates, while m₂ ALWAYS multiplies point A coordinates!",
+          "Trisection Shortcut: Points of trisection divide segment in 1:2 and 2:1 ratios.",
+          "Midpoint Corollary: When m₁ = m₂ = 1, P = ((x₁+x₂)/2, (y₁+y₂)/2).",
+        ]}
+        examinerTraps={[
+          "Multiplying m₁ with x₁ instead of x₂ (disaster cross error!).",
+          "For external division, forgetting that the formula has a MINUS sign: (m₁x₂ - m₂x₁)/(m₁ - m₂).",
+          "Centroid coordinates are an exact arithmetic mean of 3 vertices, NOT 2.",
+        ]}
+      />
+
+      {/* Point 15: Split-Screen Dual Perspective Comparison Inspector */}
+      <DualViewInspectorModal
+        isOpen={showDualView}
+        onClose={() => setShowDualView(false)}
+        title="Section Formula Dual Inspector"
+        badge="Linear Ratio Section vs Centroid 2:1 Median Intersection"
+        primaryView={{
+          title: "1D/2D Segment Division",
+          badge: `Ratio ${ratioM1} : ${ratioM2}`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-200">
+                <p className="font-bold">Point A: ({pointAx}, {pointAy})</p>
+                <p className="font-bold text-amber-300 mt-1">Point B: ({pointBx}, {pointBy})</p>
+              </div>
+              <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-200 text-center">
+                <span className="text-xs uppercase text-slate-400 block font-semibold">Dividing Point P ({divisionType})</span>
+                <span className="text-base font-bold text-emerald-300">({pointPx.toFixed(2)}, {pointPy.toFixed(2)})</span>
+              </div>
+            </div>
+          ),
+        }}
+        secondaryView={{
+          title: "Triangle Centroid G (2:1 Invariant)",
+          badge: "G = (Σx/3, Σy/3)",
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-800/60 text-purple-200">
+                <p className="font-semibold text-purple-300 mb-1">Vertex C: ({pointCx}, {pointCy})</p>
+                <p className="font-bold text-white">Centroid G: ({centroidX.toFixed(2)}, {centroidY.toFixed(2)})</p>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 text-center">
+                Centroid divides each median in a 2 : 1 ratio from vertex to midpoint base!
+              </div>
+            </div>
+          ),
+        }}
+        couplingBanner="The Section Formula ratio m₁:m₂ governs both Segment Points and the Centroid G 2:1 Median Invariant!"
+      />
     </div>
   );
 };

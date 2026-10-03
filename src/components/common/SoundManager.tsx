@@ -17,6 +17,7 @@ export interface SoundContextType {
   playLaserSweep: () => void;
   playResonance: (pitchMultiplier?: number) => void;
   playHarmonicSnap: () => void;
+  playPitchTone: (normalizedVal: number, minHz?: number, maxHz?: number) => void;
 }
 
 const SoundContext = createContext<SoundContextType | null>(null);
@@ -264,6 +265,30 @@ class WebAudioSynthesizer {
       osc.stop(ctx.currentTime + 0.18);
     });
   }
+
+  // 12. Continuous Audio-Pitch Frequency Modulation tone
+  public pitchTone(normalizedVal: number, minHz = 220, maxHz = 880) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const clampedNorm = Math.max(0, Math.min(1, normalizedVal));
+    const targetFreq = minHz + clampedNorm * (maxHz - minHz);
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(targetFreq, ctx.currentTime);
+
+    gain.gain.setValueAtTime(0.045, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.08);
+  }
 }
 
 const synthInstance = new WebAudioSynthesizer();
@@ -339,6 +364,11 @@ export const SoundManager: React.FC<{ children?: React.ReactNode }> = ({ childre
     synthInstance.harmonicSnap();
   }, [isMuted]);
 
+  const playPitchTone = useCallback((normalizedVal: number, minHz = 220, maxHz = 880) => {
+    if (isMuted) return;
+    synthInstance.pitchTone(normalizedVal, minHz, maxHz);
+  }, [isMuted]);
+
   return (
     <SoundContext.Provider
       value={{
@@ -352,6 +382,7 @@ export const SoundManager: React.FC<{ children?: React.ReactNode }> = ({ childre
         playLaserSweep,
         playResonance,
         playHarmonicSnap,
+        playPitchTone,
       }}
     >
       {children}
@@ -374,6 +405,7 @@ export const useSound = (): SoundContextType => {
       playLaserSweep: () => {},
       playResonance: () => {},
       playHarmonicSnap: () => {},
+      playPitchTone: () => {},
     };
   }
   return ctx;
@@ -404,5 +436,8 @@ export const soundEffects = {
   },
   harmonicSnap: () => {
     if (localStorage.getItem('livesimulators_muted') !== 'true') synthInstance.harmonicSnap();
+  },
+  pitchTone: (normalizedVal: number, minHz?: number, maxHz?: number) => {
+    if (localStorage.getItem('livesimulators_muted') !== 'true') synthInstance.pitchTone(normalizedVal, minHz, maxHz);
   },
 };

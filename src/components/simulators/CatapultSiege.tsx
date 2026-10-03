@@ -27,6 +27,7 @@ import { usePerformanceMode } from '../../hooks/usePerformanceMode';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
 import { MistakeDoctor } from '../common/MistakeDoctor';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const CatapultSiege: React.FC = () => {
   const {
@@ -982,7 +983,16 @@ export const CatapultSiege: React.FC = () => {
         }
       >
         {/* Controls Tab - Mobile friendly compact layout */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
+          {/* Point 1 & 5: Live Substitution Card for Projectile Motion */}
+          <LiveSubstitutionCard
+            title="Projectile Motion"
+            badge="Trigonometry"
+            symbolicLaw="v_x = v \cdot \cos\theta, \quad v_y = v \cdot \sin\theta"
+            substitutedLatex={`v_x = ${tension} \\cdot \\cos ${angleDeg}^\\circ, \\quad v_y = ${tension} \\cdot \\sin ${angleDeg}^\\circ`}
+            evaluatedLatex={`v_x = ${adjacent.toFixed(1)}, \\quad v_y = ${opposite.toFixed(1)}, \\quad \\text{Clearance} = ${theoreticalClearance > 0 ? `+${theoreticalClearance.toFixed(1)}` : theoreticalClearance.toFixed(1)}`}
+            activeTerm={hasLaunched ? (hasClearedWall ? 'Cleared!' : hasHitWall ? 'Hit Wall!' : 'In Flight...') : undefined}
+          />
           <div className="grid grid-cols-2 gap-2 items-center bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
             {/* Circular Dial for Elevation Angle θ */}
             <div className="flex justify-center scale-90 sm:scale-100">

@@ -13,6 +13,7 @@ import { BottomSheet } from '../layout/BottomSheet';
 import { TouchSlider } from '../common/TouchSlider';
 import { MathFormula } from '../common/MathFormula';
 import { CoachTheoryModule } from '../common/CoachTheoryModule';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const VectorFlightLabSimulator: React.FC = () => {
   const {
@@ -468,6 +469,14 @@ export const VectorFlightLabSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-4">
+          <LiveSubstitutionCard
+            title="3D Vector Dot & Cross Invariant"
+            badge="Vector Algebra"
+            symbolicLaw="\mathbf{u} \cdot \mathbf{v} = |\mathbf{u}||\mathbf{v}|\cos\theta, \quad |\mathbf{u} \times \mathbf{v}| = |\mathbf{u}||\mathbf{v}|\sin\theta"
+            substitutedLatex={`\\mathbf{u} \\cdot \\mathbf{v} = (${u[0]})(${v[0]}) + (${u[1]})(${v[1]}) + (${u[2]})(${v[2]}) = ${dotProduct.toFixed(2)}`}
+            evaluatedLatex={`\\mathbf{u} \\cdot \\mathbf{v} = ${dotProduct.toFixed(2)}, \\quad |\\mathbf{u} \\times \\mathbf{v}| = ${magCross.toFixed(2)}, \\quad \\theta = ${angleDeg.toFixed(1)}^\\circ`}
+          />
+
           <div className="space-y-3">
             <span className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
               <span>Vector u Coordinates (Cyan)</span>

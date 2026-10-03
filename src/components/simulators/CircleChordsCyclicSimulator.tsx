@@ -30,6 +30,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const CircleChordsCyclicSimulator: React.FC = () => {
   const {
@@ -549,6 +550,26 @@ export const CircleChordsCyclicSimulator: React.FC = () => {
         }
       >
         <div className="space-y-4 text-xs">
+          <LiveSubstitutionCard
+            title={mode === 'perpendicular-chord' ? 'Chord Pythagoras Invariant' : 'Cyclic Quad Supplementary Invariant'}
+            badge={mode === 'perpendicular-chord' ? 'OM ⊥ AB' : '∠A + ∠C = 180°'}
+            symbolicLaw={
+              mode === 'perpendicular-chord'
+                ? "R^2 = d^2 + \\left(\\frac{L}{2}\\right)^2, \\quad AM = MB = \\frac{L}{2}"
+                : "\\angle A + \\angle C = 180^\\circ, \\quad \\angle B + \\angle D = 180^\\circ"
+            }
+            substitutedLatex={
+              mode === 'perpendicular-chord'
+                ? `(${circleRadius})^2 = (${clampedD.toFixed(1)})^2 + (${halfChord.toFixed(2)})^2`
+                : `\\angle A + \\angle C = ${angleA.toFixed(1)}^\\circ + ${angleC.toFixed(1)}^\\circ`
+            }
+            evaluatedLatex={
+              mode === 'perpendicular-chord'
+                ? `\\text{Chord } L = ${chordLength.toFixed(2)} \\text{ cm}, \\quad AM = ${halfChord.toFixed(2)} \\text{ cm}`
+                : `\\Sigma = ${(angleA + angleC).toFixed(1)}^\\circ \\quad (${Math.abs(angleA + angleC - 180) < 1 ? '\\text{Concyclic}' : '\\text{Non-Cyclic}'})`
+            }
+          />
+
           {/* Mode Switcher */}
           <div>
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">

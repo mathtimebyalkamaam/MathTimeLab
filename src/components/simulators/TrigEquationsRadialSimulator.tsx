@@ -26,6 +26,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const TrigEquationsRadialSimulator: React.FC = () => {
   const {
@@ -160,7 +161,21 @@ export const TrigEquationsRadialSimulator: React.FC = () => {
   }, [targetFunction, targetValue, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="Trig General Solution Invariant"
+        badge={`${targetFunction.toUpperCase()} Equation`}
+        symbolicLaw={
+          targetFunction === 'sin'
+            ? "\\sin\\theta = \\sin\\alpha \\implies \\theta = n\\pi + (-1)^n \\alpha"
+            : targetFunction === 'cos'
+            ? "\\cos\\theta = \\cos\\alpha \\implies \\theta = 2n\\pi \\pm \\alpha"
+            : "\\tan\\theta = \\tan\\alpha \\implies \\theta = n\\pi + \\alpha"
+        }
+        substitutedLatex={`\\alpha = ${alphaDeg.toFixed(1)}^\\circ, \\quad \\text{for } ${targetFunction}(\\theta) = ${targetValue.toFixed(2)}`}
+        evaluatedLatex={`\\theta_0 = ${alphaDeg.toFixed(1)}^\\circ, \\quad \\theta_1 = ${targetFunction === 'sin' ? (180 - alphaDeg).toFixed(1) : targetFunction === 'cos' ? (360 - alphaDeg).toFixed(1) : (180 + alphaDeg).toFixed(1)}^\\circ`}
+      />
+
       <div>
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block flex items-center gap-1.5">
           <Layers className="w-3.5 h-3.5 text-cyan-400" />

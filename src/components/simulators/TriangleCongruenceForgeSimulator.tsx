@@ -27,6 +27,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const TriangleCongruenceForgeSimulator: React.FC = () => {
   const {
@@ -145,7 +146,19 @@ export const TriangleCongruenceForgeSimulator: React.FC = () => {
   }, [criterion, angleA, sideA, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="Triangle Congruence Criterion Invariant"
+        badge={criterion}
+        symbolicLaw="\Delta ABC \cong \Delta DEF \iff \text{Criterion Satisfied (SAS, SSS, ASA, AAS, RHS)}"
+        substitutedLatex={`\\text{Active: } ${criterion}, \\quad a = ${sideA} \\text{ cm}, \\; b = ${sideB} \\text{ cm}`}
+        evaluatedLatex={
+          isInvalidTrap
+            ? `\\text{SSA is Invalid (Ambiguous Case)} \\implies \\text{Non-Unique Shape}`
+            : `\\Delta ABC \\cong \\Delta DEF \\implies \\text{All 3 corresponding sides \\& angles equal}`
+        }
+      />
+
       <div>
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block flex items-center gap-1.5">
           <Layers className="w-3.5 h-3.5 text-cyan-400" />

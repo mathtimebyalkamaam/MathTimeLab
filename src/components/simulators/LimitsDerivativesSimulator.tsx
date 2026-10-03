@@ -20,7 +20,12 @@ import {
   Sliders, 
   Eye, 
   Sparkles,
-  Activity
+  Activity,
+  Search,
+  Undo2,
+  Redo2,
+  FileText,
+  Columns
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -31,6 +36,13 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
+import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer, drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { InlineMath } from '../common/MathFormula';
+import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
+import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
+import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
 
 export const LimitsDerivativesSimulator: React.FC = () => {
   const {
@@ -55,12 +67,29 @@ export const LimitsDerivativesSimulator: React.FC = () => {
   } = limitsDerivativesParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { playClick, playChime, playPitchTone } = useSound();
   const { trackEvent } = useAnalytics();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ghostSecantsRef = useRef(new GhostTrailBuffer(900, 6));
+  const flareManagerRef = useRef(new CriticalEventFlareManager());
   const [dragPoint, setDragPoint] = useState<'P' | 'Q' | null>(null);
   const [hoverPoint, setHoverPoint] = useState<'P' | 'Q' | null>(null);
+
+  // Recommendations 11-15 state
+  const [showLoupe, setShowLoupe] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showDualView, setShowDualView] = useState(false);
+
+  // Recommendation 14: Time-Travel Parameter History
+  const { takeSnapshot, undo, redo, canUndo, canRedo } = useSnapshotHistory(
+    { functionType, x0, hStep, zoomLevel },
+    (restored) => {
+      updateLimitsDerivativesParams(restored);
+      const closeness = Math.max(0, 1 - Math.abs(restored.hStep) / 2.0);
+      playPitchTone(closeness, 220, 880);
+    }
+  );
 
   // Mathematical functions and derivatives
   const evaluateF = useCallback((x: number) => {
@@ -242,6 +271,25 @@ export const LimitsDerivativesSimulator: React.FC = () => {
       const pScreen = toScreen(x0, fx0);
       const qScreen = toScreen(x0 + hStep, fx0_plus_h);
 
+      // Point 2: Transient Ghost Trails of Secant rotation
+      if (showSecantLine) {
+        ghostSecantsRef.current.push(x0, hStep, { secantSlope, fx0 });
+        ghostSecantsRef.current.draw(ctx, (pt, alpha) => {
+          const ghostX1 = pt.x - 4;
+          const ghostY1 = pt.data.fx0 + pt.data.secantSlope * (ghostX1 - pt.x);
+          const ghostX2 = pt.x + 4;
+          const ghostY2 = pt.data.fx0 + pt.data.secantSlope * (ghostX2 - pt.x);
+          const gs1 = toScreen(ghostX1, ghostY1);
+          const gs2 = toScreen(ghostX2, ghostY2);
+          ctx.strokeStyle = `rgba(245, 158, 11, ${alpha * 0.7})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(gs1.sx, gs1.sy);
+          ctx.lineTo(gs2.sx, gs2.sy);
+          ctx.stroke();
+        });
+      }
+
       // Secant Line PQ (amber)
       if (showSecantLine) {
         const secantX1 = x0 - 4;
@@ -289,44 +337,48 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         ctx.setLineDash([]);
       }
 
-      // Draggable Point P marker
-      const isPHovered = hoverPoint === 'P' || dragPoint === 'P';
-      ctx.fillStyle = isPHovered ? '#7dd3fc' : '#38bdf8';
-      ctx.beginPath();
-      ctx.arc(pScreen.sx, pScreen.sy, isPHovered ? 9 : 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+      // Point 6: Component Shadow Drops from Point P onto Cartesian Axes
+      drawShadowDrops(ctx, pScreen.sx, pScreen.sy, axX, axY, {
+        colorX: '#38bdf8',
+        colorY: '#a855f7',
+        valX: `x₀=${x0.toFixed(2)}`,
+        valY: `f(x₀)=${fx0.toFixed(2)}`,
+        dash: [4, 4],
+      });
 
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
-      ctx.lineWidth = isPHovered ? 6 : 3;
-      ctx.beginPath();
-      ctx.arc(pScreen.sx, pScreen.sy, isPHovered ? 16 : 12, 0, Math.PI * 2);
-      ctx.stroke();
+      // Point 4: Direct On-Canvas Hover Rings & Pulsing Affordances for P and Q
+      drawGripAffordance(ctx, pScreen.sx, pScreen.sy, {
+        color: '#38bdf8',
+        label: `P(${x0.toFixed(2)}, ${fx0.toFixed(2)})`,
+        sublabel: 'Drag x₀',
+        isHovered: hoverPoint === 'P',
+        isDragging: dragPoint === 'P',
+        radius: 9,
+      });
 
-      // Draggable Point Q marker
-      const isQHovered = hoverPoint === 'Q' || dragPoint === 'Q';
-      ctx.fillStyle = isQHovered ? '#fcd34d' : '#f59e0b';
-      ctx.beginPath();
-      ctx.arc(qScreen.sx, qScreen.sy, isQHovered ? 8 : 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      drawGripAffordance(ctx, qScreen.sx, qScreen.sy, {
+        color: '#f59e0b',
+        label: `Q(h = ${hStep.toFixed(2)})`,
+        sublabel: 'Drag h → 0',
+        isHovered: hoverPoint === 'Q',
+        isDragging: dragPoint === 'Q',
+        radius: 8,
+      });
 
-      ctx.strokeStyle = 'rgba(245, 158, 11, 0.45)';
-      ctx.lineWidth = isQHovered ? 5 : 2.5;
-      ctx.beginPath();
-      ctx.arc(qScreen.sx, qScreen.sy, isQHovered ? 14 : 10, 0, Math.PI * 2);
-      ctx.stroke();
+      // Point 11: Microscope Loupe / Precision Magnifier Lens
+      if (showLoupe) {
+        const lensX = Math.max(70, Math.min(width - 70, pScreen.sx + (pScreen.sx < width / 2 ? 85 : -85)));
+        const lensY = Math.max(70, Math.min(height - 70, pScreen.sy + (pScreen.sy < height / 2 ? 85 : -85)));
+        drawMagnifierLoupe(ctx, canvas, pScreen.sx, pScreen.sy, lensX, lensY, {
+          zoomFactor: 3.0,
+          radius: 54,
+          borderColor: '#38bdf8',
+          label: `3.0x f'(${x0.toFixed(2)}) ≈ ${secantSlope.toFixed(2)}`,
+        });
+      }
 
-      // Point labels
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 12px monospace';
-      ctx.fillText(`P(${x0.toFixed(2)}, ${fx0.toFixed(2)})`, pScreen.sx + 12, pScreen.sy - 8);
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillText(`Q(x₀+h, h=${hStep.toFixed(2)})`, qScreen.sx + 12, qScreen.sy + 16);
+      // Point 7: Critical Event Flares (e.g. h -> 0 Tangent Snap)
+      flareManagerRef.current.draw(ctx);
 
       ctx.restore();
       animId = requestAnimationFrame(render);
@@ -351,6 +403,7 @@ export const LimitsDerivativesSimulator: React.FC = () => {
     showTangentLine,
     showDifferenceQuotient,
     showSqueezeTheorem,
+    showLoupe,
     evaluateF,
     hoverPoint,
     dragPoint,
@@ -407,14 +460,24 @@ export const LimitsDerivativesSimulator: React.FC = () => {
     const mathX = (sx - originX) / scale + offsetX;
 
     if (dragPoint === 'P') {
-      const newX0 = Math.max(-4, Math.min(4, Number(mathX.toFixed(2))));
-      updateLimitsDerivativesParams({ x0: newX0 });
+      const rawX0 = Math.max(-4, Math.min(4, Number(mathX.toFixed(2))));
+      // Point 3: Magnetic Landmark Snapping to integers
+      const snapped = checkMagneticSnap(rawX0, [-3, -2, -1, 0, 1, 2, 3], 0.08, () => {
+        lightTap();
+        playClick(1.4);
+      });
+      updateLimitsDerivativesParams({ x0: snapped.value });
       return;
     }
 
     if (dragPoint === 'Q') {
-      const newH = Math.max(0.02, Math.min(3.5, Number((mathX - x0).toFixed(2))));
-      updateLimitsDerivativesParams({ hStep: newH });
+      const rawH = Math.max(0.005, Math.min(3.5, Number((mathX - x0).toFixed(2))));
+      // Point 3: Magnetic Landmark Snapping for step size h
+      const snappedH = checkMagneticSnap(rawH, [0.01, 0.1, 0.5, 1.0, 2.0], 0.04, () => {
+        lightTap();
+        playClick(1.5);
+      });
+      updateLimitsDerivativesParams({ hStep: snappedH.value });
       return;
     }
 
@@ -524,6 +587,145 @@ export const LimitsDerivativesSimulator: React.FC = () => {
 
       {/* Main Interactive Canvas */}
       <div className="relative flex-1 w-full h-full min-h-[300px] overflow-hidden">
+        {/* Point 8: Invariant Locking Badge */}
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-30 flex flex-col gap-2 pointer-events-none">
+          <div className="pointer-events-auto">
+            <InvariantLockBadge
+              label="First Principles Invariant"
+              invariantLatex="f'(x_0) = \lim_{h\to 0}\frac{\Delta y}{\Delta x}"
+              currentValue={`m_{sec}=${secantSlope.toFixed(2)} \\to ${tangentSlope.toFixed(2)}`}
+              status={Math.abs(secantSlope - tangentSlope) < 0.08 ? 'locked' : 'evaluating'}
+            />
+          </div>
+
+        {/* Point 10 & 14: 1-Tap Canonical Presets & Time-Travel Bar */}
+        {!isZenMode && (
+          <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 shadow-lg pointer-events-auto overflow-x-auto no-scrollbar max-w-[calc(100vw-24px)]">
+            {/* Time-Travel Undo / Redo */}
+            <div className="flex items-center gap-0.5 border-r border-slate-700/80 pr-1.5 mr-0.5">
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo}
+                title="Undo Parameter Change"
+                className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                  canUndo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                }`}
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo}
+                title="Redo Parameter Change"
+                className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                  canRedo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                }`}
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Microscope Loupe Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowLoupe((prev) => !prev);
+                lightTap();
+                playClick();
+              }}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                showLoupe
+                  ? 'bg-cyan-600 text-white border-cyan-400 font-extrabold shadow-sm'
+                  : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+              }`}
+            >
+              <Search className="w-3 h-3 text-cyan-400" />
+              Loupe 3.0x
+            </button>
+
+            {/* 5-Mark Proof Cheatsheet Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowCheatSheet(true);
+                lightTap();
+                playClick();
+              }}
+              className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-amber-500/50 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <FileText className="w-3 h-3 text-amber-400" />
+              5-Mark Proof
+            </button>
+
+            {/* Dual View Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowDualView(true);
+                lightTap();
+                playClick();
+              }}
+              className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <Columns className="w-3 h-3 text-emerald-400" />
+              Dual View
+            </button>
+
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1.5 flex items-center gap-1 border-l border-slate-700/80 pl-1.5">
+              <Sliders className="w-3 h-3 text-cyan-400" />
+              Presets:
+            </span>
+            {[
+              { label: 'x² at x=2', func: 'x2' as const, x: 2, h: 0.01 },
+              { label: 'sin(x) at 0', func: 'sin_x' as const, x: 0, h: 0.01 },
+              { label: '√x at 1', func: 'sqrt_x' as const, x: 1, h: 0.01 },
+              { label: '1/x at 1', func: 'reciprocal' as const, x: 1, h: 0.01 },
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  takeSnapshot({ functionType: p.func, x0: p.x, hStep: p.h, zoomLevel }, p.label);
+                  updateLimitsDerivativesParams({
+                    functionType: p.func,
+                    x0: p.x,
+                    hStep: p.h,
+                  });
+                  lightTap();
+                  playClick();
+                  if (canvasRef.current) {
+                    const rect = canvasRef.current.getBoundingClientRect();
+                    const originX = rect.width / 2 - 30;
+                    const originY = rect.height / 2 + 40;
+                    const baseScale = Math.min(rect.width, rect.height) / 12;
+                    const scale = baseScale * zoomLevel;
+                    const toScreen = (x: number, y: number) => ({
+                      sx: originX + (x - (zoomLevel > 1 ? p.x * (1 - 1 / zoomLevel) : 0)) * scale,
+                      sy: originY - (y - (zoomLevel > 1 ? evaluateF(p.x) * (1 - 1 / zoomLevel) : 0)) * scale,
+                    });
+                    const s = toScreen(p.x, evaluateF(p.x));
+                    flareManagerRef.current.trigger(s.sx, s.sy, {
+                      color: '#38bdf8',
+                      label: p.label,
+                      maxRadius: 45,
+                    });
+                  }
+                }}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                  functionType === p.func && Math.abs(x0 - p.x) < 0.01 && Math.abs(hStep - p.h) < 0.01
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-extrabold shadow-sm'
+                    : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
         <canvas
           ref={canvasRef}
           onPointerDown={handlePointerDown}
@@ -586,7 +788,17 @@ export const LimitsDerivativesSimulator: React.FC = () => {
           </div>
         }
       >
-        <div className="space-y-4 text-xs">
+        <div className="space-y-3.5 text-xs">
+          {/* Point 1 & 5: 3-Tier Live KaTeX Substitution with Synchronized Active Term Glow */}
+          <LiveSubstitutionCard
+            title="Difference Quotient & Limit"
+            badge="Calculus First Principles"
+            symbolicLaw="f'(x_0) = \lim_{h \to 0} \frac{f(x_0+h) - f(x_0)}{h}"
+            substitutedLatex={`m_{\\text{sec}} = \\frac{f(${x0.toFixed(1)} + ${hStep.toFixed(2)}) - f(${x0.toFixed(1)})}{${hStep.toFixed(2)}} = \\frac{${fx0_plus_h.toFixed(2)} - ${fx0.toFixed(2)}}{${hStep.toFixed(2)}}`}
+            evaluatedLatex={`m_{\\text{sec}} = ${secantSlope.toFixed(3)} \\implies f'(${x0.toFixed(1)}) = ${tangentSlope.toFixed(3)}`}
+            activeTerm={dragPoint === 'P' ? 'x₀ (Pivot)' : dragPoint === 'Q' ? 'h (Step)' : undefined}
+          />
+
           {/* Function Curve Selector */}
           <div>
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
@@ -701,6 +913,109 @@ export const LimitsDerivativesSimulator: React.FC = () => {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Point 13: CBSE Class 11 5-Mark Proof & Cheatsheet Modal */}
+      <ExamCheatSheetModal
+        isOpen={showCheatSheet}
+        onClose={() => setShowCheatSheet(false)}
+        topicTitle="CBSE Class 11: First Principles Differentiation & Limits"
+        chapterName="Chapter 13 — Limits and Derivatives (5-Mark Master Cheatsheet)"
+        fiveMarkQuestion="Define the derivative of a function f(x) from first principles. Hence, find the derivative of f(x) = sin(x) and f(x) = x² at x = x₀. Explain the geometric significance of secant slope converging to tangent slope."
+        proofSteps={[
+          {
+            stepNumber: 1,
+            title: "Definition of Derivative (Difference Quotient)",
+            mathContent: "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}",
+            explanation: "State the formal definition. The numerator represents Δy (vertical increment) and denominator represents Δx = h (horizontal increment).",
+            marksAllocation: "1.0 Mark",
+          },
+          {
+            stepNumber: 2,
+            title: "First Principles for f(x) = x²",
+            mathContent: "f'(x) = \\lim_{h \\to 0} \\frac{(x+h)^2 - x^2}{h} = \\lim_{h \\to 0} \\frac{x^2 + 2xh + h^2 - x^2}{h} = \\lim_{h \\to 0} (2x + h) = 2x",
+            explanation: "Expand the binomial square, cancel the common x² terms, factor out h from numerator, and evaluate direct substitution limit as h → 0.",
+            marksAllocation: "2.0 Marks",
+          },
+          {
+            stepNumber: 3,
+            title: "Trigonometric Identity for f(x) = sin(x)",
+            mathContent: "\\lim_{h \\to 0} \\frac{2 \\cos\\left(x + \\frac{h}{2}\\right) \\sin\\left(\\frac{h}{2}\\right)}{h} = \\cos(x) \\cdot \\lim_{h\\to 0} \\frac{\\sin(h/2)}{h/2} = \\cos(x)",
+            explanation: "Apply transformation formula: sin(C) - sin(D) = 2 cos((C+D)/2) sin((C-D)/2) and fundamental limit lim_{θ→0} (sin θ / θ) = 1.",
+            marksAllocation: "1.5 Marks",
+          },
+          {
+            stepNumber: 4,
+            title: "Geometric Meaning & Tangent Line Equation",
+            mathContent: "y - f(x_0) = f'(x_0)(x - x_0)",
+            explanation: "The secant line connecting P(x₀, f(x₀)) and Q(x₀+h, f(x₀+h)) rotates continuously until it becomes the instantaneous tangent line at P.",
+            marksAllocation: "0.5 Mark",
+          },
+        ]}
+        topperShortcuts={[
+          "Local Flatness Test: Zoom in 10x–20x onto any differentiable curve — it flattens into a straight line with slope m = f'(x₀)!",
+          "Squeeze Theorem Anchor: -1 ≤ cos(x) ≤ sin(x)/x ≤ 1 ensures limit sin(x)/x = 1 as x → 0.",
+          "Power Rule Derivative: d/dx [xⁿ] = n · xⁿ⁻¹ (valid for all real n).",
+        ]}
+        examinerTraps={[
+          "Dividing by zero before canceling h — you must cancel h in both numerator and denominator BEFORE substituting h = 0!",
+          "Forgetting to write 'lim_{h→0}' on every step until the actual limit value is computed.",
+          "Using product rule directly when the question explicitly states 'from first principles' (0 marks awarded if formula used without limit expansion).",
+        ]}
+      />
+
+      {/* Point 15: Split-Screen Dual Perspective Comparison Inspector */}
+      <DualViewInspectorModal
+        isOpen={showDualView}
+        onClose={() => setShowDualView(false)}
+        title="Limits & Derivatives Dual Inspector"
+        badge="Geometric Secant/Tangent vs Analytical Difference Quotient"
+        primaryView={{
+          title: "Geometric Secant & Tangent Spectrum",
+          badge: `h = ${hStep.toFixed(3)}`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-200">
+                <p className="font-bold">Point P: ({x0.toFixed(2)}, {fx0.toFixed(2)})</p>
+                <p className="font-bold text-amber-300 mt-1">Point Q: ({(x0 + hStep).toFixed(2)}, {fx0_plus_h.toFixed(2)})</p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-700">
+                <div className="flex justify-between items-center text-slate-300">
+                  <span>Secant Chord Slope:</span>
+                  <span className="font-bold text-amber-400">{secantSlope.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between items-center text-slate-300 mt-1">
+                  <span>True Tangent Slope:</span>
+                  <span className="font-bold text-emerald-400">{tangentSlope.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between items-center text-slate-400 text-[11px] mt-1 pt-1 border-t border-slate-800">
+                  <span>Error |m_sec - f'|:</span>
+                  <span className="font-mono text-pink-400">{Math.abs(secantSlope - tangentSlope).toFixed(4)}</span>
+                </div>
+              </div>
+            </div>
+          ),
+        }}
+        secondaryView={{
+          title: "Analytical Difference Quotient",
+          badge: `f'(x₀) = ${tangentSlope.toFixed(3)}`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 text-xs leading-relaxed">
+                <p className="font-semibold text-cyan-300 mb-1">Difference Quotient Expansion:</p>
+                <p className="text-amber-300">Δy = f({(x0 + hStep).toFixed(2)}) - f({x0.toFixed(2)}) = {(fx0_plus_h - fx0).toFixed(4)}</p>
+                <p className="text-cyan-300">Δx = h = {hStep.toFixed(4)}</p>
+                <p className="mt-2 pt-2 border-t border-slate-800 text-emerald-300 font-bold">
+                  Δy / Δx = {(fx0_plus_h - fx0).toFixed(4)} / {hStep.toFixed(4)} = {secantSlope.toFixed(4)}
+                </p>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 text-center">
+                As h → 0, the Δx denominator shrinks to infinitesimal dx, transforming the average rate into instantaneous velocity!
+              </div>
+            </div>
+          ),
+        }}
+        couplingBanner="As Step Size h → 0, the Secant Chord Slope Δy/Δx converges smoothly into the Instantaneous Derivative f'(x₀)!"
+      />
     </div>
   );
 };

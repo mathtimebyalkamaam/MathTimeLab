@@ -1281,11 +1281,14 @@ export const HomePage: React.FC = () => {
           )}
         </div>
 
-        {/* Formula snippet */}
-        <div className="px-2 py-1 rounded-lg bg-slate-950/80 border border-slate-800 text-center overflow-x-auto no-scrollbar">
-          <span className="text-[10px] text-cyan-300 font-mono block truncate">
-            {sim.formulaPreview || sim.latexFormula}
-          </span>
+        {/* Pure KaTeX Math Formula Presentation */}
+        <div className="py-1 px-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-center overflow-hidden flex items-center justify-center min-h-[38px]">
+          <div className="w-full overflow-x-auto no-scrollbar text-center">
+            <BlockMath 
+              math={sim.formulaPreview || sim.latexFormula} 
+              className="!my-0 text-cyan-300 text-xs" 
+            />
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -1360,11 +1363,14 @@ export const HomePage: React.FC = () => {
           </p>
         </div>
 
-        {/* Formula */}
-        <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 text-center overflow-x-auto no-scrollbar">
-          <span className="text-xs text-cyan-300 font-mono block truncate">
-            {sim.formulaPreview || sim.latexFormula}
-          </span>
+        {/* Pure KaTeX Math Formula Presentation */}
+        <div className="py-1 px-2 rounded-xl bg-slate-950/80 border border-slate-800 text-center overflow-hidden flex items-center justify-center min-h-[38px]">
+          <div className="w-full overflow-x-auto no-scrollbar text-center">
+            <BlockMath 
+              math={sim.formulaPreview || sim.latexFormula} 
+              className="!my-0 text-cyan-300 text-xs" 
+            />
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -1827,9 +1833,14 @@ export const HomePage: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Pure KaTeX Math Formula Kicker */}
-                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 overflow-x-auto no-scrollbar">
-                    <BlockMath math={sim.latexFormula} className="my-0 text-cyan-300 text-xs" />
+                  {/* Pure KaTeX Math Formula Presentation */}
+                  <div className="py-2 px-3 rounded-xl bg-slate-950/80 border border-slate-800/80 overflow-hidden shadow-inner flex items-center justify-center min-h-[46px]">
+                    <div className="w-full overflow-x-auto no-scrollbar text-center flex items-center justify-center">
+                      <BlockMath 
+                        math={sim.formulaPreview || sim.latexFormula} 
+                        className="!my-0 text-cyan-300 text-xs sm:text-[13px] tracking-wide" 
+                      />
+                    </div>
                   </div>
 
                   {/* Coach's Secret Callout */}

@@ -29,6 +29,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const SequenceExplorerSimulator: React.FC = () => {
   const {
@@ -450,6 +451,32 @@ export const SequenceExplorerSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-3">
+          <LiveSubstitutionCard
+            title={mode === 'AP' ? 'AP Summation Invariant' : mode === 'InfiniteGP' ? 'Infinite GP Convergence Invariant' : 'Finite GP Product Invariant'}
+            badge={mode}
+            symbolicLaw={
+              mode === 'AP'
+                ? "S_n = \\frac{n}{2}(a_1 + a_n) = \\frac{n}{2}[2a_1 + (n-1)d]"
+                : mode === 'InfiniteGP'
+                ? "S_\\infty = \\frac{a_1}{1 - r} \\quad (|r| < 1)"
+                : "S_n = \\frac{a_1(1 - r^n)}{1 - r}"
+            }
+            substitutedLatex={
+              mode === 'AP'
+                ? `S_{${nTerms}} = \\frac{${nTerms}}{2}[${a1} + ${lastTerm}]`
+                : mode === 'InfiniteGP'
+                ? (isConvergent ? `S_\\infty = \\frac{${a1}}{1 - ${diffOrRatio}}` : `|r| = ${diffOrRatio} \\ge 1 \\implies \\text{Diverges}`)
+                : `S_{${nTerms}} = \\frac{${a1}(1 - (${diffOrRatio})^{${nTerms}})}{1 - ${diffOrRatio}}`
+            }
+            evaluatedLatex={
+              mode === 'AP'
+                ? `S_{${nTerms}} = ${apSum}`
+                : mode === 'InfiniteGP'
+                ? (isConvergent ? `S_\\infty = ${infiniteSum?.toFixed(4)}` : `\\text{Sum is Infinite / Undefined}`)
+                : `S_{${nTerms}} = ${gpSum.toFixed(3)}`
+            }
+          />
+
           <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl">
             <button
               type="button"

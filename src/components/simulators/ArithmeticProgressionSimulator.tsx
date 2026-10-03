@@ -26,6 +26,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const ArithmeticProgressionSimulator: React.FC = () => {
   const {
@@ -138,7 +139,15 @@ export const ArithmeticProgressionSimulator: React.FC = () => {
   }, [firstTermA, commonDiffD, numberOfTermsN, showGaussRectangle, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="Arithmetic Progression (AP) Invariant"
+        badge={`n = ${numberOfTermsN}`}
+        symbolicLaw="a_n = a + (n-1)d, \quad S_n = \frac{n}{2}(a + l) = \frac{n}{2}[2a + (n-1)d]"
+        substitutedLatex={`a_{${numberOfTermsN}} = ${firstTermA} + (${numberOfTermsN}-1)(${commonDiffD}) = ${lastTermL}`}
+        evaluatedLatex={`S_{${numberOfTermsN}} = \\frac{${numberOfTermsN}}{2}[${firstTermA} + ${lastTermL}] = ${sumSn.toFixed(1)}`}
+      />
+
       <div className="space-y-4">
         <TouchSlider
           label="First Term (a)"

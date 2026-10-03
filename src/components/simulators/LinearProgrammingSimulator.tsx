@@ -26,6 +26,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const LinearProgrammingSimulator: React.FC = () => {
   const {
@@ -166,7 +167,15 @@ export const LinearProgrammingSimulator: React.FC = () => {
   }, [profitX, profitY, objectiveMaximize, optimalPoint, showIsoProfitSlider, isoProfitValue, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="LPP Corner Point Evaluation"
+        badge={objectiveMaximize ? 'Max Z' : 'Min Z'}
+        symbolicLaw="Z = c_1 x + c_2 y, \quad \text{Optimum at Extreme Vertex}"
+        substitutedLatex={`Z(${optimalPoint.label}) = (${profitX})(${optimalPoint.x.toFixed(1)}) + (${profitY})(${optimalPoint.y.toFixed(1)})`}
+        evaluatedLatex={`Z^* = ${optimalPoint.z.toFixed(2)} \\quad \\text{at } ${optimalPoint.label}(${optimalPoint.x.toFixed(1)}, ${optimalPoint.y.toFixed(1)})`}
+      />
+
       <div className="flex bg-slate-900 p-1 rounded-2xl border border-slate-800">
         <button
           onClick={() => {

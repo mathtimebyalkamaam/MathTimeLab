@@ -7,17 +7,28 @@ import {
   CheckCircle,
   Eye,
   Sliders,
-  Compass
+  Compass,
+  ZoomIn,
+  GraduationCap,
+  Columns,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
 import { TouchSlider } from '../common/TouchSlider';
-import { MathFormula } from '../common/MathFormula';
+import { MathFormula, InlineMath, BlockMath } from '../common/MathFormula';
 import { CoachTheoryModule } from '../common/CoachTheoryModule';
 import { ChallengeManager } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
+import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer, drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
+import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
+import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
 
 export const UnitCircleSimulator: React.FC = () => {
   const {
@@ -30,11 +41,27 @@ export const UnitCircleSimulator: React.FC = () => {
   } = useSimulatorStore();
 
   const { lightTap } = useHaptics();
-  const { playClick } = useSound();
+  const { playClick, playPitchTone } = useSound();
   const lastAngleRef = useRef(unitCircleParams.angleDeg);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ghostPointRef = useRef(new GhostTrailBuffer(700, 8));
+  const flareManagerRef = useRef(new CriticalEventFlareManager());
   const [isDraggingCircle, setIsDraggingCircle] = useState(false);
+
+  // Recommendations 11, 13, 15 Modal States
+  const [showLoupe, setShowLoupe] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showDualView, setShowDualView] = useState(false);
+
+  // Recommendation 14: Time-Travel Snapshot History
+  const {
+    takeSnapshot,
+    undo,
+    redo,
+    canUndo,
+    canRedo
+  } = useSnapshotHistory({ angleDeg: unitCircleParams.angleDeg, frequency: unitCircleParams.frequency });
 
   const angleRad = (unitCircleParams.angleDeg * Math.PI) / 180;
   const sinVal = Math.sin(angleRad);
@@ -114,11 +141,39 @@ export const UnitCircleSimulator: React.FC = () => {
     const dy = cy - py; // Inverted for math coordinate standard
     let rad = Math.atan2(dy, dx);
     if (rad < 0) rad += Math.PI * 2;
-    const deg = Math.round((rad * 180) / Math.PI);
+    let deg = Math.round((rad * 180) / Math.PI);
+
+    // Point 3: Magnetic Landmark Snapping to canonical angles
+    const snapped = checkMagneticSnap(deg, [
+      { value: 0, label: '0°', tolerance: 3 },
+      { value: 30, label: '30°', tolerance: 3 },
+      { value: 45, label: '45°', tolerance: 3 },
+      { value: 60, label: '60°', tolerance: 3 },
+      { value: 90, label: '90°', tolerance: 3 },
+      { value: 120, label: '120°', tolerance: 3 },
+      { value: 135, label: '135°', tolerance: 3 },
+      { value: 150, label: '150°', tolerance: 3 },
+      { value: 180, label: '180°', tolerance: 3 },
+      { value: 210, label: '210°', tolerance: 3 },
+      { value: 225, label: '225°', tolerance: 3 },
+      { value: 240, label: '240°', tolerance: 3 },
+      { value: 270, label: '270°', tolerance: 3 },
+      { value: 300, label: '300°', tolerance: 3 },
+      { value: 315, label: '315°', tolerance: 3 },
+      { value: 330, label: '330°', tolerance: 3 },
+      { value: 360, label: '360°', tolerance: 3 },
+    ], 3, () => {
+      lightTap();
+      playClick(1.4);
+    });
+    deg = snapped.value >= 360 ? 0 : snapped.value;
+
     if (Math.abs(deg - lastAngleRef.current) >= 3) {
       lastAngleRef.current = deg;
-      lightTap();
-      playClick(0.7 + (deg / 360) * 0.9);
+      if (!snapped.didSnap) {
+        lightTap();
+        playClick(0.7 + (deg / 360) * 0.9);
+      }
     }
     updateUnitCircleParams({ angleDeg: deg });
   };
@@ -287,17 +342,35 @@ export const UnitCircleSimulator: React.FC = () => {
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Touch Point Dot
-      ctx.beginPath();
-      ctx.arc(pointX, pointY, 8, 0, Math.PI * 2);
-      ctx.fillStyle = '#f59e0b';
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.5;
-      ctx.shadowColor = '#f59e0b';
-      ctx.shadowBlur = 10;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      // Recommendation 6: Component Shadow Drops (Cartesian Projections to Axes)
+      drawShadowDrops(ctx, pointX, pointY, circleCenterX, circleCenterY, {
+        valX: `cos = ${cosVal.toFixed(2)}`,
+        valY: `sin = ${sinVal.toFixed(2)}`,
+        colorX: '#10b981',
+        colorY: '#38bdf8',
+      });
+
+      // Recommendation 7: Critical Event Flares
+      flareManagerRef.current.draw(ctx);
+
+      // Recommendation 2: Ghost Trail of Prior Angle Positions
+      ghostPointRef.current.push(pointX, pointY);
+      ghostPointRef.current.draw(ctx, (pt, alpha) => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(245, 158, 11, ${alpha * 0.5})`;
+        ctx.fill();
+      });
+
+      // Recommendation 4: Direct On-Canvas Hover Ring & Pulsing Affordance for Touch Point
+      drawGripAffordance(ctx, pointX, pointY, {
+        color: '#f59e0b',
+        label: `P(${cosVal.toFixed(2)}, ${sinVal.toFixed(2)})`,
+        sublabel: isDraggingCircle ? `θ = ${unitCircleParams.angleDeg}°` : 'Drag θ',
+        isDragging: isDraggingCircle,
+        isHovered: isDraggingCircle,
+        radius: 10,
+      });
 
       // 5. Draw Right-side or Lower Harmonic Wave Unroller
       if (unitCircleParams.showWaveProjection) {
@@ -356,6 +429,18 @@ export const UnitCircleSimulator: React.FC = () => {
         ctx.fillText(`Wave: y = ${unitCircleParams.amplitude}·sin(${unitCircleParams.frequency}t)`, waveStartX, waveCenterY - waveAmp - 8);
       }
 
+      // Point 11: Microscope Loupe / Precision Magnifier Lens
+      if (showLoupe) {
+        const lensX = Math.max(70, Math.min(width - 70, pointX + (pointX < circleCenterX ? 85 : -85)));
+        const lensY = Math.max(70, Math.min(height - 70, pointY + (pointY < circleCenterY ? 85 : -85)));
+        drawMagnifierLoupe(ctx, canvas, pointX, pointY, lensX, lensY, {
+          zoomFactor: 3.0,
+          radius: 54,
+          borderColor: '#38bdf8',
+          label: `3.0x (${cosVal.toFixed(2)}, ${sinVal.toFixed(2)})`,
+        });
+      }
+
       ctx.restore();
     };
 
@@ -365,7 +450,7 @@ export const UnitCircleSimulator: React.FC = () => {
       window.removeEventListener('resize', render);
       cancelAnimationFrame(animId);
     };
-  }, [unitCircleParams, angleRad, sinVal, cosVal, tanVal]);
+  }, [unitCircleParams, angleRad, sinVal, cosVal, tanVal, showLoupe]);
 
   return (
     <div className="relative w-full flex-1 min-h-0 h-full overflow-hidden flex flex-col bg-slate-950">
@@ -444,6 +529,121 @@ export const UnitCircleSimulator: React.FC = () => {
             else if (lvl === 3) updateUnitCircleParams({ angleDeg: 270 });
           }}
         />
+
+        {/* Recommendation 8: Invariant Locking Badge & Recommendations 10, 11, 13, 14, 15 Controls */}
+        {!isZenMode && (
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20 flex flex-col gap-1.5 max-w-[90vw] sm:max-w-lg pointer-events-auto">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <InvariantLockBadge
+                label="Pythagorean Invariant"
+                invariantLatex="\sin^2\theta + \cos^2\theta \equiv 1"
+                currentValue={(sinVal * sinVal + cosVal * cosVal).toFixed(3)}
+                status="locked"
+              />
+
+              {/* Point 11: Microscope Loupe Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLoupe(!showLoupe);
+                  lightTap();
+                  playClick();
+                }}
+                className={`px-2 py-1 rounded-xl text-[10px] font-bold border transition-all flex items-center gap-1 cursor-pointer ${
+                  showLoupe
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md'
+                    : 'bg-slate-900/90 text-cyan-300 border-slate-700/80 hover:bg-slate-800'
+                }`}
+                title="Toggle Precision Microscope Loupe"
+              >
+                <ZoomIn className="w-3 h-3" />
+                <span>{showLoupe ? 'Loupe ON' : 'Loupe'}</span>
+              </button>
+
+              {/* Point 13: CBSE Exam Cheatsheet Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCheatSheet(true);
+                  lightTap();
+                  playClick();
+                }}
+                className="px-2 py-1 rounded-xl text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-600/60 hover:bg-amber-900/90 transition-all flex items-center gap-1 cursor-pointer"
+                title="Open CBSE Board Exam Cheatsheet"
+              >
+                <GraduationCap className="w-3 h-3 text-amber-400" />
+                <span>Exam Tips</span>
+              </button>
+
+              {/* Point 15: Dual View Inspector Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDualView(true);
+                  lightTap();
+                  playClick();
+                }}
+                className="px-2 py-1 rounded-xl text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-600/60 hover:bg-purple-900/90 transition-all flex items-center gap-1 cursor-pointer"
+                title="Open Dual Perspective Comparison"
+              >
+                <Columns className="w-3 h-3 text-purple-400" />
+                <span>Dual View</span>
+              </button>
+
+              {/* Point 14: Time-Travel Undo/Redo Buttons */}
+              <div className="flex items-center gap-0.5 bg-slate-900/90 rounded-xl border border-slate-700/80 p-0.5">
+                <button
+                  type="button"
+                  disabled={!canUndo}
+                  onClick={() => undo()}
+                  className="p-1 rounded-lg text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  title="Undo Parameter Change"
+                >
+                  <Undo2 className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!canRedo}
+                  onClick={() => redo()}
+                  className="p-1 rounded-lg text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  title="Redo Parameter Change"
+                >
+                  <Redo2 className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* Recommendation 10: 1-Tap Canonical Angle Presets */}
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+              {[
+                { label: '0°', deg: 0 },
+                { label: '30°', deg: 30 },
+                { label: '45°', deg: 45 },
+                { label: '60°', deg: 60 },
+                { label: '90°', deg: 90 },
+                { label: '180°', deg: 180 },
+                { label: '270°', deg: 270 },
+              ].map((p) => (
+                <button
+                  key={p.deg}
+                  type="button"
+                  onClick={() => {
+                    takeSnapshot({ angleDeg: p.deg, frequency: unitCircleParams.frequency }, `Angle ${p.deg}°`);
+                    updateUnitCircleParams({ angleDeg: p.deg });
+                    playPitchTone(p.deg / 360, 220, 880);
+                  }}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                    unitCircleParams.angleDeg === p.deg
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm'
+                      : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Real-time Floating Values HUD */}
         {!isZenMode && (
@@ -596,7 +796,17 @@ export const UnitCircleSimulator: React.FC = () => {
         }
       >
         {/* Controls Tab */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
+          {/* Point 1 & 5: 3-Tier Live KaTeX Substitution with Synchronized Active Term Glow */}
+          <LiveSubstitutionCard
+            title="Unit Circle Identity"
+            badge="Pythagorean"
+            symbolicLaw="P(\theta) = (\cos\theta,\; \sin\theta), \quad \sin^2\theta + \cos^2\theta = 1"
+            substitutedLatex={`P(${unitCircleParams.angleDeg}^\\circ) = (\\cos ${unitCircleParams.angleDeg}^\\circ,\\; \\sin ${unitCircleParams.angleDeg}^\\circ)`}
+            evaluatedLatex={`= (${cosVal.toFixed(3)},\\; ${sinVal.toFixed(3)}), \\quad ${(cosVal*cosVal).toFixed(3)} + ${(sinVal*sinVal).toFixed(3)} = ${(cosVal*cosVal+sinVal*sinVal).toFixed(4)}`}
+            activeTerm={isDraggingCircle ? `θ = ${unitCircleParams.angleDeg}°` : undefined}
+          />
+
           <TouchSlider
             label="Angle (θ)"
             min={0}
@@ -689,6 +899,94 @@ export const UnitCircleSimulator: React.FC = () => {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Point 13: CBSE Board Exam Cheatsheet Modal */}
+      <ExamCheatSheetModal
+        isOpen={showCheatSheet}
+        onClose={() => setShowCheatSheet(false)}
+        topicTitle="Unit Circle & Trigonometric Identities"
+        gradeLevel="Class 10 & 11 CBSE"
+        theoremName="Pythagorean Identity & ASTC Quadrants"
+        centralFormulaLatex="\sin^2\theta + \cos^2\theta \equiv 1, \quad \tan\theta = \frac{\sin\theta}{\cos\theta}"
+        steps={[
+          {
+            stepNumber: 1,
+            title: 'Define Unit Circle Coordinate Mapping',
+            mathLatex: 'P(x, y) = (\cos\theta, \sin\theta) \text{ on circle } x^2 + y^2 = 1',
+            explanation: 'On a circle of radius R = 1 centered at origin, the horizontal projection is cos(θ) and vertical projection is sin(θ).',
+            marksAllotted: 1,
+          },
+          {
+            stepNumber: 2,
+            title: 'Construct Right Triangle OAP',
+            mathLatex: 'OA = \cos\theta, \quad AP = \sin\theta, \quad OP = 1 \text{ (Radius)}',
+            explanation: 'Dropping perpendicular AP to the x-axis forms right-angled ΔOAP with hypotenuse equal to circle radius 1.',
+            marksAllotted: 1,
+          },
+          {
+            stepNumber: 3,
+            title: 'Apply Pythagorean Theorem in ΔOAP',
+            mathLatex: 'OA^2 + AP^2 = OP^2 \implies (\cos\theta)^2 + (\sin\theta)^2 = 1^2',
+            explanation: 'Pythagoras yields the fundamental invariant cos²(θ) + sin²(θ) = 1 for all real angles θ.',
+            marksAllotted: 2,
+          },
+          {
+            stepNumber: 4,
+            title: 'ASTC Sign Convention',
+            mathLatex: '\text{QI: All +}, \quad \text{QII: Sin +}, \quad \text{QIII: Tan +}, \quad \text{QIV: Cos +}',
+            explanation: 'Quadrant signs follow "All Silver Tea Cups" based on signs of (x, y) coordinates.',
+            marksAllotted: 1,
+          },
+        ]}
+        topperTips={[
+          "Mnemonic 'All Silver Tea Cups' prevents silly sign mistakes in Quadrants II, III, and IV.",
+          'At θ = 45°, sin(45°) = cos(45°) = 1/√2 ≈ 0.7071 (isosceles right triangle).',
+          'tan(θ) is undefined at 90° and 270° because cosine is 0 (vertical line asymptote).',
+        ]}
+        commonTraps={[
+          'Writing sin²θ = 1 + cos²θ instead of 1 - cos²θ.',
+          'Assuming tan(90°) = 0; remember division by zero diverges to infinity!',
+        ]}
+      />
+
+      {/* Point 15: Dual View Inspector Modal */}
+      <DualViewInspectorModal
+        isOpen={showDualView}
+        onClose={() => setShowDualView(false)}
+        title="Unit Circle vs Harmonic Sine Wave"
+        correlationFormula="\sin(\theta) = \text{Vertical Coordinate} = y(t)"
+        correlationInsight="Every full 360° rotation on the circle unfolds into one exact sinusoidal wave cycle:"
+        leftTitle="Circumference Point P(θ)"
+        leftSubtitle={`Current: P(${cosVal.toFixed(2)}, ${sinVal.toFixed(2)}) at ${unitCircleParams.angleDeg}°`}
+        leftContent={
+          <div className="p-4 rounded-xl bg-slate-900/90 border border-cyan-800/40 text-center space-y-2 w-full">
+            <span className="text-xs text-slate-400 font-mono">Cartesian Coords:</span>
+            <div className="text-base font-mono font-bold text-cyan-300">
+              x = cos({unitCircleParams.angleDeg}°) = {cosVal.toFixed(3)}
+              <br />
+              y = sin({unitCircleParams.angleDeg}°) = {sinVal.toFixed(3)}
+            </div>
+            <div className="text-xs text-emerald-400 font-mono pt-1">
+              cos²θ + sin²θ = {(cosVal * cosVal + sinVal * sinVal).toFixed(4)} ≡ 1
+            </div>
+          </div>
+        }
+        rightTitle="Harmonic Wave Projection"
+        rightSubtitle={`y = ${unitCircleParams.amplitude}·sin(${unitCircleParams.frequency}t)`}
+        rightContent={
+          <div className="p-4 rounded-xl bg-slate-900/90 border border-purple-800/40 text-center space-y-2 w-full">
+            <span className="text-xs text-slate-400 font-mono">Wave Amplitude & Phase:</span>
+            <div className="text-base font-mono font-bold text-purple-300">
+              Peak Amplitude: ±{unitCircleParams.amplitude}
+              <br />
+              Frequency: {unitCircleParams.frequency}x (Period T = {(360 / unitCircleParams.frequency).toFixed(0)}°)
+            </div>
+            <div className="text-xs text-amber-300 font-mono pt-1">
+              Quadrant: {unitCircleParams.angleDeg < 90 ? 'I (Both +)' : unitCircleParams.angleDeg < 180 ? 'II (Sin +)' : unitCircleParams.angleDeg < 270 ? 'III (Tan +)' : 'IV (Cos +)'}
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 };

@@ -19,7 +19,12 @@ import {
   Eye, 
   Maximize2,
   Target,
-  CircleDot
+  CircleDot,
+  Search,
+  Undo2,
+  Redo2,
+  FileText,
+  Columns
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -29,6 +34,13 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { InlineMath } from '../common/MathFormula';
+import { drawGripAffordance, drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
+import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
+import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
 
 export const CircleTheoremsSimulator: React.FC = () => {
   const {
@@ -52,11 +64,26 @@ export const CircleTheoremsSimulator: React.FC = () => {
   } = circleTheoremsParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { playClick, playChime, playPitchTone } = useSound();
   const { trackEvent } = useAnalytics();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const flareManagerRef = useRef(new CriticalEventFlareManager());
   const [dragTarget, setDragTarget] = useState<'P' | 'C' | null>(null);
+
+  // Recommendations 11-15 state
+  const [showLoupe, setShowLoupe] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showDualView, setShowDualView] = useState(false);
+
+  // Recommendation 14: Time-Travel Parameter History
+  const { takeSnapshot, undo, redo, canUndo, canRedo } = useSnapshotHistory(
+    { radius, pointDistance, pointAngleDeg, showInscribedAngle, inscribedVertexAngleDeg },
+    (restored) => {
+      updateCircleTheoremsParams(restored);
+      playPitchTone(Math.min(1, restored.pointDistance / 16), 220, 750);
+    }
+  );
 
   // Mathematical Calculations
   const d = Math.max(radius + 0.2, pointDistance);
@@ -399,23 +426,39 @@ export const CircleTheoremsSimulator: React.FC = () => {
       ctx.fillStyle = '#fbbf24';
       ctx.fillText(`B (90°)`, sB.sx - 15, sB.sy + 18);
 
+      // Point 6: Component Shadow Drops from External Point P onto Cartesian axes
+      drawShadowDrops(ctx, sP.sx, sP.sy, originX, originY, {
+        colorX: '#38bdf8',
+        colorY: '#a855f7',
+        valX: `x=${pX.toFixed(2)}`,
+        valY: `y=${pY.toFixed(2)}`,
+        dash: [4, 4],
+      });
+
       // External Point P (Glowing Pulsing Draggable Handle)
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
-      ctx.beginPath();
-      ctx.arc(sP.sx, sP.sy, 16, 0, Math.PI * 2);
-      ctx.fill();
+      drawGripAffordance(ctx, sP.sx, sP.sy, {
+        color: '#38bdf8',
+        label: `P (d = ${d.toFixed(1)})`,
+        sublabel: dragTarget === 'P' ? 'Dragging' : 'Drag Point P',
+        isHovered: dragTarget === 'P',
+        isDragging: dragTarget === 'P',
+        radius: 10,
+      });
 
-      ctx.fillStyle = '#38bdf8';
-      ctx.beginPath();
-      ctx.arc(sP.sx, sP.sy, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      // Point 11: Microscope Loupe / Precision Magnifier Lens on Tangent Point A
+      if (showLoupe) {
+        const lensX = Math.max(70, Math.min(width - 70, sA.sx + (sA.sx < originX ? 85 : -85)));
+        const lensY = Math.max(70, Math.min(height - 70, sA.sy + (sA.sy < originY ? 85 : -85)));
+        drawMagnifierLoupe(ctx, canvas, sA.sx, sA.sy, lensX, lensY, {
+          zoomFactor: 3.0,
+          radius: 54,
+          borderColor: '#06b6d4',
+          label: `3.0x Tangent Point A (90°)`,
+        });
+      }
 
-      ctx.font = 'bold 13px sans-serif';
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillText(`P (d = ${d.toFixed(1)})`, sP.sx + 14, sP.sy - 4);
+      // Point 7: Critical Event Flares
+      flareManagerRef.current.draw(ctx);
 
       ctx.restore();
       animId = requestAnimationFrame(render);
@@ -440,6 +483,7 @@ export const CircleTheoremsSimulator: React.FC = () => {
     showCongruentTriangles,
     showInscribedAngle,
     inscribedAngleDeg,
+    showLoupe,
     getTransforms,
   ]);
 
@@ -540,8 +584,153 @@ export const CircleTheoremsSimulator: React.FC = () => {
     },
   ];
 
+  const applyCanonicalPreset = (
+    pR: number,
+    pD: number,
+    pAngle: number,
+    label: string,
+    inscribed: boolean = false
+  ) => {
+    updateCircleTheoremsParams({
+      radius: pR,
+      pointDistance: pD,
+      pointAngleDeg: pAngle,
+      showInscribedAngle: inscribed,
+    });
+    lightTap();
+    playClick();
+
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const { toScreen } = getTransforms(rect.width, rect.height);
+      const s = toScreen(pD * Math.cos((pAngle * Math.PI) / 180), pD * Math.sin((pAngle * Math.PI) / 180));
+      flareManagerRef.current.trigger(s.sx, s.sy, {
+        color: '#38bdf8',
+        label,
+        maxRadius: 40,
+      });
+    }
+  };
+
   return (
     <div className="relative w-full h-[calc(100vh-42px)] md:h-[calc(100vh-52px)] overflow-hidden flex flex-col bg-slate-950 text-slate-100 select-none">
+      {/* Point 8: Invariant Locking Badge */}
+      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-30 flex flex-col gap-2 pointer-events-none">
+        <div className="pointer-events-auto">
+          <InvariantLockBadge
+            label="Circle Tangent Invariant"
+            invariantLatex="PA = PB = \sqrt{d^2 - R^2}"
+            currentValue={`PA=PB=${tangentLength.toFixed(1)}`}
+            status="locked"
+          />
+        </div>
+
+        {/* Point 10 & 14: 1-Tap Canonical Presets & Time-Travel Bar */}
+        {!isZenMode && (
+          <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 shadow-lg pointer-events-auto overflow-x-auto no-scrollbar max-w-[calc(100vw-24px)]">
+            {/* Time-Travel Undo / Redo */}
+            <div className="flex items-center gap-0.5 border-r border-slate-700/80 pr-1.5 mr-0.5">
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo}
+                title="Undo Parameter Change"
+                className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                  canUndo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                }`}
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo}
+                title="Redo Parameter Change"
+                className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                  canRedo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                }`}
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Microscope Loupe Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowLoupe((prev) => !prev);
+                lightTap();
+                playClick();
+              }}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                showLoupe
+                  ? 'bg-cyan-600 text-white border-cyan-400 font-extrabold shadow-sm'
+                  : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+              }`}
+            >
+              <Search className="w-3 h-3 text-cyan-400" />
+              Loupe 3.0x
+            </button>
+
+            {/* 5-Mark Proof Cheatsheet Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowCheatSheet(true);
+                lightTap();
+                playClick();
+              }}
+              className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-amber-500/50 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <FileText className="w-3 h-3 text-amber-400" />
+              5-Mark Proof
+            </button>
+
+            {/* Dual View Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowDualView(true);
+                lightTap();
+                playClick();
+              }}
+              className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <Columns className="w-3 h-3 text-emerald-400" />
+              Dual View
+            </button>
+
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1.5 flex items-center gap-1 border-l border-slate-700/80 pl-1.5">
+              <Sliders className="w-3 h-3 text-cyan-400" />
+              Presets:
+            </span>
+            {[
+              { label: '5-12-13 Triplet', r: 5, d: 13, a: 30, insc: false },
+              { label: '3-4-5 Triplet', r: 3, d: 5, a: 0, insc: false },
+              { label: '60° Wings (d=2R)', r: 4, d: 8, a: 0, insc: false },
+              { label: '90° Orthogonal', r: 4, d: 5.65, a: 45, insc: false },
+              { label: 'Inscribed 2:1 Arc', r: 4.5, d: 9, a: 0, insc: true },
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  takeSnapshot({ radius: p.r, pointDistance: p.d, pointAngleDeg: p.a, showInscribedAngle: p.insc, inscribedVertexAngleDeg }, p.label);
+                  applyCanonicalPreset(p.r, p.d, p.a, p.label, p.insc);
+                }}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                  radius === p.r && Math.abs(pointDistance - p.d) < 0.2
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-extrabold shadow-sm'
+                    : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Dynamic HUD Overlay */}
       {!isZenMode && (
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 max-w-[210px] sm:max-w-[260px] bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-2 sm:p-2.5 rounded-xl text-xs space-y-1 shadow-2xl">
@@ -659,6 +848,14 @@ export const CircleTheoremsSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-3">
+          <LiveSubstitutionCard
+            title="Tangent Length & Congruence Invariant"
+            badge="RHS Congruence"
+            symbolicLaw="PA = PB = \sqrt{d^2 - R^2}, \quad \angle OAP = \angle OBP = 90^\circ"
+            substitutedLatex={`PA = \\sqrt{(${d.toFixed(2)})^2 - (${radius.toFixed(2)})^2} = \\sqrt{${Math.max(0, d * d - radius * radius).toFixed(2)}}`}
+            evaluatedLatex={`PA = PB = ${tangentLength.toFixed(2)} \\text{ cm}, \\quad \\angle AOB = ${centerAngleDeg.toFixed(1)}^\\circ`}
+          />
+
           <TouchSlider
             label="Circle Radius R"
             value={radius}
@@ -723,6 +920,96 @@ export const CircleTheoremsSimulator: React.FC = () => {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Point 13: CBSE Class 10 5-Mark Proof & Cheatsheet Modal */}
+      <ExamCheatSheetModal
+        isOpen={showCheatSheet}
+        onClose={() => setShowCheatSheet(false)}
+        topicTitle="CBSE Class 10: Circle Tangents & RHS Congruence"
+        chapterName="Chapter 10 — Circles (5-Mark Master Cheatsheet)"
+        fiveMarkQuestion="Prove that the lengths of tangents drawn from an external point to a circle are equal (Theorem 10.2). If PA and PB are tangents from P to a circle with centre O, prove that ∠APB = 180° - ∠AOB and OP is the angle bisector of ∠APB."
+        proofSteps={[
+          {
+            stepNumber: 1,
+            title: "Given, To Prove & Construction",
+            mathContent: "\\text{Given: } P \\text{ is external to } C(O, R). \\; PA, PB \\text{ are tangents.} \\quad \\text{To Prove: } PA = PB",
+            explanation: "Draw radius OA ⊥ PA and radius OB ⊥ PB. Join OP to form two right triangles ΔOPA and ΔOPB.",
+            marksAllocation: "1.0 Mark",
+          },
+          {
+            stepNumber: 2,
+            title: "Radius-Tangent Perpendicularity (Theorem 10.1)",
+            mathContent: "OA \\perp PA \\implies \\angle OAP = 90^\\circ, \\quad OB \\perp PB \\implies \\angle OBP = 90^\\circ",
+            explanation: "The tangent at any point of a circle is perpendicular to the radius through the point of contact.",
+            marksAllocation: "1.0 Mark",
+          },
+          {
+            stepNumber: 3,
+            title: "RHS Triangle Congruence Proof",
+            mathContent: "\\begin{aligned} \\angle OAP &= \\angle OBP = 90^\\circ \\quad &(\\text{Right angle}) \\\\ OP &= OP \\quad &(\\text{Common Hypotenuse}) \\\\ OA &= OB = R \\quad &(\\text{Radii of same circle}) \\end{aligned} \\implies \\Delta OPA \\cong \\Delta OPB \\; (\\text{RHS})",
+            explanation: "By Right angle-Hypotenuse-Side (RHS) congruence criterion, the two triangles are strictly congruent.",
+            marksAllocation: "2.0 Marks",
+          },
+          {
+            stepNumber: 4,
+            title: "CPCT & Supplementary Angle Deduction",
+            mathContent: "PA = PB \\quad (\\text{CPCT}), \\quad \\angle APB + \\angle AOB = 180^\\circ",
+            explanation: "Corresponding Parts of Congruent Triangles are equal. Since sum of angles in quadrilateral OAPB is 360°, ∠APB and ∠AOB are supplementary.",
+            marksAllocation: "1.0 Mark",
+          },
+        ]}
+        topperShortcuts={[
+          "Pythagorean Metric: PA = PB = √(d² - R²). If (R, PA, d) form a Pythagorean triplet like (3,4,5) or (5,12,13), answer instantly!",
+          "60° Equilateral Tangent: When ∠APB = 60°, ΔPAB is equilateral and d = 2R.",
+          "Inscribed Angle Double Invariant: ∠AOB = 2 · ∠ACB anywhere along the major arc!",
+        ]}
+        examinerTraps={[
+          "Forgetting to quote Theorem 10.1 (OA ⊥ PA at 90°) before using RHS congruence.",
+          "Confusing external distance d (length OP) with chord length AB.",
+          "Not writing (CPCT) reason after concluding PA = PB and ∠OPA = ∠OPB.",
+        ]}
+      />
+
+      {/* Point 15: Split-Screen Dual Perspective Comparison Inspector */}
+      <DualViewInspectorModal
+        isOpen={showDualView}
+        onClose={() => setShowDualView(false)}
+        title="Circle Theorems Dual Inspector"
+        badge="Tangent Metric Invariant vs Inscribed Angle Theorem"
+        primaryView={{
+          title: "Tangent Lengths & RHS Congruence",
+          badge: `PA = PB = ${tangentLength.toFixed(2)}`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-200">
+                <p className="font-bold">Radius R = {radius.toFixed(1)}, Distance d = {d.toFixed(1)}</p>
+                <p className="text-slate-300 text-[11px] mt-1">Tangent PA = √(d² - R²) = √({d.toFixed(1)}² - {radius.toFixed(1)}²) = <span className="font-bold text-cyan-300">{tangentLength.toFixed(2)}</span></p>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-200">
+                <p className="font-bold">Angle ∠APB: {tangentAngleDeg.toFixed(1)}°</p>
+                <p className="text-slate-300 text-[11px] mt-1">Center Angle ∠AOB: {centerAngleDeg.toFixed(1)}° (Sum = 180.0°)</p>
+              </div>
+            </div>
+          ),
+        }}
+        secondaryView={{
+          title: "Inscribed Angle Doubling Invariant",
+          badge: `∠AOB = 2·∠ACB`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 text-xs leading-relaxed">
+                <p className="font-semibold text-cyan-300 mb-1">Arc Angle Comparison:</p>
+                <p>Central Angle ∠AOB = <span className="font-bold text-amber-300">{centerAngleDeg.toFixed(1)}°</span></p>
+                <p className="mt-1">Inscribed Angle ∠ACB = <span className="font-bold text-emerald-300">{inscribedAngleDeg.toFixed(1)}°</span></p>
+                <p className="mt-2 pt-2 border-t border-slate-800 text-pink-300 font-bold">
+                  Ratio: ∠AOB / ∠ACB = {centerAngleDeg.toFixed(1)}° / {inscribedAngleDeg.toFixed(1)}° = {(centerAngleDeg / (inscribedAngleDeg || 1)).toFixed(2)} ≈ 2.00
+                </p>
+              </div>
+            </div>
+          ),
+        }}
+        couplingBanner="RHS Triangle Congruence guarantees Equal Tangent Lengths PA=PB while preserving the 2:1 Inscribed Arc Invariant!"
+      />
     </div>
   );
 };

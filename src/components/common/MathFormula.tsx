@@ -139,7 +139,8 @@ export const BlockMath: React.FC<{ math?: string; className?: string }> = ({ mat
 
   return (
     <div
-      className={`my-2 overflow-x-auto no-scrollbar text-center text-slate-100 ${className}`}
+      className={`my-1 overflow-x-auto no-scrollbar text-center text-slate-100 select-all ${className}`}
+      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

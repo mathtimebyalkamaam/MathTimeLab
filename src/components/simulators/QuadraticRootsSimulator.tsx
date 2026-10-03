@@ -20,7 +20,12 @@ import {
   Eye, 
   Maximize2,
   TrendingUp,
-  Target
+  Target,
+  ZoomIn,
+  GraduationCap,
+  Columns,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -32,7 +37,13 @@ import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
 import { MistakeDoctor } from '../common/MistakeDoctor';
-import { InlineMath } from '../common/MathFormula';
+import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer, drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { InlineMath, BlockMath } from '../common/MathFormula';
+import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
+import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
+import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
 
 export const QuadraticRootsSimulator: React.FC = () => {
   const {
@@ -47,11 +58,27 @@ export const QuadraticRootsSimulator: React.FC = () => {
   const { a, b, c, showVertex, showAxisOfSymmetry, showRoots } = quadraticParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { playClick, playChime, playPitchTone } = useSound();
   const { trackEvent } = useAnalytics();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ghostParabolaRef = useRef(new GhostTrailBuffer(800, 5));
+  const flareManagerRef = useRef(new CriticalEventFlareManager());
   const [isDraggingVertex, setIsDraggingVertex] = useState<boolean>(false);
+
+  // Recommendations 11, 13, 15 Modal States
+  const [showLoupe, setShowLoupe] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showDualView, setShowDualView] = useState(false);
+
+  // Recommendation 14: Time-Travel Snapshot History
+  const {
+    takeSnapshot,
+    undo,
+    redo,
+    canUndo,
+    canRedo
+  } = useSnapshotHistory({ a, b, c });
 
   // Discriminant and mathematical derivations
   const discriminant = b * b - 4 * a * c;
@@ -242,6 +269,22 @@ export const QuadraticRootsSimulator: React.FC = () => {
         ctx.lineTo(points[i].sx, points[i].sy);
       }
 
+      // Point 2: Transient Ghost Trails of Parabola Morphs
+      ghostParabolaRef.current.push(vertexX, vertexY, { a, b, c });
+      ghostParabolaRef.current.draw(ctx, (pt, alpha) => {
+        ctx.beginPath();
+        for (let i = 0; i <= 60; i++) {
+          const gmx = pt.x - 6 + (i / 60) * 12;
+          const gmy = pt.data.a * gmx * gmx + pt.data.b * gmx + pt.data.c;
+          const gpt = toScreen(gmx, gmy);
+          if (i === 0) ctx.moveTo(gpt.sx, gpt.sy);
+          else ctx.lineTo(gpt.sx, gpt.sy);
+        }
+        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.5})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
       ctx.strokeStyle = discriminant > 0 ? '#38bdf8' : discriminant === 0 ? '#f59e0b' : '#f43f5e';
       ctx.lineWidth = 3;
       ctx.shadowColor = ctx.strokeStyle;
@@ -284,30 +327,45 @@ export const QuadraticRootsSimulator: React.FC = () => {
         }
       }
 
-      // 6. Vertex Marker
+      // Point 6: Component Shadow Drops from Vertex (h, k) onto X and Y Axes
       if (showVertex) {
         const pv = toScreen(vertexX, vertexY);
-        ctx.beginPath();
-        ctx.arc(pv.sx, pv.sy, 7, 0, Math.PI * 2);
-        ctx.fillStyle = '#a855f7';
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        drawShadowDrops(ctx, pv.sx, pv.sy, originX, originY, {
+          colorX: '#38bdf8',
+          colorY: '#a855f7',
+          valX: `h=${vertexX.toFixed(2)}`,
+          valY: `k=${vertexY.toFixed(2)}`,
+          dash: [4, 4],
+        });
+      }
 
-        // Vertex tag badge
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.strokeStyle = '#a855f7';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const vText = `V(${vertexX.toFixed(1)}, ${vertexY.toFixed(1)})`;
-        ctx.roundRect(pv.sx + 10, pv.sy - 20, 75, 18, 4);
-        ctx.fill();
-        ctx.stroke();
+      // Point 4: Direct On-Canvas Hover Rings & Pulsing Affordance for Vertex
+      if (showVertex) {
+        const pv = toScreen(vertexX, vertexY);
+        drawGripAffordance(ctx, pv.sx, pv.sy, {
+          color: '#a855f7',
+          label: `Vertex (${vertexX.toFixed(2)}, ${vertexY.toFixed(2)})`,
+          sublabel: isDraggingVertex ? 'Dragging' : 'Catch & Move',
+          isHovered: isDraggingVertex,
+          isDragging: isDraggingVertex,
+          radius: 10,
+        });
+      }
 
-        ctx.fillStyle = '#c084fc';
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText(vText, pv.sx + 14, pv.sy - 8);
+      // Point 7: Critical Event Flares (e.g. D = 0 Tangent Kiss)
+      flareManagerRef.current.draw(ctx);
+
+      // Point 11: Microscope Loupe / Precision Magnifier Lens
+      if (showLoupe) {
+        const pv = toScreen(vertexX, vertexY);
+        const lensX = Math.max(70, Math.min(width - 70, pv.sx + (pv.sx < originX ? 85 : -85)));
+        const lensY = Math.max(70, Math.min(height - 70, pv.sy + (pv.sy < originY ? 85 : -85)));
+        drawMagnifierLoupe(ctx, canvas, pv.sx, pv.sy, lensX, lensY, {
+          zoomFactor: 3.0,
+          radius: 54,
+          borderColor: discriminant >= 0 ? '#38bdf8' : '#f43f5e',
+          label: `3.0x V(${vertexX.toFixed(2)}, ${vertexY.toFixed(2)})`,
+        });
       }
 
       ctx.restore();
@@ -320,7 +378,7 @@ export const QuadraticRootsSimulator: React.FC = () => {
       window.removeEventListener('resize', render);
       cancelAnimationFrame(animId);
     };
-  }, [a, b, c, showVertex, showAxisOfSymmetry, showRoots, vertexX, vertexY, discriminant, root1, root2, getTransforms]);
+  }, [a, b, c, showVertex, showAxisOfSymmetry, showRoots, vertexX, vertexY, discriminant, root1, root2, getTransforms, showLoupe]);
 
   // Pointer drag on canvas to adjust vertex position
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -354,8 +412,22 @@ export const QuadraticRootsSimulator: React.FC = () => {
 
     // vertexX = -b / (2a) => b = -2a * vertexX
     // vertexY = a*(vertexX)² + b*(vertexX) + c => c = vertexY - a*(vertexX)² - b*(vertexX)
-    const newVx = Math.max(-5, Math.min(5, Number(mathPos.x.toFixed(1))));
-    const newVy = Math.max(-7, Math.min(7, Number(mathPos.y.toFixed(1))));
+    let newVx = Math.max(-5, Math.min(5, Number(mathPos.x.toFixed(1))));
+    let newVy = Math.max(-7, Math.min(7, Number(mathPos.y.toFixed(1))));
+
+    // Point 3: Magnetic Landmark Snapping
+    const snapX = checkMagneticSnap(newVx, [-4, -3, -2, -1, 0, 1, 2, 3, 4], 0.12, () => {
+      lightTap();
+      playClick(1.3);
+    });
+    newVx = snapX.value;
+
+    const snapY = checkMagneticSnap(newVy, [0, -4, -1, 1, 4], 0.15, (val) => {
+      if (val === 0) playChime(); // Landmark: Tangent D=0 milestone!
+      else playClick(1.3);
+      lightTap();
+    });
+    newVy = snapY.value;
 
     const newB = -2 * a * newVx;
     const newC = newVy - a * newVx * newVx - newB * newVx;
@@ -408,8 +480,146 @@ export const QuadraticRootsSimulator: React.FC = () => {
     },
   ];
 
+  const applyCanonicalPreset = (presetA: number, presetB: number, presetC: number, label: string) => {
+    takeSnapshot({ a: presetA, b: presetB, c: presetC }, label);
+    updateQuadraticParams({ a: presetA, b: presetB, c: presetC });
+    lightTap();
+    playClick();
+    playPitchTone((presetB * presetB - 4 * presetA * presetC + 20) / 40, 200, 700);
+
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const { toScreen } = getTransforms(rect.width, rect.height);
+      const pv = toScreen(-presetB / (2 * presetA), -(presetB * presetB - 4 * presetA * presetC) / (4 * presetA));
+      flareManagerRef.current.trigger(pv.sx, pv.sy, {
+        color: presetB * presetB - 4 * presetA * presetC === 0 ? '#f59e0b' : '#38bdf8',
+        label,
+        maxRadius: 40,
+      });
+    }
+  };
+
   return (
     <div className="relative w-full h-[calc(100vh-42px)] md:h-[calc(100vh-52px)] overflow-hidden flex flex-col bg-slate-950 text-slate-100 select-none">
+      {/* Point 8: Invariant Locking Badge & Recommendations 10, 11, 13, 14, 15 Controls */}
+      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-30 flex flex-col gap-2 pointer-events-none">
+        <div className="flex items-center gap-1.5 flex-wrap pointer-events-auto">
+          <InvariantLockBadge
+            label="Quadratic Invariant"
+            invariantLatex="D = b^2 - 4ac"
+            currentValue={
+              discriminant > 0
+                ? 'D > 0 (2 Roots)'
+                : discriminant === 0
+                ? 'D = 0 (Tangent)'
+                : 'D < 0 (Floating)'
+            }
+            status={discriminant >= 0 ? 'locked' : 'evaluating'}
+          />
+
+          {/* Point 11: Microscope Loupe Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowLoupe(!showLoupe);
+              lightTap();
+              playClick();
+            }}
+            className={`px-2 py-1 rounded-xl text-[10px] font-bold border transition-all flex items-center gap-1 cursor-pointer ${
+              showLoupe
+                ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md'
+                : 'bg-slate-900/90 text-cyan-300 border-slate-700/80 hover:bg-slate-800'
+            }`}
+            title="Toggle Precision Vertex Loupe"
+          >
+            <ZoomIn className="w-3 h-3" />
+            <span>{showLoupe ? 'Loupe ON' : 'Loupe'}</span>
+          </button>
+
+          {/* Point 13: CBSE Exam Cheatsheet Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowCheatSheet(true);
+              lightTap();
+              playClick();
+            }}
+            className="px-2 py-1 rounded-xl text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-600/60 hover:bg-amber-900/90 transition-all flex items-center gap-1 cursor-pointer"
+            title="Open Quadratic CBSE Exam Cheatsheet"
+          >
+            <GraduationCap className="w-3 h-3 text-amber-400" />
+            <span>Exam Tips</span>
+          </button>
+
+          {/* Point 15: Dual View Inspector Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowDualView(true);
+              lightTap();
+              playClick();
+            }}
+            className="px-2 py-1 rounded-xl text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-600/60 hover:bg-purple-900/90 transition-all flex items-center gap-1 cursor-pointer"
+            title="Open Dual Perspective Inspector"
+          >
+            <Columns className="w-3 h-3 text-purple-400" />
+            <span>Dual View</span>
+          </button>
+
+          {/* Point 14: Time-Travel Undo/Redo Buttons */}
+          <div className="flex items-center gap-0.5 bg-slate-900/90 rounded-xl border border-slate-700/80 p-0.5">
+            <button
+              type="button"
+              disabled={!canUndo}
+              onClick={() => undo()}
+              className="p-1 rounded-lg text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title="Undo Parameter Change"
+            >
+              <Undo2 className="w-3 h-3" />
+            </button>
+            <button
+              type="button"
+              disabled={!canRedo}
+              onClick={() => redo()}
+              className="p-1 rounded-lg text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title="Redo Parameter Change"
+            >
+              <Redo2 className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* Point 10: 1-Tap Canonical Presets Bar */}
+        {!isZenMode && (
+          <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 shadow-lg pointer-events-auto overflow-x-auto no-scrollbar max-w-[calc(100vw-24px)]">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1.5 flex items-center gap-1">
+              <Sliders className="w-3 h-3 text-cyan-400" />
+              Presets:
+            </span>
+            {[
+              { label: 'D > 0 (3, -1)', a: 1, b: -2, c: -3 },
+              { label: 'D = 0 (Tangent)', a: 1, b: -4, c: 4 },
+              { label: 'D < 0 (Float)', a: 1, b: 2, c: 3 },
+              { label: 'a < 0 (Invert)', a: -1, b: 2, c: 3 },
+              { label: 'x² - 4 = 0', a: 1, b: 0, c: -4 },
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => applyCanonicalPreset(p.a, p.b, p.c, p.label)}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                  a === p.a && b === p.b && c === p.c
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-extrabold shadow-sm'
+                    : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Dynamic HUD Overlay */}
       {!isZenMode && (
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 min-w-[240px] sm:min-w-[280px] bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-2.5 sm:p-3 rounded-xl text-xs sm:text-sm space-y-1.5 shadow-2xl">
@@ -533,6 +743,22 @@ export const QuadraticRootsSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-3">
+          {/* Point 1 & 5: 3-Tier Live KaTeX Substitution with Synchronized Active Term Glow */}
+          <LiveSubstitutionCard
+            title="Quadratic Formula & Discriminant"
+            badge={`D = ${discriminant.toFixed(1)}`}
+            symbolicLaw="x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}"
+            substitutedLatex={`x = \\frac{-(${b.toFixed(1)}) \\pm \\sqrt{(${b.toFixed(1)})^2 - 4(${a.toFixed(1)})(${c.toFixed(1)})}}{2(${a.toFixed(1)})}`}
+            evaluatedLatex={
+              discriminant > 0
+                ? `x_1 = ${root1?.toFixed(2)}, \\; x_2 = ${root2?.toFixed(2)}`
+                : discriminant === 0
+                ? `x = ${root1?.toFixed(2)} \\; (\\text{Repeated})`
+                : `D = ${discriminant.toFixed(1)} < 0 \\; (\\text{No Real Roots})`
+            }
+            activeTerm={isDraggingVertex ? 'Vertex (h, k)' : undefined}
+          />
+
           <TouchSlider
             label="Curvature a"
             value={a}
@@ -582,6 +808,100 @@ export const QuadraticRootsSimulator: React.FC = () => {
           />
         </div>
       </BottomSheet>
+
+      {/* Point 13: CBSE Board Exam Cheatsheet Modal */}
+      <ExamCheatSheetModal
+        isOpen={showCheatSheet}
+        onClose={() => setShowCheatSheet(false)}
+        topicTitle="Quadratic Equations & Roots Geometry"
+        gradeLevel="Class 10 CBSE Board"
+        theoremName="Quadratic Formula & Nature of Roots (Discriminant Δ)"
+        centralFormulaLatex="x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}, \quad D = b^2 - 4ac"
+        steps={[
+          {
+            stepNumber: 1,
+            title: 'Standard Form Conversion',
+            mathLatex: 'ax^2 + bx + c = 0, \quad a \neq 0',
+            explanation: 'Arrange the polynomial in descending powers of x. Identify coefficients a, b, and c with their exact algebraic signs.',
+            marksAllotted: 1,
+          },
+          {
+            stepNumber: 2,
+            title: 'Calculate Discriminant D',
+            mathLatex: 'D = b^2 - 4ac',
+            explanation: 'Evaluate the radicand D. If D > 0, 2 distinct real roots. If D = 0, 1 real repeated root (kissing tangent). If D < 0, 0 real roots.',
+            marksAllotted: 1,
+          },
+          {
+            stepNumber: 3,
+            title: 'Apply Shridharacharya Formula',
+            mathLatex: 'x = \frac{-b \pm \sqrt{D}}{2a}',
+            explanation: 'Substitute a, b, and D into the quadratic formula. Simplify radical terms carefully.',
+            marksAllotted: 2,
+          },
+          {
+            stepNumber: 4,
+            title: 'Vertex & Axis of Symmetry',
+            mathLatex: 'x_{\text{sym}} = -\frac{b}{2a}, \quad V\left(-\frac{b}{2a}, -\frac{D}{4a}\right)',
+            explanation: 'The turning point / peak of the parabola always lies on the vertical line x = -b/(2a).',
+            marksAllotted: 1,
+          },
+        ]}
+        topperTips={[
+          'Always check b² - 4ac BEFORE attempting full factorization—if D is not a perfect square, go straight to quadratic formula!',
+          'Sum of roots α + β = -b/a, Product of roots α·β = c/a (instant verification trick).',
+          'If a > 0, parabola opens UP (minimum vertex); if a < 0, parabola opens DOWN (maximum peak).',
+        ]}
+        commonTraps={[
+          'Forgetting parentheses around negative b: e.g. -(-4) = +4, not -4.',
+          'Assuming a floating parabola has no solutions—it has NO REAL solutions, but 2 complex conjugate roots!',
+        ]}
+      />
+
+      {/* Point 15: Dual View Inspector Modal */}
+      <DualViewInspectorModal
+        isOpen={showDualView}
+        onClose={() => setShowDualView(false)}
+        title="Quadratic Parabola: Standard Form vs Factored Root Form"
+        correlationFormula="y = ax^2 + bx + c \equiv a(x - \alpha)(x - \beta)"
+        correlationInsight="Standard polynomial geometry directly reveals algebraic root intersections:"
+        leftTitle="Standard Parabola Geometry"
+        leftSubtitle={`y = ${a}x² ${b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`}x ${c >= 0 ? `+ ${c}` : `- ${Math.abs(c)}`}`}
+        leftContent={
+          <div className="p-4 rounded-xl bg-slate-900/90 border border-cyan-800/40 text-center space-y-2 w-full">
+            <span className="text-xs text-slate-400 font-mono">Discriminant & Vertex:</span>
+            <div className="text-base font-mono font-bold text-cyan-300">
+              D = {discriminant.toFixed(2)}
+              <br />
+              Vertex V({vertexX.toFixed(2)}, {vertexY.toFixed(2)})
+            </div>
+            <div className="text-xs text-emerald-400 font-mono pt-1">
+              Axis of Symmetry: x = {vertexX.toFixed(2)}
+            </div>
+          </div>
+        }
+        rightTitle="Factored Form Roots"
+        rightSubtitle={discriminant >= 0 ? `α = ${root1?.toFixed(2)}, β = ${root2?.toFixed(2)}` : 'No Real Intercepts (D < 0)'}
+        rightContent={
+          <div className="p-4 rounded-xl bg-slate-900/90 border border-purple-800/40 text-center space-y-2 w-full">
+            <span className="text-xs text-slate-400 font-mono">Root Intercepts & Vieta Relations:</span>
+            {discriminant >= 0 ? (
+              <div className="text-base font-mono font-bold text-purple-300">
+                Sum α + β = {(-b / a).toFixed(2)}
+                <br />
+                Product α·β = {(c / a).toFixed(2)}
+              </div>
+            ) : (
+              <div className="text-sm font-mono text-rose-400 py-2">
+                Parabola floats above/below ground with 0 real x-intercepts.
+              </div>
+            )}
+            <div className="text-xs text-amber-300 font-mono pt-1">
+              Classification: {discriminant > 0 ? '2 Distinct Reals' : discriminant === 0 ? '1 Repeated Tangent' : 'Complex Floating'}
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 };

@@ -19,7 +19,11 @@ import {
   Sparkles, 
   Layers, 
   Eye,
-  Sliders
+  Sliders,
+  Undo2,
+  Redo2,
+  FileText,
+  Columns
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -30,6 +34,12 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { InlineMath } from '../common/MathFormula';
+import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
+import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
+import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
 
 export const SimilarTrianglesSimulator: React.FC = () => {
   const {
@@ -52,8 +62,21 @@ export const SimilarTrianglesSimulator: React.FC = () => {
   } = similarTrianglesParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { playClick, playChime, playPitchTone } = useSound();
   const { trackEvent } = useAnalytics();
+
+  // Recommendations 11-15 state
+  const [showCheatSheet, setShowCheatSheet] = useState<boolean>(false);
+  const [showDualView, setShowDualView] = useState<boolean>(false);
+
+  // Recommendation 14: Time-Travel Parameter History
+  const { takeSnapshot, undo, redo, canUndo, canRedo } = useSnapshotHistory(
+    { mode, transversalRatio, showAltitudes, showAreaRatios, sunElevationAngle, poleHeight },
+    (restored) => {
+      updateSimilarTrianglesParams(restored);
+      playPitchTone(restored.transversalRatio, 220, 880);
+    }
+  );
 
   // Triangle vertices on canvas (400x320 coord system)
   const [vertexA, setVertexA] = useState({ x: 200, y: 35 });
@@ -252,25 +275,115 @@ export const SimilarTrianglesSimulator: React.FC = () => {
         onPointerUp={handlePointerUp}
       >
         {/* Real-time Math HUD Banner */}
-        <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none z-10 px-2">
-          <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 rounded-xl shadow-lg backdrop-blur-md">
-            <Compass className="w-4 h-4 text-cyan-400" />
-            <span className="text-[11px] font-mono font-bold text-cyan-300">
-              {mode === 'bpt-slider' && 'BPT: AD/DB = AE/EC'}
-              {mode === 'shadow-scaling' && `Sun Angle θ = ${sunElevationAngle}°`}
-              {mode === 'similarity-criteria' && 'AA Similarity: ΔADE ~ ΔABC'}
-            </span>
+        <div className="absolute top-2 left-2 right-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pointer-events-none z-10 px-2">
+          <div className="pointer-events-auto">
+            <InvariantLockBadge
+              label="Thales BPT Invariant"
+              invariantLatex="\frac{AD}{DB} = \frac{AE}{EC}"
+              currentValue={`k = ${scaleFactor.toFixed(2)}`}
+              status="locked"
+            />
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 rounded-xl shadow-lg backdrop-blur-md">
-            <span className="text-[11px] font-mono text-slate-300">
-              Ratio: <strong className="text-emerald-400 font-bold">{ratioLeft.toFixed(3)}</strong>
-            </span>
-            <span className="text-slate-600">|</span>
-            <span className="text-[11px] font-mono text-slate-300">
-              Area: <strong className="text-purple-400 font-bold">{(areaRatio * 100).toFixed(1)}%</strong>
-            </span>
-          </div>
+          {/* Point 10 & 14: 1-Tap Canonical Presets & Time-Travel Bar */}
+          {!isZenMode && (
+            <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 shadow-lg pointer-events-auto overflow-x-auto no-scrollbar max-w-full">
+              {/* Time-Travel Undo / Redo */}
+              <div className="flex items-center gap-0.5 border-r border-slate-700/80 pr-1.5 mr-0.5">
+                <button
+                  type="button"
+                  onClick={undo}
+                  disabled={!canUndo}
+                  title="Undo Parameter Change"
+                  className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                    canUndo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <Undo2 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={redo}
+                  disabled={!canRedo}
+                  title="Redo Parameter Change"
+                  className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                    canRedo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <Redo2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* 5-Mark Proof Cheatsheet Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCheatSheet(true);
+                  lightTap();
+                  playClick();
+                }}
+                className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-amber-500/50 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+              >
+                <FileText className="w-3 h-3 text-amber-400" />
+                5-Mark Proof
+              </button>
+
+              {/* Dual View Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDualView(true);
+                  lightTap();
+                  playClick();
+                }}
+                className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+              >
+                <Columns className="w-3 h-3 text-emerald-400" />
+                Dual View
+              </button>
+
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1.5 flex items-center gap-1 border-l border-slate-700/80 pl-1.5">
+                <Sliders className="w-3 h-3 text-cyan-400" />
+                Presets:
+              </span>
+              {[
+                { label: 'Midpoint (k=0.50)', k: 0.5, alt: false, mode: 'bpt-slider' as const },
+                { label: 'Trisection (k=0.33)', k: 0.33, alt: false, mode: 'bpt-slider' as const },
+                { label: 'Ratio 2:1 (k=0.67)', k: 0.67, alt: false, mode: 'bpt-slider' as const },
+                { label: '5-Mark Proof', k: 0.5, alt: true, mode: 'bpt-slider' as const },
+                { label: 'Pyramid Shadow', k: 0.5, alt: false, mode: 'shadow-scaling' as const },
+              ].map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    takeSnapshot({
+                      mode: p.mode,
+                      transversalRatio: p.k,
+                      showAltitudes: p.alt,
+                      showAreaRatios,
+                      sunElevationAngle,
+                      poleHeight,
+                    }, p.label);
+                    updateSimilarTrianglesParams({
+                      transversalRatio: p.k,
+                      showAltitudes: p.alt,
+                      mode: p.mode,
+                    });
+                    lightTap();
+                    playClick();
+                  }}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                    transversalRatio === p.k && mode === p.mode && showAltitudes === p.alt
+                      ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-extrabold shadow-sm'
+                      : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Dynamic SVG Triangle Stage */}
@@ -571,6 +684,26 @@ export const SimilarTrianglesSimulator: React.FC = () => {
         }
       >
         <div className="space-y-4 text-xs">
+          <LiveSubstitutionCard
+            title={mode === 'shadow-scaling' ? 'Shadow Clinometer Invariant' : 'Basic Proportionality Theorem (BPT)'}
+            badge={mode === 'shadow-scaling' ? 'H/s = tan θ' : `k = ${(transversalRatio).toFixed(2)}`}
+            symbolicLaw={
+              mode === 'shadow-scaling'
+                ? "\\frac{H_1}{s_1} = \\frac{H_2}{s_2} = \\tan \\theta"
+                : "\\frac{AD}{DB} = \\frac{AE}{EC} = \\frac{k}{1-k}, \\quad \\frac{\\text{Area}(\\Delta ADE)}{\\text{Area}(\\Delta ABC)} = k^2"
+            }
+            substitutedLatex={
+              mode === 'shadow-scaling'
+                ? `\\frac{H}{s} = \\tan(${sunElevationAngle}^\\circ) = ${Math.tan((sunElevationAngle * Math.PI) / 180).toFixed(3)}`
+                : `\\frac{${(transversalRatio * 10).toFixed(1)}}{${((1 - transversalRatio) * 10).toFixed(1)}} = ${(transversalRatio / (1 - transversalRatio)).toFixed(2)}, \\quad k^2 = (${transversalRatio.toFixed(2)})^2`
+            }
+            evaluatedLatex={
+              mode === 'shadow-scaling'
+                ? `\\text{Shadow Scale Ratio} = ${Math.tan((sunElevationAngle * Math.PI) / 180).toFixed(3)}`
+                : `\\frac{\\text{Area}(\\Delta ADE)}{\\text{Area}(\\Delta ABC)} = ${(transversalRatio * transversalRatio).toFixed(4)}`
+            }
+          />
+
           {/* Mode Switcher */}
           <div>
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
@@ -710,6 +843,95 @@ export const SimilarTrianglesSimulator: React.FC = () => {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Point 13: CBSE Class 10 5-Mark Proof & Cheatsheet Modal */}
+      <ExamCheatSheetModal
+        isOpen={showCheatSheet}
+        onClose={() => setShowCheatSheet(false)}
+        topicTitle="CBSE Class 10: Basic Proportionality Theorem (Thales Theorem)"
+        chapterName="Chapter 6 — Triangles (5-Mark Master Cheatsheet)"
+        fiveMarkQuestion="State and prove Basic Proportionality Theorem (Thales Theorem 6.1). If a line is drawn parallel to one side of a triangle to intersect the other two sides in distinct points, prove that the other two sides are divided in the same ratio."
+        proofSteps={[
+          {
+            stepNumber: 1,
+            title: "Given, To Prove & Construction",
+            mathContent: "\\text{Given: } \\Delta ABC, \\; DE \\parallel BC. \\quad \\text{To Prove: } \\frac{AD}{DB} = \\frac{AE}{EC}",
+            explanation: "Join BE and CD. Draw auxiliary altitudes DM ⊥ AC and EN ⊥ AB on the lateral sides.",
+            marksAllocation: "1.0 Mark",
+          },
+          {
+            stepNumber: 2,
+            title: "Left-Side Area Ratio (Altitude EN)",
+            mathContent: "\\frac{\\text{Area}(\\Delta ADE)}{\\text{Area}(\\Delta BDE)} = \\frac{\\frac{1}{2} \\cdot AD \\cdot EN}{\\frac{1}{2} \\cdot DB \\cdot EN} = \\frac{AD}{DB} \\quad \\text{--- (1)}",
+            explanation: "Both triangles ΔADE and ΔBDE share the same vertex E, so EN is their common altitude.",
+            marksAllocation: "1.5 Marks",
+          },
+          {
+            stepNumber: 3,
+            title: "Right-Side Area Ratio (Altitude DM)",
+            mathContent: "\\frac{\\text{Area}(\\Delta ADE)}{\\text{Area}(\\Delta DEC)} = \\frac{\\frac{1}{2} \\cdot AE \\cdot DM}{\\frac{1}{2} \\cdot EC \\cdot DM} = \\frac{AE}{EC} \\quad \\text{--- (2)}",
+            explanation: "Both triangles ΔADE and ΔDEC share the same vertex D, so DM is their common altitude.",
+            marksAllocation: "1.5 Marks",
+          },
+          {
+            stepNumber: 4,
+            title: "Equal Base Between Parallels Equivalence",
+            mathContent: "\\text{Area}(\\Delta BDE) = \\text{Area}(\\Delta DEC) \\implies \\frac{AD}{DB} = \\frac{AE}{EC}",
+            explanation: "Triangles ΔBDE and ΔDEC stand on the same base DE and lie between the same parallel lines DE ∥ BC. Therefore, their areas are equal, making ratio (1) = ratio (2).",
+            marksAllocation: "1.0 Mark",
+          },
+        ]}
+        topperShortcuts={[
+          "Corollaries of BPT: AD/AB = AE/AC and DB/AB = EC/AC (add 1 to both sides of BPT!).",
+          "Quadratic Area Scaling Invariant: Area(ΔADE) / Area(ΔABC) = (AD/AB)² = k².",
+          "Thales Great Pyramid Shadow Method: Height / Shadow = Pole / Shadow.",
+        ]}
+        examinerTraps={[
+          "Forgetting to mention the key theorem: 'Triangles on the same base and between same parallels have equal areas'.",
+          "Mixing up altitudes: EN belongs to side AB (bases AD & DB), while DM belongs to side AC (bases AE & EC).",
+          "Applying BPT when the line is NOT parallel to a side (DE must be strictly parallel to BC).",
+        ]}
+      />
+
+      {/* Point 15: Split-Screen Dual Perspective Comparison Inspector */}
+      <DualViewInspectorModal
+        isOpen={showDualView}
+        onClose={() => setShowDualView(false)}
+        title="Similar Triangles & BPT Dual Inspector"
+        badge="Linear Side Proportions vs Quadratic Area Scaling"
+        primaryView={{
+          title: "Linear Segment Proportions (BPT)",
+          badge: `Ratio = ${ratioLeft.toFixed(3)}`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-200">
+                <p className="font-bold">Left Side: AD = {lenAD.toFixed(1)}, DB = {lenDB.toFixed(1)}</p>
+                <p className="text-emerald-300 font-bold mt-1">AD / DB = {(ratioLeft).toFixed(3)}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-200">
+                <p className="font-bold">Right Side: AE = {lenAE.toFixed(1)}, EC = {lenEC.toFixed(1)}</p>
+                <p className="text-emerald-300 font-bold mt-1">AE / EC = {(ratioRight).toFixed(3)}</p>
+              </div>
+            </div>
+          ),
+        }}
+        secondaryView={{
+          title: "Quadratic Area Scaling Matrix",
+          badge: `k² = ${(scaleFactor * scaleFactor).toFixed(3)}`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-800/60 text-purple-200">
+                <p className="font-semibold text-purple-300 mb-1">Linear Scale Multiplier: k = {scaleFactor.toFixed(2)}</p>
+                <p className="font-bold text-white">Area Scaling: k² = ({scaleFactor.toFixed(2)})² = <span className="text-purple-300">{(scaleFactor * scaleFactor).toFixed(3)}</span></p>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 text-center">
+                While perimeter and sides scale linearly by k, 2D enclosed surface area scales quadratically by k²!
+              </div>
+            </div>
+          ),
+        }}
+        couplingBanner="Basic Proportionality Theorem guarantees Constant Linear Side Ratios while Area scales quadratically by k²!"
+      />
     </div>
   );
 };

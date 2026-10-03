@@ -33,6 +33,10 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { InlineMath } from '../common/MathFormula';
+import { drawGripAffordance, drawShadowDrops, CriticalEventFlareManager } from '../../utils/canvasFx';
 
 interface ComplexPoint {
   r: number; // Real component
@@ -66,6 +70,7 @@ export const ArgandPlanePlayground: React.FC = () => {
 
   // Canvas & Interaction
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const flareManagerRef = useRef(new CriticalEventFlareManager());
   const [activeDragPoint, setActiveDragPoint] = useState<'z1' | 'z2' | null>(null);
 
   // Math calculations
@@ -362,40 +367,30 @@ export const ArgandPlanePlayground: React.FC = () => {
     const angle1 = Math.atan2(p1.y - cy, p1.x - cx);
     drawArrowHead(ctx, p1.x, p1.y, angle1, '#38bdf8');
 
-    // Orthogonal coordinate projections to axes
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-    ctx.setLineDash([3, 3]);
-    ctx.lineWidth = 1;
-    // To Real axis
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p1.x, cy);
-    ctx.stroke();
-    // To Imaginary axis
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(cx, p1.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    // Point 6: Component Shadow Drops from z1 onto Real and Imaginary axes
+    drawShadowDrops(ctx, p1.x, p1.y, cx, cy, {
+      colorX: '#38bdf8',
+      colorY: '#a855f7',
+      valX: `Re=${z1.r.toFixed(1)}`,
+      valY: `Im=${z1.i.toFixed(1)}`,
+      dash: [3, 3],
+    });
 
-    // Point z1 Draggable Handle
-    ctx.fillStyle = '#0284c7';
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2.5;
-    ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.arc(p1.x, p1.y, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+    // Point 4: Direct On-Canvas Grip Affordance for Point z1
+    drawGripAffordance(ctx, p1.x, p1.y, {
+      color: '#38bdf8',
+      label: `z₁ = ${z1.r} ${z1.i >= 0 ? '+' : ''}${z1.i}i`,
+      sublabel: activeDragPoint === 'z1' ? 'Dragging' : 'Drag z₁',
+      isHovered: activeDragPoint === 'z1',
+      isDragging: activeDragPoint === 'z1',
+      radius: 9,
+    });
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px monospace';
-    ctx.fillText(`z₁ = ${z1.r} ${z1.i >= 0 ? '+' : ''}${z1.i}i`, p1.x + 12, p1.y - 10);
+    // Point 7: Critical Event Flares
+    flareManagerRef.current.draw(ctx);
 
     ctx.restore();
-  }, [z1, z2, showZ2, showAddition, showPolar, showGridNumbers, challengeActive, targetPoint, challengeSuccess, toScreen]);
+  }, [z1, z2, showZ2, showAddition, showPolar, showGridNumbers, challengeActive, targetPoint, challengeSuccess, toScreen, activeDragPoint]);
 
   // Helper to draw clean vector arrow tips
   const drawArrowHead = (ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, color: string) => {
@@ -568,6 +563,60 @@ export const ArgandPlanePlayground: React.FC = () => {
 
       {/* Interactive Canvas Stage */}
       <div className="relative flex-1 w-full bg-slate-950 touch-none">
+        {/* Point 8: Invariant Locking Badge & Point 10: 1-Tap Canonical Presets Bar */}
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-30 flex flex-col gap-2 pointer-events-none">
+          <div className="pointer-events-auto">
+            <InvariantLockBadge
+              label="Euler Polar Invariant"
+              invariantLatex="z = r e^{i\theta} = r(\cos\theta + i\sin\theta)"
+              currentValue={`|z|=${z1Modulus.toFixed(2)}, \\theta=${positiveArgDeg}^\\circ`}
+              status="locked"
+            />
+          </div>
+
+          {/* Point 10: 1-Tap Canonical Presets Bar */}
+          <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 shadow-lg pointer-events-auto overflow-x-auto no-scrollbar max-w-[calc(100vw-24px)]">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1.5 flex items-center gap-1">
+              <Sliders className="w-3 h-3 text-cyan-400" />
+              Presets:
+            </span>
+            {[
+              { label: 'i (0 + 1i)', r: 0, i: 1 },
+              { label: '3 + 4i (|z|=5)', r: 3, i: 4 },
+              { label: '45° (2 + 2i)', r: 2, i: 2 },
+              { label: '-3 + 0i (180°)', r: -3, i: 0 },
+              { label: '1 - 1i (315°)', r: 1, i: -1 },
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setZ1({ r: p.r, i: p.i });
+                  lightTap();
+                  playClick();
+                  if (canvasRef.current) {
+                    const rect = canvasRef.current.getBoundingClientRect();
+                    const scale = Math.min(rect.width, rect.height) / 16;
+                    const s = toScreen(p.r, p.i, rect.width, rect.height, scale);
+                    flareManagerRef.current.trigger(s.x, s.y, {
+                      color: '#38bdf8',
+                      label: p.label,
+                      maxRadius: 40,
+                    });
+                  }
+                }}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                  z1.r === p.r && z1.i === p.i
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-extrabold shadow-sm'
+                    : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <canvas
           ref={canvasRef}
           onPointerDown={handlePointerDown}
@@ -635,6 +684,14 @@ export const ArgandPlanePlayground: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-4">
+          <LiveSubstitutionCard
+            title="Complex Modulus & Polar Invariant"
+            badge="Euler / Polar Form"
+            symbolicLaw="z = a + bi = r(\cos\theta + i\sin\theta) = r e^{i\theta}, \quad |z| = \sqrt{a^2 + b^2}"
+            substitutedLatex={`z_1 = ${z1.r} ${z1.i >= 0 ? '+' : ''} ${z1.i}i, \\quad |z_1| = \\sqrt{(${z1.r})^2 + (${z1.i})^2}`}
+            evaluatedLatex={`|z_1| = ${z1Modulus.toFixed(3)}, \\quad \\text{Arg}(z_1) = ${positiveArgDeg}^\\circ`}
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2 p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
               <span className="text-xs font-bold text-cyan-400 block">z₁ Real &amp; Imaginary Controls</span>

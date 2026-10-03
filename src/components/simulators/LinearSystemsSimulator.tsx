@@ -18,7 +18,12 @@ import {
   Eye, 
   Maximize2,
   GitCommit,
-  Network
+  Network,
+  Search,
+  Undo2,
+  Redo2,
+  FileText,
+  Columns
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -29,6 +34,13 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { InvariantLockBadge } from '../common/InvariantLockBadge';
+import { InlineMath } from '../common/MathFormula';
+import { drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
+import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
+import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
 
 export const LinearSystemsSimulator: React.FC = () => {
   const {
@@ -53,11 +65,26 @@ export const LinearSystemsSimulator: React.FC = () => {
   } = linearSystemsParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { playClick, playChime, playPitchTone } = useSound();
   const { trackEvent } = useAnalytics();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const flareManagerRef = useRef(new CriticalEventFlareManager());
   const [activeDragLine, setActiveDragLine] = useState<1 | 2 | null>(null);
+
+  // Recommendations 11-15 state
+  const [showLoupe, setShowLoupe] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showDualView, setShowDualView] = useState(false);
+
+  // Recommendation 14: Time-Travel Parameter History
+  const { takeSnapshot, undo, redo, canUndo, canRedo } = useSnapshotHistory(
+    { a1, b1, c1, a2, b2, c2 },
+    (restored) => {
+      updateLinearSystemsParams(restored);
+      playPitchTone(Math.min(1, Math.abs(restored.a1 * restored.b2 - restored.a2 * restored.b1) / 10), 220, 660);
+    }
+  );
 
   // Cross determinant & intersection calculations
   const delta = a1 * b2 - a2 * b1;
@@ -282,6 +309,15 @@ export const LinearSystemsSimulator: React.FC = () => {
       if (showIntersection && intersectionX !== null && intersectionY !== null) {
         const sInt = toScreen(intersectionX, intersectionY);
 
+        // Point 6: Component Shadow Drops from Intersection onto X and Y axes
+        drawShadowDrops(ctx, sInt.sx, sInt.sy, originX, originY, {
+          colorX: '#38bdf8',
+          colorY: '#f59e0b',
+          valX: `x*=${intersectionX.toFixed(2)}`,
+          valY: `y*=${intersectionY.toFixed(2)}`,
+          dash: [4, 4],
+        });
+
         // Outer pulsing target ring
         ctx.strokeStyle = '#ec4899';
         ctx.lineWidth = 2;
@@ -298,18 +334,6 @@ export const LinearSystemsSimulator: React.FC = () => {
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Crosshairs
-        ctx.strokeStyle = '#ec4899';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([3, 2]);
-        ctx.beginPath();
-        ctx.moveTo(sInt.sx, 0);
-        ctx.lineTo(sInt.sx, height);
-        ctx.moveTo(0, sInt.sy);
-        ctx.lineTo(width, sInt.sy);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
         // Intersection Coordinate Callout Badge
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
         ctx.strokeStyle = '#ec4899';
@@ -325,6 +349,22 @@ export const LinearSystemsSimulator: React.FC = () => {
         ctx.fillStyle = '#f472b6';
         ctx.fillText(labelText, sInt.sx + 18, sInt.sy - 12);
       }
+
+      // Point 11: Microscope Loupe / Precision Magnifier Lens on Intersection Point
+      if (showLoupe && intersectionX !== null && intersectionY !== null) {
+        const sInt = toScreen(intersectionX, intersectionY);
+        const lensX = Math.max(70, Math.min(width - 70, sInt.sx + (sInt.sx < originX ? 85 : -85)));
+        const lensY = Math.max(70, Math.min(height - 70, sInt.sy + (sInt.sy < originY ? 85 : -85)));
+        drawMagnifierLoupe(ctx, canvas, sInt.sx, sInt.sy, lensX, lensY, {
+          zoomFactor: 2.8,
+          radius: 54,
+          borderColor: '#ec4899',
+          label: `2.8x (${intersectionX.toFixed(2)}, ${intersectionY.toFixed(2)})`,
+        });
+      }
+
+      // Point 7: Critical Event Flares
+      flareManagerRef.current.draw(ctx);
 
       ctx.restore();
       animId = requestAnimationFrame(render);
@@ -344,6 +384,7 @@ export const LinearSystemsSimulator: React.FC = () => {
     intersectionY,
     showGridLines,
     showIntersection,
+    showLoupe,
     getTransforms,
   ]);
 
@@ -436,8 +477,166 @@ export const LinearSystemsSimulator: React.FC = () => {
     },
   ];
 
+  const applyCanonicalPreset = (
+    pA1: number,
+    pB1: number,
+    pC1: number,
+    pA2: number,
+    pB2: number,
+    pC2: number,
+    label: string
+  ) => {
+    updateLinearSystemsParams({
+      a1: pA1,
+      b1: pB1,
+      c1: pC1,
+      a2: pA2,
+      b2: pB2,
+      c2: pC2,
+    });
+    lightTap();
+    playClick();
+
+    const pDelta = pA1 * pB2 - pA2 * pB1;
+    if (Math.abs(pDelta) > 0.001 && canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const { toScreen } = getTransforms(rect.width, rect.height);
+      const ix = (pC1 * pB2 - pC2 * pB1) / pDelta;
+      const iy = (pA1 * pC2 - pA2 * pC1) / pDelta;
+      const sInt = toScreen(ix, iy);
+      flareManagerRef.current.trigger(sInt.sx, sInt.sy, {
+        color: '#ec4899',
+        label,
+        maxRadius: 40,
+      });
+    }
+  };
+
   return (
     <div className="relative w-full h-[calc(100vh-42px)] md:h-[calc(100vh-52px)] overflow-hidden flex flex-col bg-slate-950 text-slate-100 select-none">
+      {/* Point 8: Invariant Locking Badge */}
+      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-30 flex flex-col gap-2 pointer-events-none">
+        <div className="pointer-events-auto">
+          <InvariantLockBadge
+            label="Linear Consistency"
+            invariantLatex="\frac{a_1}{a_2} \neq \frac{b_1}{b_2}"
+            currentValue={
+              isCoincident
+                ? 'Coincident (Infinite)'
+                : isParallel
+                ? 'Parallel (No Sol)'
+                : `(${intersectionX?.toFixed(1)}, ${intersectionY?.toFixed(1)})`
+            }
+            status={!isParallel ? 'locked' : isCoincident ? 'locked' : 'evaluating'}
+          />
+        </div>
+
+        {/* Point 10 & 14: 1-Tap Canonical Presets & Time-Travel Bar */}
+        {!isZenMode && (
+          <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 shadow-lg pointer-events-auto overflow-x-auto no-scrollbar max-w-[calc(100vw-24px)]">
+            {/* Time-Travel Undo / Redo */}
+            <div className="flex items-center gap-0.5 border-r border-slate-700/80 pr-1.5 mr-0.5">
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo}
+                title="Undo Parameter Change"
+                className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                  canUndo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                }`}
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo}
+                title="Redo Parameter Change"
+                className={`p-1 rounded-lg text-[10px] transition-all cursor-pointer ${
+                  canRedo ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700' : 'text-slate-600 opacity-40 cursor-not-allowed'
+                }`}
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Microscope Loupe Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowLoupe((prev) => !prev);
+                lightTap();
+                playClick();
+              }}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                showLoupe
+                  ? 'bg-pink-600 text-white border-pink-400 font-extrabold shadow-sm'
+                  : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+              }`}
+            >
+              <Search className="w-3 h-3 text-pink-400" />
+              Loupe 2.8x
+            </button>
+
+            {/* 5-Mark Proof Cheatsheet Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowCheatSheet(true);
+                lightTap();
+                playClick();
+              }}
+              className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-amber-500/50 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <FileText className="w-3 h-3 text-amber-400" />
+              5-Mark Proof
+            </button>
+
+            {/* Dual View Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowDualView(true);
+                lightTap();
+                playClick();
+              }}
+              className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border border-cyan-500/50 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/50 transition-all cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <Columns className="w-3 h-3 text-cyan-400" />
+              Dual View
+            </button>
+
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1.5 flex items-center gap-1 border-l border-slate-700/80 pl-1.5">
+              <Sliders className="w-3 h-3 text-cyan-400" />
+              Presets:
+            </span>
+            {[
+              { label: 'Unique (2, 1)', a1: 2, b1: 1, c1: 5, a2: 1, b2: -1, c2: 1 },
+              { label: '90° Orthogonal', a1: 1, b1: 2, c1: 4, a2: 2, b2: -1, c2: 3 },
+              { label: 'Parallel Rails', a1: 2, b1: 4, c1: 8, a2: 1, b2: 2, c2: -2 },
+              { label: 'Coincident (∞)', a1: 2, b1: 3, c1: 6, a2: 4, b2: 6, c2: 12 },
+              { label: 'Origin (0, 0)', a1: 1, b1: -1, c1: 0, a2: 1, b2: 1, c2: 0 },
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  takeSnapshot({ a1: p.a1, b1: p.b1, c1: p.c1, a2: p.a2, b2: p.b2, c2: p.c2 }, p.label);
+                  applyCanonicalPreset(p.a1, p.b1, p.c1, p.a2, p.b2, p.c2, p.label);
+                }}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
+                  a1 === p.a1 && b1 === p.b1 && c1 === p.c1 && a2 === p.a2 && b2 === p.b2 && c2 === p.c2
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-extrabold shadow-sm'
+                    : 'bg-slate-900/90 text-slate-300 border-slate-700/70 hover:bg-slate-800'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Dynamic HUD Overlay */}
       {!isZenMode && (
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 max-w-[210px] sm:max-w-[260px] bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-2 sm:p-2.5 rounded-xl text-xs space-y-1.5 shadow-2xl">
@@ -574,6 +773,20 @@ export const LinearSystemsSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-4">
+          <LiveSubstitutionCard
+            title="Linear System Cramer Invariant"
+            badge={isCoincident ? 'Coincident' : isParallel ? 'Inconsistent' : 'Unique Solution'}
+            symbolicLaw="a_1 b_2 - a_2 b_1 = \Delta, \quad (x^*, y^*) = \left(\frac{c_1 b_2 - c_2 b_1}{\Delta}, \frac{a_1 c_2 - a_2 c_1}{\Delta}\right)"
+            substitutedLatex={`(${a1})(${b2}) - (${a2})(${b1}) = ${delta.toFixed(2)}`}
+            evaluatedLatex={
+              isCoincident
+                ? `\\frac{a_1}{a_2} = \\frac{b_1}{b_2} = \\frac{c_1}{c_2} \\implies \\infty \\text{ Solutions}`
+                : isParallel
+                ? `\\Delta = 0, \\; \\frac{a_1}{a_2} = \\frac{b_1}{b_2} \\neq \\frac{c_1}{c_2} \\implies \\emptyset`
+                : `(x^*, y^*) = (${intersectionX?.toFixed(2)}, ${intersectionY?.toFixed(2)})`
+            }
+          />
+
           <div className="space-y-2 p-2.5 rounded-xl bg-cyan-950/20 border border-cyan-900/40">
             <h4 className="text-xs font-bold text-cyan-300">Line 1 Coefficients (L₁: a₁x + b₁y = c₁)</h4>
             <TouchSlider
@@ -643,6 +856,114 @@ export const LinearSystemsSimulator: React.FC = () => {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Point 13: CBSE 5-Mark Proof & Cheatsheet Modal */}
+      <ExamCheatSheetModal
+        isOpen={showCheatSheet}
+        onClose={() => setShowCheatSheet(false)}
+        topicTitle="CBSE Class 10: Pair of Linear Equations in Two Variables"
+        chapterName="Chapter 3 — Linear Equations (5-Mark Master Cheatsheet)"
+        fiveMarkQuestion="Find the condition for the pair of linear equations a₁x + b₁y = c₁ and a₂x + b₂y = c₂ to have: (i) a unique solution, (ii) no solution, and (iii) infinitely many solutions. Solve 2x + 3y = 7 and 6x + 9y = 11 algebraically and graphically."
+        proofSteps={[
+          {
+            stepNumber: 1,
+            title: "Standard Form & Ratio Formulation",
+            mathContent: "\\frac{a_1}{a_2}, \\quad \\frac{b_1}{b_2}, \\quad \\frac{c_1}{c_2}",
+            explanation: "Rewrite both equations in standard Cartesian form. Compute the three critical ratio invariants.",
+            marksAllocation: "1.0 Mark",
+          },
+          {
+            stepNumber: 2,
+            title: "Condition (i): Unique Solution (Consistent)",
+            mathContent: "\\frac{a_1}{a_2} \\neq \\frac{b_1}{b_2} \\implies \\Delta = a_1 b_2 - a_2 b_1 \\neq 0",
+            explanation: "Lines intersect at exactly one point (x*, y*). The system has a unique consistent solution.",
+            marksAllocation: "1.5 Marks",
+          },
+          {
+            stepNumber: 3,
+            title: "Condition (ii) & (iii): Parallel vs Coincident",
+            mathContent: "\\text{No Sol: } \\frac{a_1}{a_2} = \\frac{b_1}{b_2} \\neq \\frac{c_1}{c_2}; \\quad \\text{Infinite: } \\frac{a_1}{a_2} = \\frac{b_1}{b_2} = \\frac{c_1}{c_2}",
+            explanation: "Parallel lines have equal slopes but unequal intercepts. Coincident lines are identical copies with infinite solutions.",
+            marksAllocation: "1.5 Marks",
+          },
+          {
+            stepNumber: 4,
+            title: "Cross-Multiplication Formula (Cramer's Rule)",
+            mathContent: "x = \\frac{b_1 c_2 - b_2 c_1}{a_1 b_2 - a_2 b_1}, \\quad y = \\frac{c_1 a_2 - c_2 a_1}{a_1 b_2 - a_2 b_1}",
+            explanation: "Derive using cross-multiplication array: x / (b₁c₂ - b₂c₁) = y / (c₁a₂ - c₂a₁) = 1 / (a₁b₂ - a₂b₁).",
+            marksAllocation: "1.0 Mark",
+          },
+        ]}
+        topperShortcuts={[
+          "Determinant Test: If a₁b₂ - a₂b₁ ≠ 0, STOP immediately and conclude Unique Solution!",
+          "Orthogonal Shortcut: Two lines are perpendicular if a₁a₂ + b₁b₂ = 0.",
+          "Board Exam Trap: Always take care of signs when c₁ and c₂ are on LHS vs RHS (standard form ax + by + c = 0 vs ax + by = c).",
+        ]}
+        examinerTraps={[
+          "Writing 'No solution' when lines are coincident — coincident lines have infinitely many solutions!",
+          "Dividing by zero when a₂ = 0 or b₂ = 0 — express as cross-multiplication products a₁b₂ - a₂b₁ = 0 instead of direct ratios.",
+          "Graph plotting without labeling axis scales and coordinate intersection point coordinates.",
+        ]}
+      />
+
+      {/* Point 15: Split-Screen Dual Perspective Comparison Inspector */}
+      <DualViewInspectorModal
+        isOpen={showDualView}
+        onClose={() => setShowDualView(false)}
+        title="Pair of Linear Equations Dual Inspector"
+        badge="Geometric Graph vs Cramer Algebraic Matrix"
+        primaryView={{
+          title: "Geometric 2D Cartesian Intersect",
+          badge: isCoincident ? "Coincident" : isParallel ? "Parallel" : "Unique Point",
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-800/60 text-cyan-200">
+                <p className="font-bold">Line 1: {a1}x + {b1}y = {c1}</p>
+                <p className="text-slate-300 text-[11px]">Slope m₁ = {m1 !== null ? m1.toFixed(2) : 'undefined'}, Y-Int = {k1 !== null ? k1.toFixed(2) : 'none'}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-200">
+                <p className="font-bold">Line 2: {a2}x + {b2}y = {c2}</p>
+                <p className="text-slate-300 text-[11px]">Slope m₂ = {m2 !== null ? m2.toFixed(2) : 'undefined'}, Y-Int = {k2 !== null ? k2.toFixed(2) : 'none'}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 text-center">
+                <span className="text-pink-400 font-bold block text-sm">
+                  {intersectionX !== null && intersectionY !== null ? `Intersection: (${intersectionX.toFixed(2)}, ${intersectionY.toFixed(2)})` : 'No Intersection Point'}
+                </span>
+              </div>
+            </div>
+          ),
+        }}
+        secondaryView={{
+          title: "Cramer Determinant & Ratio Matrix",
+          badge: `Δ = ${delta.toFixed(2)}`,
+          content: (
+            <div className="space-y-3 font-mono text-xs">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2 rounded-xl bg-slate-900 border border-slate-700">
+                  <span className="text-[10px] text-cyan-300 block">a₁ / a₂</span>
+                  <span className="font-bold text-white">{ratioA}</span>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-900 border border-slate-700">
+                  <span className="text-[10px] text-amber-300 block">b₁ / b₂</span>
+                  <span className="font-bold text-white">{ratioB}</span>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-900 border border-slate-700">
+                  <span className="text-[10px] text-purple-300 block">c₁ / c₂</span>
+                  <span className="font-bold text-white">{ratioC}</span>
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 text-xs leading-relaxed">
+                <p className="font-semibold text-cyan-300 mb-1">Determinant Invariant:</p>
+                <p>Δ = ({a1})({b2}) - ({a2})({b1}) = <span className="font-bold text-pink-400">{delta.toFixed(2)}</span></p>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  {Math.abs(delta) > 0.001 ? 'Since Δ ≠ 0, the matrix is invertible, guaranteeing a unique solution.' : 'Since Δ = 0, lines are collinear or parallel (singular matrix).'}
+                </p>
+              </div>
+            </div>
+          ),
+        }}
+        couplingBanner="Geometric Line Intersection (x*, y*) aligns identically with Cramer's Algebraic Determinant Invariant!"
+      />
     </div>
   );
 };

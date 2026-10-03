@@ -30,6 +30,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const HeronTrianglesSimulator: React.FC = () => {
   const {
@@ -552,6 +553,14 @@ export const HeronTrianglesSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-3">
+          <LiveSubstitutionCard
+            title="Heron's Formula Geometric Invariant"
+            badge={`s = ${s.toFixed(2)}`}
+            symbolicLaw="\Delta = \sqrt{s(s-a)(s-b)(s-c)}, \quad r = \frac{\Delta}{s}"
+            substitutedLatex={`\\Delta = \\sqrt{${s.toFixed(1)}(${(s - a).toFixed(1)})(${(s - b).toFixed(1)})(${(s - c).toFixed(1)})}`}
+            evaluatedLatex={`\\Delta = ${area.toFixed(2)} \\text{ u}^2, \\quad \\text{Inradius } r = ${(area / (s || 1)).toFixed(2)} \\text{ u}`}
+          />
+
           <div className="grid grid-cols-2 gap-2">
             <TouchSlider
               label="Vertex C - X Coordinate"

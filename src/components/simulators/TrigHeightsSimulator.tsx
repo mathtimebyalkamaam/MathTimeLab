@@ -30,6 +30,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const TrigHeightsSimulator: React.FC = () => {
   const {
@@ -697,6 +698,14 @@ export const TrigHeightsSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-3">
+          <LiveSubstitutionCard
+            title={viewMode === 'elevation' ? 'Trigonometric Elevation Invariant' : 'Depression Angle Invariant'}
+            badge={viewMode === 'elevation' ? 'Elevation' : 'Depression'}
+            symbolicLaw="\tan\theta = \frac{\text{Opposite}}{\text{Adjacent}} = \frac{h}{d} \implies h = d \cdot \tan\theta"
+            substitutedLatex={`\\tan(${angle1Deg.toFixed(1)}^\\circ) = \\frac{${towerHeight}\\text{ m}}{${d1}\\text{ m}} = ${tan1.toFixed(3)}`}
+            evaluatedLatex={`h = ${towerHeight}\\text{ m}, \\quad d = ${d1}\\text{ m}, \\quad \\theta = ${angle1Deg.toFixed(1)}^\\circ`}
+          />
+
           <TouchSlider
             label="Tower / Lighthouse Height h (meters)"
             value={towerHeight}

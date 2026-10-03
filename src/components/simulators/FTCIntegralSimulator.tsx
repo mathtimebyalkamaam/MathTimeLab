@@ -29,6 +29,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const FTCIntegralSimulator: React.FC = () => {
   const {
@@ -670,7 +671,16 @@ export const FTCIntegralSimulator: React.FC = () => {
           />
         }
       >
-        <div className="space-y-4 text-xs">
+        <div className="space-y-3 text-xs">
+          {/* Point 1 & 5: Live FTC Substitution Card */}
+          <LiveSubstitutionCard
+            title="Fundamental Theorem"
+            badge="FTC"
+            symbolicLaw={`\\frac{d}{dx}\\int_a^x f(t)\\,dt = f(x), \\quad \\int_a^b f(t)\\,dt = F(b) - F(a)`}
+            substitutedLatex={`\\int_{${lowerBoundA.toFixed(1)}}^{${upperBoundX.toFixed(2)}} ${config.formulaLatex}\\,dt`}
+            evaluatedLatex={`= ${exactIntegral.toFixed(4)}, \\quad f(${upperBoundX.toFixed(2)}) = ${currentHeight_fx.toFixed(4)}`}
+            activeTerm={isDraggingSweep ? `x = ${upperBoundX.toFixed(2)}` : undefined}
+          />
           {/* Function Selector */}
           <div>
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">

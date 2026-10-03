@@ -26,6 +26,7 @@ import { ChallengeManager, ChallengeLevel } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const CircleTangentsSimulator: React.FC = () => {
   const {
@@ -139,7 +140,15 @@ export const CircleTangentsSimulator: React.FC = () => {
   }, [circleRadius, pointDistanceOP, showCyclicAngleProperty, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="Circle Tangent Length & Normal Invariant"
+        badge="Theorem 10.2"
+        symbolicLaw="PA = PB = \sqrt{d^2 - r^2}, \quad \angle APB + \angle AOB = 180^\circ"
+        substitutedLatex={`PA = \\sqrt{(${d.toFixed(1)})^2 - (${r.toFixed(1)})^2} = \\sqrt{${Math.max(0, d * d - r * r).toFixed(2)}}`}
+        evaluatedLatex={`PA = PB = ${tangentLength.toFixed(2)} \\text{ cm}, \\quad \\angle AOB = ${(2 * thetaDeg).toFixed(1)}^\\circ`}
+      />
+
       <div className="space-y-4">
         <TouchSlider
           label="Circle Radius (r)"

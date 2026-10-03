@@ -30,6 +30,7 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { Eli13ExplainerCard } from '../common/Eli13ExplainerCard';
+import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const CompoundInterestSimulator: React.FC = () => {
   const {
@@ -189,6 +190,14 @@ export const CompoundInterestSimulator: React.FC = () => {
 
   const controlsContent = (
     <div className="space-y-4 p-4 text-slate-200">
+      <LiveSubstitutionCard
+        title="Exponential Compounding Law"
+        badge={frequency.toUpperCase()}
+        symbolicLaw="A = P\left(1 + \frac{r/k}{100}\right)^{k \cdot t}, \quad CI = A - P"
+        substitutedLatex={`A = ${principal}\\left(1 + \\frac{${periodicRate.toFixed(1)}}{100}\\right)^{${totalPeriods}}`}
+        evaluatedLatex={`A = ₹${compoundTotalAmount.toFixed(2)}, \\quad CI = ₹${compoundInterest.toFixed(2)} \\; (SI = ₹${simpleInterest.toFixed(2)})`}
+      />
+
       {/* Frequency Toggle */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
