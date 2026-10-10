@@ -34,6 +34,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { SIMULATORS } from '../../data/simulators';
+import { getNcertMapping } from '../../data/ncertMappings';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { GradeLevel, SimulatorId } from '../../types/simulators';
 import { DailyChallenge } from '../common/DailyChallenge';
@@ -43,6 +44,8 @@ import { LiveHomeSimulatorSampler } from '../common/LiveHomeSimulatorSampler';
 import { AudienceValueProposition } from '../common/AudienceValueProposition';
 import { TeacherSmartboardToolkit } from '../common/TeacherSmartboardToolkit';
 import { AuthorSpotlightSection } from '../common/AuthorSpotlightSection';
+import { HowToLearnGuideRibbon } from '../common/HowToLearnGuideRibbon';
+import { ClassGatewaysSection } from '../common/ClassGatewaysSection';
 
 export const HomePage: React.FC = () => {
   const { 
@@ -88,7 +91,20 @@ export const HomePage: React.FC = () => {
       const matchCategory = sim.category.toLowerCase().includes(q);
       const matchGrade = sim.grade.toLowerCase().includes(q);
       const matchConcepts = sim.keyConcepts.some((c) => c.toLowerCase().includes(q));
-      if (!matchTitle && !matchDesc && !matchCategory && !matchGrade && !matchConcepts) {
+
+      // Multi-Board Curriculum mapping query match
+      const ncert = getNcertMapping(sim.id);
+      const matchCurriculum = ncert && (
+        ncert.chapterName.toLowerCase().includes(q) ||
+        `ch ${ncert.chapterNumber}`.includes(q) ||
+        `chapter ${ncert.chapterNumber}`.includes(q) ||
+        `ch${ncert.chapterNumber}`.includes(q) ||
+        ncert.exerciseReference.toLowerCase().includes(q) ||
+        ncert.curriculumTopics.some((t) => t.toLowerCase().includes(q))
+      );
+      const matchBoards = q === 'cbse' || q === 'icse' || q === 'state board' || q === 'ncert' || q === 'boards';
+
+      if (!matchTitle && !matchDesc && !matchCategory && !matchGrade && !matchConcepts && !matchCurriculum && !matchBoards) {
         return false;
       }
     }
@@ -1245,6 +1261,7 @@ export const HomePage: React.FC = () => {
   const renderMobileCompactCard = (sim: typeof SIMULATORS[0]) => {
     const Icon = getSimulatorIcon(sim.id);
     const isDone = completedSimulators.includes(sim.id);
+    const ncert = getNcertMapping(sim.id);
 
     return (
       <div
@@ -1268,10 +1285,20 @@ export const HomePage: React.FC = () => {
                 <span className="text-[9px] text-slate-400 font-medium">
                   {sim.category}
                 </span>
+                {ncert && (
+                  <span className="text-[9px] font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-800/70 px-1.5 py-0.5 rounded flex items-center gap-1">
+                    <span>📚 Ch {ncert.chapterNumber}</span>
+                  </span>
+                )}
               </div>
               <h3 className="font-bold text-xs text-white mt-0.5 leading-snug group-hover:text-cyan-300 transition-colors">
                 {sim.title}
               </h3>
+              {ncert && (
+                <div className="text-[10px] text-emerald-400/90 font-medium truncate mt-0.5">
+                  Syllabus: Ch {ncert.chapterNumber} • {ncert.chapterName} (CBSE / ICSE / State Boards)
+                </div>
+              )}
             </div>
           </div>
 
@@ -1329,6 +1356,7 @@ export const HomePage: React.FC = () => {
 
   const renderMobileVisualCard = (sim: typeof SIMULATORS[0]) => {
     const isDone = completedSimulators.includes(sim.id);
+    const ncert = getNcertMapping(sim.id);
 
     return (
       <div
@@ -1357,6 +1385,13 @@ export const HomePage: React.FC = () => {
             </span>
           )}
         </div>
+
+        {ncert && (
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-800/70 px-2 py-0.5 rounded-md flex-wrap">
+            <span>📚 Curriculum Ch {ncert.chapterNumber}: {ncert.chapterName}</span>
+            <span className="text-[9px] font-mono text-emerald-400/90 bg-emerald-900/40 px-1 rounded">CBSE • ICSE • State Boards</span>
+          </div>
+        )}
 
         <div>
           <h3 className="font-bold text-sm text-white leading-snug group-hover:text-cyan-300 transition-colors">{sim.title}</h3>
@@ -1542,6 +1577,23 @@ export const HomePage: React.FC = () => {
             <LiveHomeSimulatorSampler />
           </div>
         </section>
+
+        {/* ======================================================== */}
+        {/* SELF-STUDY GUIDE: HOW TO LEARN WITHOUT A TEACHER         */}
+        {/* ======================================================== */}
+        <section>
+          <HowToLearnGuideRibbon 
+            onChooseClassClick={() => {
+              const el = document.getElementById('choose-your-class-section');
+              el?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+        </section>
+
+        {/* ======================================================== */}
+        {/* CHOOSE YOUR CLASS TO START (CLASSES 8–12 GATEWAYS)        */}
+        {/* ======================================================== */}
+        <ClassGatewaysSection />
 
         {/* Smartboard-Ready Teaching Toolkit for Educators */}
         <section>
@@ -1803,6 +1855,7 @@ export const HomePage: React.FC = () => {
           {filteredSimulators.map((sim) => {
             const Icon = getSimulatorIcon(sim.id);
             const isDone = completedSimulators.includes(sim.id);
+            const ncert = getNcertMapping(sim.id);
 
             if (desktopViewMode === 'compact') {
               return (
@@ -1815,10 +1868,18 @@ export const HomePage: React.FC = () => {
                   className="bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/50 rounded-xl p-3 flex items-center justify-between gap-3 transition-all duration-200 shadow-sm group cursor-pointer"
                 >
                   <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-1.5 text-[11px]">
+                    <div className="flex items-center gap-1.5 text-[11px] flex-wrap">
                       <span className="font-bold text-cyan-400">{sim.grade}</span>
                       <span className="text-slate-600">·</span>
                       <span className="text-slate-400 font-mono text-[10px]">{sim.category}</span>
+                      {ncert && (
+                        <>
+                          <span className="text-slate-600">·</span>
+                          <span className="text-emerald-300 font-semibold text-[10px] bg-emerald-950/60 border border-emerald-800/60 px-1.5 py-0.5 rounded">
+                            Ch {ncert.chapterNumber}
+                          </span>
+                        </>
+                      )}
                       <span className="text-slate-600">·</span>
                       <span className="text-slate-400 text-[10px] flex items-center gap-0.5">
                         <Clock className="w-2.5 h-2.5 text-slate-500" />
@@ -1829,7 +1890,7 @@ export const HomePage: React.FC = () => {
                       {sim.title}
                     </h3>
                     <p className="text-[11px] text-slate-400 line-clamp-1">
-                      {sim.description}
+                      {ncert ? `Syllabus: Ch ${ncert.chapterNumber} ${ncert.chapterName} (CBSE • ICSE • State Boards) — ${sim.description}` : sim.description}
                     </p>
                   </div>
                   <button
@@ -1862,7 +1923,7 @@ export const HomePage: React.FC = () => {
                   {getSimulatorPreviewGraphic(sim.id)}
 
                   {/* Metadata */}
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
                     <span className="font-semibold text-cyan-400">{sim.grade}</span>
                     <span aria-hidden="true">·</span>
                     <span>{sim.category}</span>
@@ -1874,6 +1935,16 @@ export const HomePage: React.FC = () => {
                     <span aria-hidden="true">·</span>
                     <span>{sim.difficulty}</span>
                   </div>
+
+                  {/* Multi-Board Syllabus Anchor Badge */}
+                  {ncert && (
+                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-800/70 px-2.5 py-1 rounded-lg flex-wrap">
+                      <span>📚 Class {ncert.gradeNumber} • Ch {ncert.chapterNumber}: {ncert.chapterName}</span>
+                      <span className="text-[10px] font-mono text-emerald-400/90 bg-emerald-900/40 px-1.5 py-0.5 rounded">
+                        CBSE • ICSE • State Boards • NCERT Aligned
+                      </span>
+                    </div>
+                  )}
 
                   {/* Simulator Title & Description */}
                   <div>
@@ -2074,6 +2145,25 @@ export const HomePage: React.FC = () => {
           </div>
         </section>
 
+        {/* ======================================================== */}
+        {/* MOBILE SELF-STUDY GUIDE: HOW TO LEARN WITHOUT A TEACHER  */}
+        {/* ======================================================== */}
+        <section>
+          <HowToLearnGuideRibbon 
+            onChooseClassClick={() => {
+              const el = document.getElementById('mobile-curriculum-section') || document.getElementById('choose-your-class-section');
+              el?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+        </section>
+
+        {/* ======================================================== */}
+        {/* MOBILE CHOOSE YOUR CLASS (CLASSES 8–12 GATEWAYS)          */}
+        {/* ======================================================== */}
+        <section>
+          <ClassGatewaysSection />
+        </section>
+
         {/* 2. Interactive Value Proposition: Why Students and Teachers Rely On It */}
         <section>
           <AudienceValueProposition />
@@ -2093,7 +2183,7 @@ export const HomePage: React.FC = () => {
         <AuthorSpotlightSection />
 
         {/* 4. Interactive Class Navigator (3x2 Grid) */}
-        <section className="space-y-1.5 pt-1">
+        <section id="mobile-curriculum-section" className="space-y-1.5 pt-1 scroll-mt-14">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-1.5">
               <GraduationCap className="w-4 h-4 text-cyan-400" />

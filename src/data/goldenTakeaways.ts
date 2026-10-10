@@ -1,0 +1,311 @@
+import { SimulatorId } from '../types/simulators';
+
+export interface GoldenTakeaway {
+  ruleText: string;
+  formulaLatex: string;
+  examTip: string;
+  audioSpeech: string;
+}
+
+export const GOLDEN_TAKEAWAYS: Record<SimulatorId, GoldenTakeaway> = {
+  'vector-flight-lab': {
+    ruleText: 'Dot product u · v = 0 proves 90° orthogonality; cross product magnitude |u × v| equals the area of the spanned parallelogram.',
+    formulaLatex: 'u \\cdot v = |u||v|\\cos\\theta, \\quad |u \\times v| = |u||v|\\sin\\theta',
+    examTip: 'CBSE 2-Mark Standard: If two non-zero vectors are perpendicular, equate their scalar product to zero.',
+    audioSpeech: 'Remember this key exam rule: the dot product is zero whenever vectors are perpendicular at 90 degrees. Cross product gives a vector pointing straight out of the plane!',
+  },
+  'drone-navigator': {
+    ruleText: 'Euclidean distance on a 2D plane is the hypotenuse of a right-angled triangle formed by coordinate deltas.',
+    formulaLatex: 'd = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}',
+    examTip: 'Board Exam Tip (CBSE / State Boards): Coordinates can be negative, but squared deltas are always positive. Distance is never negative.',
+    audioSpeech: 'Hello students! On the Cartesian plane, distance is just the Pythagorean theorem. Difference in x squared plus difference in y squared under the square root!',
+  },
+  'catapult-siege': {
+    ruleText: 'Projectile motion decomposes into constant horizontal velocity and accelerating vertical gravity.',
+    formulaLatex: 'R = \\frac{v^2 \\sin(2\\theta)}{g}, \\quad \\theta = 45^\\circ \\implies R_{\\max}',
+    examTip: 'Maximum range in a vacuum always occurs at 45° because sin(2 × 45°) = sin(90°) = 1.',
+    audioSpeech: 'Notice how the parabola is symmetric! The horizontal speed never changes, while vertical speed slows down to zero at the peak before falling.',
+  },
+  'conic-sections': {
+    ruleText: 'All conic sections come from one 3D double cone sliced at different cutting angles relative to the generator angle.',
+    formulaLatex: '\\beta = 0^\\circ \\text{ (Circle)}, \\quad \\beta < \\alpha \\text{ (Ellipse)}, \\quad \\beta = \\alpha \\text{ (Parabola)}, \\quad \\beta > \\alpha \\text{ (Hyperbola)}',
+    examTip: 'Board Exam Multiple Choice: When cutting plane is parallel to the slant edge (β = α), the intersection is always a parabola.',
+    audioSpeech: 'Rotate the cutting plane in 3D! When flat, you get a circle. Tilt it slightly for an ellipse, match the cone slant for a parabola, and cut both cones for a hyperbola.',
+  },
+  'rollercoaster-architect': {
+    ruleText: 'The first derivative f\'(x) defines the track slope; the second derivative f\'\'(x) defines track curvature and G-forces.',
+    formulaLatex: "f'(x) = \\text{slope}, \\quad f''(x) = \\text{curvature } \\kappa = \\frac{|f''(x)|}{(1 + f'(x)^2)^{3/2}}",
+    examTip: 'Inflection points occur where f\'\'(x) = 0 and concavity changes between upward and downward.',
+    audioSpeech: 'In calculus, slope is the first derivative, while feeling pushed into your seat is curvature, governed by the second derivative!',
+  },
+  'unit-circle': {
+    ruleText: 'On the unit circle with radius 1, horizontal coordinate is cos(θ), vertical coordinate is sin(θ), and sin²θ + cos²θ = 1 everywhere.',
+    formulaLatex: '\\cos^2\\theta + \\sin^2\\theta = 1, \\quad \\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}',
+    examTip: 'Identities are true for every real angle θ. When θ = 90°, cos(θ) = 0, so tan(90°) is undefined.',
+    audioSpeech: 'Watch the glowing point rotate! As the angle climbs from 0 to 90 degrees, sine climbs from 0 to 1, while cosine shrinks from 1 down to 0.',
+  },
+  'calculus-sandbox': {
+    ruleText: 'The derivative f\'(x) is the slope of the tangent line; the definite integral measures the accumulated net signed area.',
+    formulaLatex: "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}, \\quad \\int_a^b f(x)\\,dx = F(b) - F(a)",
+    examTip: 'Areas below the x-axis have negative sign in integrals, but geometric physical area is always positive.',
+    audioSpeech: 'Calculus has two superpowers: derivatives zoom in to measure instantaneous slope, while integrals zoom out to accumulate total area!',
+  },
+  'argand-plane': {
+    ruleText: 'Multiplying any complex number z by i rotates the vector counterclockwise by exactly 90° without changing its length.',
+    formulaLatex: 'i \\cdot (a + bi) = -b + ai, \\quad |i \\cdot z| = |z|, \\quad \\arg(i \\cdot z) = \\arg(z) + 90^\\circ',
+    examTip: 'Multiplying by i² rotates by 180°, which is why i² = -1.',
+    audioSpeech: 'In complex numbers, multiplying by i is simply a 90-degree turn to the left! It turns positive real numbers into imaginary ones.',
+  },
+  'matrix-meme': {
+    ruleText: 'The determinant det(A) measures the signed area scaling factor; if det(A) = 0, 2D space squashes into a flat line with no inverse.',
+    formulaLatex: '\\det(A) = ad - bc, \\quad A^{-1} \\text{ exists } \\iff \\det(A) \\neq 0',
+    examTip: 'A matrix is singular if its determinant is 0. Singular matrices cannot be inverted.',
+    audioSpeech: 'Think of a matrix as stretching grid paper. If the determinant becomes zero, the whole 2D world collapses into a flat line and cannot be undone!',
+  },
+  'monty-hall': {
+    ruleText: 'Switching doors doubles your winning odds from 1/3 to 2/3 because the host reveal concentrates odds on the unopened door.',
+    formulaLatex: 'P(\\text{Win}|\\text{Stay}) = \\frac{1}{3}, \\quad P(\\text{Win}|\\text{Switch}) = \\frac{2}{3}',
+    examTip: 'Your initial choice locks in a 1/3 chance of being right and a 2/3 chance of being wrong. Switching bets on your initial mistake.',
+    audioSpeech: 'Always switch! Your first pick had a 2 out of 3 chance of being a goat. When Monty removes the other goat, switching wins 66 percent of the time.',
+  },
+  'quadratic-roots': {
+    ruleText: 'Discriminant D = b² - 4ac governs roots: D > 0 gives two real roots, D = 0 gives one repeated root, and D < 0 gives imaginary roots.',
+    formulaLatex: 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}, \\quad D = b^2 - 4ac',
+    examTip: 'If D = 0, the parabola touches the x-axis at its vertex without crossing it.',
+    audioSpeech: 'Check the discriminant first! If D is positive, the curve cuts the axis twice. If D is zero, it kisses the axis. If D is negative, it floats in the air.',
+  },
+  'circle-theorems': {
+    ruleText: 'Tangents drawn from an external point to a circle are equal in length (PA = PB) and perpendicular to the radius at contact (90°).',
+    formulaLatex: 'PA = PB = \\sqrt{d^2 - R^2}, \\quad \\angle OAP = \\angle OBP = 90^\\circ',
+    examTip: 'Quadrilateral PAOB is always cyclic, which means angle APB + angle AOB = 180° (supplementary).',
+    audioSpeech: 'From any point outside a circle, both tangents are identical twins in length, and both form a crisp 90-degree right angle with the radius!',
+  },
+  'linear-systems': {
+    ruleText: 'Two linear equations have a unique solution if slopes differ, no solution if lines are parallel, and infinite solutions if coincident.',
+    formulaLatex: '\\frac{a_1}{a_2} \\neq \\frac{b_1}{b_2} \\text{ (Unique)}, \\quad \\frac{a_1}{a_2} = \\frac{b_1}{b_2} \\neq \\frac{c_1}{c_2} \\text{ (Parallel)}',
+    examTip: 'Consistent system means at least one solution exists (unique or coincident). Inconsistent means parallel lines.',
+    audioSpeech: 'Compare the ratio of coefficients! If a1 over a2 does not equal b1 over b2, the lines must cross at exactly one intersection point.',
+  },
+  'trig-heights': {
+    ruleText: 'Angle of elevation from ground equals angle of depression from top by alternate interior angles; height is h = d · tan(θ).',
+    formulaLatex: 'h = d \\cdot \\tan\\theta, \\quad \\angle_{\\text{elevation}} = \\angle_{\\text{depression}}',
+    examTip: 'Always remember: height equals base times tangent of elevation angle.',
+    audioSpeech: 'Clinometers use tangent! Elevation angle from the ground is identical to depression angle from the roof because horizontal lines are parallel.',
+  },
+  'heron-triangles': {
+    ruleText: "Heron's formula calculates triangle area directly from three side lengths without requiring an altitude line.",
+    formulaLatex: '\\text{Area} = \\sqrt{s(s-a)(s-b)(s-c)}, \\quad s = \\frac{a+b+c}{2}',
+    examTip: 'If a + b = c, the semi-perimeter difference (s - c) becomes 0, proving the triangle has collapsed into a flat line.',
+    audioSpeech: 'Add all three sides and halve them to get semi-perimeter s. Then multiply s by its differences with each side under the square root!',
+  },
+  'polynomial-factorizer': {
+    ruleText: 'Factoring a quadratic x² + (p+q)x + pq decomposes a composite rectangle into dimensions (x + p) × (x + q).',
+    formulaLatex: 'x^2 + (p+q)x + pq = (x+p)(x+q)',
+    examTip: 'To split the middle term, find two numbers whose sum equals the middle coefficient and whose product equals the constant term.',
+    audioSpeech: 'Algebra is geometry! Factoring a polynomial is just finding the length and width of a rectangle whose area matches your equation.',
+  },
+  'lines-angles': {
+    ruleText: 'Transversals cutting parallel lines produce equal alternate interior angles (Z-shape) and supplementary consecutive angles (C-shape).',
+    formulaLatex: '\\angle_{\\text{alt}} = \\angle, \\quad \\angle_1 + \\angle_2 = 180^\\circ \\text{ (Consecutive Interior)}',
+    examTip: 'Look for the letter Z for alternate angles, F for corresponding angles, and C for consecutive interior angles.',
+    audioSpeech: 'Whenever lines are parallel, Z-shaped alternate interior angles are equal, and C-shaped interior angles on the same side add up to 180 degrees!',
+  },
+  'binomial-galton': {
+    ruleText: 'Independent binary left/right bounces naturally distribute balls according to binomial coefficients and normal curve.',
+    formulaLatex: '\\binom{n}{r} = \\frac{n!}{r!(n-r)!}, \\quad \\sum_{r=0}^n \\binom{n}{r} = 2^n',
+    examTip: 'The sum of all binomial coefficients in row n of Pascal triangle equals 2 to the power n.',
+    audioSpeech: 'Every peg offers a 50-50 choice left or right. The center bins get the most paths, creating Pascal triangle and the bell curve!',
+  },
+  'arithmetic-geometric-explorer': {
+    ruleText: 'AP sum is Gauss interlocking staircase Sn = (n/2)(a + l); infinite GP converges to a / (1 - r) if and only if |r| < 1.',
+    formulaLatex: 'S_n = \\frac{n}{2}(2a + (n-1)d), \\quad S_\\infty = \\frac{a}{1 - r} \\text{ for } |r| < 1',
+    examTip: 'If common ratio r is greater than or equal to 1, the infinite geometric series diverges to infinity.',
+    audioSpeech: 'Young Gauss solved the sum from 1 to 100 by pairing first and last numbers. For infinite fractions, as long as r is less than 1, they sum to a finite number!',
+  },
+  'hyperbola-ellipse-orbits': {
+    ruleText: 'An ellipse has constant sum of focal distances d₁ + d₂ = 2a; planets orbit in ellipses with the Sun at one focus.',
+    formulaLatex: 'd_1 + d_2 = 2a \\text{ (Ellipse)}, \\quad |d_1 - d_2| = 2a \\text{ (Hyperbola)}',
+    examTip: 'Eccentricity e = c/a: Circle has e = 0, Ellipse has 0 < e < 1, Parabola has e = 1, Hyperbola has e > 1.',
+    audioSpeech: 'Think of an ellipse as a loop of string pinned around two nails. As you move the pen, the total string length stays constant!',
+  },
+  'surface-area-volumes': {
+    ruleText: 'Curved surface area of a cylinder unrolls into a (2πr) × h rectangle; a cone holds exactly 1/3 the volume of a cylinder.',
+    formulaLatex: 'V_{\\text{cylinder}} = \\pi r^2 h, \\quad V_{\\text{cone}} = \\frac{1}{3}\\pi r^2 h, \\quad CSA = 2\\pi r h',
+    examTip: 'It takes exactly three full cones of water to fill a cylinder of the same radius and height.',
+    audioSpeech: 'Unroll a cylinder and you get a flat rectangle with width equal to the circumference 2 pi r. And a cone is exactly one third of that volume!',
+  },
+  'circle-chords-cyclic': {
+    ruleText: 'Perpendicular from circle center bisects the chord; opposite angles of any cyclic quadrilateral inscribed in a circle sum to 180°.',
+    formulaLatex: 'OM \\perp AB \\implies AM = MB, \\quad \\angle A + \\angle C = 180^\\circ',
+    examTip: 'If a quadrilateral has opposite angles adding to 180°, all four vertices must lie on a single common circle.',
+    audioSpeech: 'A perpendicular line from the center cuts any chord into two equal halves. And inside a circle, opposite angles always add up to 180 degrees!',
+  },
+  'statistics-visualizer': {
+    ruleText: 'Mean is the center-of-mass balance point pulled by outliers; median is the resilient 50th percentile rank.',
+    formulaLatex: '\\bar{x} = \\frac{\\sum x_i}{N}, \\quad \\sum (x_i - \\bar{x}) = 0, \\quad \\text{Mode} \\approx 3\\,\\text{Median} - 2\\,\\text{Mean}',
+    examTip: 'Outliers distort the Mean significantly, but the Median remains completely unaffected.',
+    audioSpeech: 'Mean is the fulcrum of a seesaw. If an extreme outlier sits far away, the mean gets yanked, but the median stays right in the middle!',
+  },
+  'limits-derivatives-lab': {
+    ruleText: 'The derivative is the limit of secant slopes as step h approaches 0; zoom into any smooth curve and it looks like a straight line.',
+    formulaLatex: "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}",
+    examTip: 'A function is differentiable at x only if both left-hand derivative and right-hand derivative exist and are equal.',
+    audioSpeech: 'As step h shrinks to zero, the secant line rotates and snaps onto the tangent line. That slope is the derivative!',
+  },
+  'linear-inequalities': {
+    ruleText: 'The optimal maximum or minimum of an objective function Z = px + qy always occurs at an extreme corner vertex of the feasible region.',
+    formulaLatex: 'Z = px + qy, \\quad Z_{\\text{opt}} \\in \\{V_1, V_2, \\dots, V_k\\}',
+    examTip: 'Corner Point Method: Find vertices of the shaded feasible region, substitute into Z, and pick the highest or lowest value.',
+    audioSpeech: 'Always test the corner vertices! The maximum or minimum profit in linear programming will always occur at one of the sharp corner points.',
+  },
+  'permutations-combinations': {
+    ruleText: 'Permutations count arrangements where order matters; combinations collapse ordering redundancy by dividing by r!.',
+    formulaLatex: '^nP_r = \\frac{n!}{(n-r)!}, \\quad ^nC_r = \\frac{^nP_r}{r!} = \\frac{n!}{r!(n-r)!}',
+    examTip: 'Choosing a team is Combinations. Electing Captain and Vice-Captain is Permutations because roles/order matter.',
+    audioSpeech: 'If order matters, use Permutations! If you just need a group, divide by r factorial to remove duplicates, which gives Combinations.',
+  },
+  'similar-triangles': {
+    ruleText: 'Thales BPT: A line parallel to one triangle side divides the other two sides in identical proportion (AD/DB = AE/EC).',
+    formulaLatex: '\\frac{AD}{DB} = \\frac{AE}{EC}, \\quad \\frac{\\text{Area}(\\Delta ADE)}{\\text{Area}(\\Delta ABC)} = \\left(\\frac{AD}{AB}\\right)^2',
+    examTip: 'When side lengths scale by factor k, surface area scales by k² and volume scales by k³.',
+    audioSpeech: 'When a line is parallel to the base, it cuts the sides in equal ratio. And remember, the ratio of areas is the square of the side ratio!',
+  },
+  'ftc-integral-accumulator': {
+    ruleText: 'Fundamental Theorem of Calculus: The instantaneous rate of area accumulation A\'(x) equals the curve height f(x).',
+    formulaLatex: "\\frac{d}{dx} \\left[\\int_a^x f(t)\\,dt\\right] = f(x), \\quad \\int_a^b f(x)\\,dx = F(b) - F(a)",
+    examTip: 'Differentiation and integration are exact inverse operations of each other.',
+    audioSpeech: 'This is the crown jewel of calculus! The speed at which area grows under a curve is simply the height of the curve at that exact point.',
+  },
+  'bayes-probability-lab': {
+    ruleText: 'Bayes Theorem updates prior beliefs with new evidence; when a condition is rare, false alarms from the healthy majority outnumber true positives.',
+    formulaLatex: 'P(A|B) = \\frac{P(B|A)P(A)}{P(B)}',
+    examTip: 'Always calculate total probability P(B) in the denominator by considering both true positives and false positives.',
+    audioSpeech: 'Beware of the base rate fallacy! Even with a 99 percent accurate test, if a disease is very rare, most positive results are actually false alarms.',
+  },
+  'euclidean-geometry-sandbox': {
+    ruleText: 'Euclid 5th Postulate holds only on flat planes; triangle angle sums exceed 180° on spheres and fall below 180° on hyperbolic saddles.',
+    formulaLatex: '\\Sigma\\theta = 180^\\circ \\text{ (Euclidean)}, \\quad \\Sigma\\theta > 180^\\circ \\text{ (Spherical)}, \\quad \\Sigma\\theta < 180^\\circ \\text{ (Hyperbolic)}',
+    examTip: 'A triangle on Earth made from the North Pole down to the equator and along the equator has three 90° angles summing to 270°!',
+    audioSpeech: 'Triangles only add up to 180 degrees on flat paper! On a round sphere like the Earth, triangle angles add up to more than 180 degrees.',
+  },
+  'three-d-geometry-lab': {
+    ruleText: 'Skew lines in 3D never intersect and never stay parallel; shortest distance between them lies along the cross product normal.',
+    formulaLatex: 'd = \\frac{|(a_2 - a_1) \\cdot (b_1 \\times b_2)|}{|b_1 \\times b_2|}',
+    examTip: 'If shortest distance d = 0, the lines lie in the same plane (coplanar) and intersect.',
+    audioSpeech: 'In 3D space, two lines can be non-parallel and still never cross each other! We call them skew lines, and their distance is along the perpendicular normal.',
+  },
+  'differential-equations-lab': {
+    ruleText: 'Slope fields visualize instantaneous tangents dy/dx; multiplying by integrating factor e^(∫P dx) collapses product rule into solvable integrals.',
+    formulaLatex: '\\frac{dy}{dx} + P(x)y = Q(x) \\implies y \\cdot e^{\\int P\\,dx} = \\int Q(x)e^{\\int P\\,dx}\\,dx + C',
+    examTip: 'Integrating Factor I.F. = e^(∫ P dx). Multiply both sides by I.F. to turn the left side into d/dx[y · I.F.].',
+    audioSpeech: 'A differential equation is a puzzle of slopes! The integrating factor is the magic multiplier that unlocks the product rule on the left side.',
+  },
+  'balance-scale-equations': {
+    ruleText: 'Algebraic balance is preserved if and only if identical arithmetic operations are applied to both sides simultaneously.',
+    formulaLatex: 'ax + b = c \\iff ax = c - b \\iff x = \\frac{c - b}{a}',
+    examTip: 'Whatever you add, subtract, multiply, or divide on the left side, you must do identically on the right side.',
+    audioSpeech: 'Treat an equation like a physical balance scale! If you remove 5 kilograms from the left pan, you must remove 5 kilograms from the right to keep it level.',
+  },
+  'algebraic-identities-tiles': {
+    ruleText: 'Geometric area decomposition proves (a+b)² = a² + 2ab + b²; the middle term 2ab comes from the two corner rectangles.',
+    formulaLatex: '(a + b)^2 = a^2 + 2ab + b^2, \\quad a^2 - b^2 = (a-b)(a+b)',
+    examTip: 'Never write (a + b)² = a² + b². The missing 2ab represents the two rectangular side tiles!',
+    audioSpeech: 'Never forget the middle term 2ab! When you expand a plus b squared, the two corner rectangles of dimension a by b make up the 2ab.',
+  },
+  'compound-interest-engine': {
+    ruleText: 'Compound interest generates exponential growth because interest earned in each period is added to the principal to earn future interest.',
+    formulaLatex: 'A = P\\left(1 + \\frac{r}{100}\\right)^n, \\quad CI = A - P',
+    examTip: 'For half-yearly compounding, halve the annual rate (r/2) and double the conversion periods (2n).',
+    audioSpeech: 'Simple interest only pays on the initial principal. Compound interest pays on accumulated interest too, causing growth to curve sharply upward!',
+  },
+  'quadrilateral-morpher': {
+    ruleText: 'Parallelogram diagonals bisect each other; rhombus diagonals bisect at 90°; rectangle diagonals are equal in length.',
+    formulaLatex: '\\text{Parallelogram: } AO = OC, \\quad \\text{Rhombus: } AC \\perp BD, \\quad \\text{Rectangle: } AC = BD',
+    examTip: 'A square is the ultimate quadrilateral: its diagonals are equal AND perpendicular AND bisect each other.',
+    audioSpeech: 'Watch the diagonals! When opposite sides are parallel, diagonals bisect. Lock side lengths equal, and diagonals cross at a sharp 90 degrees.',
+  },
+  'euler-polyhedra-3d': {
+    ruleText: "Euler's polyhedral formula F + V - E = 2 is invariant across every convex 3D polyhedron without holes.",
+    formulaLatex: 'F + V - E = 2, \\quad \\chi = 2',
+    examTip: 'Valid for cube, tetrahedron, octahedron, dodecahedron, and icosahedron: Faces plus Vertices minus Edges always equals 2.',
+    audioSpeech: 'Count the faces, vertices, and edges of any 3D solid! Add faces and vertices, subtract edges, and the answer will always be two.',
+  },
+  'direct-inverse-proportions': {
+    ruleText: 'Direct variation maintains constant ratio y/x = k (straight line); inverse variation maintains constant product x · y = k (hyperbola).',
+    formulaLatex: '\\frac{y}{x} = k \\text{ (Direct)}, \\quad x \\cdot y = k \\text{ (Inverse)}',
+    examTip: 'Speed and distance at constant time are directly proportional; speed and time for constant distance are inversely proportional.',
+    audioSpeech: 'If one doubles and the other doubles, it is Direct with constant ratio. If one doubles and the other halves, it is Inverse with constant product.',
+  },
+  'dynamic-pie-chart': {
+    ruleText: 'Central sector angle in a pie chart is directly proportional to its fraction of the total 360° circle.',
+    formulaLatex: '\\theta = \\frac{\\text{Frequency}}{\\text{Total}} \\times 360^\\circ',
+    examTip: 'All central angles of a pie chart must sum to exactly 360°, and percentages must sum to 100%.',
+    audioSpeech: 'A full circle has 360 degrees. To find the slice angle, divide your category count by total count and multiply by 360 degrees!',
+  },
+  'square-roots-triplets': {
+    ruleText: 'For any integer m > 1, the triplet (2m, m² - 1, m² + 1) strictly satisfies Pythagoras: (2m)² + (m² - 1)² = (m² + 1)².',
+    formulaLatex: '(2m)^2 + (m^2 - 1)^2 = (m^2 + 1)^2',
+    examTip: 'Given one even member of a triplet, set it equal to 2m, solve for m, then compute m² - 1 and m² + 1.',
+    audioSpeech: 'Here is the ancient triplet formula! Pick any integer m greater than 1: 2m, m squared minus 1, and m squared plus 1 always form a right triangle.',
+  },
+  'exponents-powers-lab': {
+    ruleText: 'Negative exponents act as reciprocal elevators: a⁻ⁿ = 1/aⁿ; they never make a positive base negative.',
+    formulaLatex: 'a^m \\cdot a^n = a^{m+n}, \\quad \\frac{a^m}{a^n} = a^{m-n}, \\quad a^{-n} = \\frac{1}{a^n}, \\quad a^0 = 1',
+    examTip: 'Any non-zero number raised to power 0 equals 1. Negative powers move terms between numerator and denominator.',
+    audioSpeech: 'Remember: negative exponents never produce negative numbers! A negative exponent is just an elevator sending the number to the denominator.',
+  },
+  'rational-numbers-density': {
+    ruleText: 'Between any two distinct rational numbers lies an infinity of rationals; the arithmetic mean (a+b)/2 always lies strictly between them.',
+    formulaLatex: 'a < \\frac{a+b}{2} < b',
+    examTip: 'To find n rational numbers between two fractions, convert them to a common denominator multiplied by (n + 1).',
+    audioSpeech: 'No matter how close two fractions are on the number line, their average always sits right between them, proving infinite density!',
+  },
+  'triangle-congruence-forge': {
+    ruleText: 'Triangles are proven congruent by SAS, SSS, ASA, AAS, or RHS; SSA is ambiguous and AAA only proves similarity.',
+    formulaLatex: '\\Delta ABC \\cong \\Delta PQR \\iff \\text{Corresponding Parts are Congruent (CPCTC)}',
+    examTip: 'AAA does not prove congruence because equilateral triangles can have identical 60° angles with different sizes.',
+    audioSpeech: 'Use SAS, SSS, ASA, AAS, or RHS! Beware of SSA, which is ambiguous, and AAA, which only scales size without proving congruence.',
+  },
+  'arithmetic-progression-lab': {
+    ruleText: 'The n-th term is aₙ = a + (n-1)d; two identical staircases interlock into an n × (a + l) rectangle, proving Sₙ = (n/2)(a + l).',
+    formulaLatex: 'a_n = a + (n-1)d, \\quad S_n = \\frac{n}{2}[2a + (n-1)d] = \\frac{n}{2}(a + l)',
+    examTip: 'The common difference d = aₙ - aₙ₋₁ can be positive, zero, or negative.',
+    audioSpeech: 'An AP is an even staircase! The n-th term adds n minus 1 steps of common difference d, and the sum pairs first and last terms.',
+  },
+  'coordinate-section-formula': {
+    ruleText: 'Section formula cross-multiplication: point P dividing segment AB in ratio m₁:m₂ pairs m₁ with B and m₂ with A.',
+    formulaLatex: 'P = \\left(\\frac{m_1 x_2 + m_2 x_1}{m_1 + m_2}, \\frac{m_1 y_2 + m_2 y_1}{m_1 + m_2}\\right), \\quad G = \\left(\\frac{x_1+x_2+x_3}{3}, \\frac{y_1+y_2+y_3}{3}\\right)',
+    examTip: 'The centroid G divides each triangle median in the exact ratio 2 : 1 from vertex to midpoint.',
+    audioSpeech: 'Remember cross-multiplication! Ratio m1 multiplies with point B coordinates, and ratio m2 multiplies with point A coordinates.',
+  },
+  'circle-tangents-lab': {
+    ruleText: 'Tangents from an external point are equal (PA = PB); angle between tangents and angle subtended at center are supplementary (sum to 180°).',
+    formulaLatex: 'PA = PB, \\quad \\angle APB + \\angle AOB = 180^\\circ',
+    examTip: 'Line segment OP bisects the angle between the two tangents (∠APO = ∠BPO) and bisects ∠AOB.',
+    audioSpeech: 'Both tangents from point P are identical in length. And the angle between tangents plus the angle at the circle center always adds up to 180 degrees!',
+  },
+  'mathematical-induction-dominos': {
+    ruleText: 'Mathematical induction is a domino effect: verifying base case P(1) and inductive step P(k) ⟹ P(k+1) proves truth for all n ∈ ℕ.',
+    formulaLatex: 'P(1) \\land [P(k) \\implies P(k+1)] \\implies \\forall n \\in \\mathbb{N}, P(n)',
+    examTip: 'Always state the two steps explicitly: Step 1 Base Case for n = 1, Step 2 Assume true for k and prove for k + 1.',
+    audioSpeech: 'Induction is like knocking down dominoes! Prove that the first domino falls, and prove that each falling domino knocks the next. Truth for all numbers!',
+  },
+  'trig-equations-radial': {
+    ruleText: 'Trigonometric equations yield infinite families of quadrant solutions repeating over 2π or π periods.',
+    formulaLatex: '\\sin\\theta = \\sin\\alpha \\implies \\theta = n\\pi + (-1)^n\\alpha, \\quad \\cos\\theta = \\cos\\alpha \\implies \\theta = 2n\\pi \\pm \\alpha',
+    examTip: 'For sin θ, the alternating (-1)ⁿ takes care of ASTC quadrants I and II where sine is positive.',
+    audioSpeech: 'Because angles repeat every full circle rotation, trigonometric equations have infinite families of solutions across the four quadrants!',
+  },
+  'linear-programming-lab': {
+    ruleText: 'Fundamental Theorem of LPP: The maximum or minimum of an objective function Z strictly occurs at an extreme corner vertex of the feasible region.',
+    formulaLatex: 'Z = c_1 x_1 + c_2 x_2, \\quad \\text{Optimal at corner vertices}',
+    examTip: 'If the feasible region is bounded, both maximum and minimum exist and occur at corner points.',
+    audioSpeech: 'In Linear Programming, evaluate the profit function only at the corner vertices of the shaded region. The highest value is your maximum!',
+  },
+  'probability-distribution-lab': {
+    ruleText: 'Expected value E(X) = Σ x_i P(x_i) is the balance point center-of-mass; empirical trial averages converge to E(X) by Law of Large Numbers.',
+    formulaLatex: 'E(X) = \\sum x_i P(x_i), \\quad \\text{Var}(X) = E(X^2) - [E(X)]^2, \\quad \\sum P(x_i) = 1',
+    examTip: 'The sum of all probabilities in a probability distribution table must strictly equal 1.',
+    audioSpeech: 'The expected value is the true long-term average! Watch the trial results converge closer and closer to the theoretical expected value.',
+  },
+};

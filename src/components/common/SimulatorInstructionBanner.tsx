@@ -22,14 +22,14 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from './SoundManager';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 
-interface SimulatorInstruction {
+export interface SimulatorInstruction {
   title: string;
   goal: string;
   touchAction: string;
   mathInsight: string;
 }
 
-const INSTRUCTIONS: Record<SimulatorId, SimulatorInstruction> = {
+export const INSTRUCTIONS: Record<SimulatorId, SimulatorInstruction> = {
   'vector-flight-lab': {
     title: '3D Vector Flight Lab',
     goal: 'Observe 3D vectors interact via Dot Product (alignment) and Cross Product (perpendicular normal).',

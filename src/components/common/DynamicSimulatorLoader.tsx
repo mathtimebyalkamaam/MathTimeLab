@@ -12,6 +12,8 @@ import { SimulatorInstructionBanner } from './SimulatorInstructionBanner';
 import { SimulatorHoverInspector } from './SimulatorHoverInspector';
 import { SimulatorStepWalkthrough } from './SimulatorStepWalkthrough';
 import { UniversalGripAndMove } from './UniversalGripAndMove';
+import { SimulatorMissionBar } from './SimulatorMissionBar';
+import { GoldenTakeawayBanner } from './GoldenTakeawayBanner';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 
 // Lazy-loaded simulator chunks (code-split on demand with auto-retry)
@@ -379,6 +381,9 @@ export const DynamicSimulatorLoader: React.FC<DynamicSimulatorLoaderProps> = ({ 
   return (
     <MathErrorBoundary key={simulatorId} simulatorId={simulatorId}>
       <div ref={containerRef} className="relative w-full h-full flex-1 flex flex-col overflow-hidden">
+        {/* Phase 2: Top Guided Mission Ribbon, NCERT Tag, Reset Button & Pulsing Touch Hint */}
+        <SimulatorMissionBar simulatorId={simulatorId} />
+
         <SimulatorInstructionBanner
           simulatorId={simulatorId}
           onOpenControls={handleOpenControls}
@@ -403,6 +408,9 @@ export const DynamicSimulatorLoader: React.FC<DynamicSimulatorLoaderProps> = ({ 
         <Suspense fallback={<SimulatorLoadingFallback simulatorId={simulatorId} />}>
           {renderSimulator()}
         </Suspense>
+
+        {/* Phase 3: Persistent 1-Sentence Golden Takeaway, Teacher Audio & PYQ Check */}
+        <GoldenTakeawayBanner simulatorId={simulatorId} />
       </div>
     </MathErrorBoundary>
   );
