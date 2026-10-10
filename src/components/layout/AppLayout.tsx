@@ -54,6 +54,7 @@ import { MobileToolsDrawerModal } from '../modals/MobileToolsDrawerModal';
 import { MobileBottomNav } from './MobileBottomNav';
 import { GlobalHeader } from './GlobalHeader';
 import { GlobalFooter } from './GlobalFooter';
+import { trackPageView } from '../../utils/analytics';
 
 const SIMULATOR_TITLES: Record<string, string> = {
   'drone-navigator': 'Drone Navigator',
@@ -160,6 +161,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   useEffect(() => {
     checkDailyStreak();
   }, [checkDailyStreak]);
+
+  // Track Google Analytics page_view on every single page and simulator visit
+  useEffect(() => {
+    const pageTitle =
+      SIMULATOR_TITLES[currentRoute]
+        ? `${SIMULATOR_TITLES[currentRoute]} – Math Time Lab`
+        : currentRoute === 'home'
+        ? 'Math Time Lab – Home'
+        : currentRoute === 'landing'
+        ? 'Math Time Lab – Visual Overview'
+        : currentRoute === 'teacher'
+        ? 'Teacher Dashboard – Math Time Lab'
+        : `Math Time Lab – ${currentRoute}`;
+    const pagePath = `/${currentRoute === 'home' ? '' : currentRoute}`;
+    trackPageView(pageTitle, pagePath);
+  }, [currentRoute]);
 
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
 

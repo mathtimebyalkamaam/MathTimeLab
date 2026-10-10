@@ -317,14 +317,15 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
               </li>
               <li>
                 <a
-                  href="https://itsmathtime.co.in/"
+                  href="https://itsmathtime.co.in"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-cyan-300 transition-colors text-left text-slate-300 font-medium flex items-center gap-1.5"
+                  className="hover:text-emerald-300 transition-colors text-left text-emerald-400 font-bold flex items-center gap-1.5"
+                  title="Visit Main Parent Website: itsmathtime.co.in"
                 >
-                  <Globe className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>itsmathtime.co.in</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
+                  <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Main Portal: itsmathtime.co.in</span>
+                  <ExternalLink className="w-2.5 h-2.5 text-emerald-400/80" />
                 </a>
               </li>
               <li>

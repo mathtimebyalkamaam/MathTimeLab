@@ -13,6 +13,8 @@ import { motion } from 'motion/react';
 import { 
   Play, 
   ArrowRight, 
+  ArrowLeft,
+  ExternalLink,
   Sparkles, 
   Zap, 
   Flame, 
@@ -269,8 +271,8 @@ export const LandingPage: React.FC = () => {
             className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-semibold backdrop-blur-md shadow-lg shadow-cyan-950/40"
           >
             <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} />
-            <span>Interactive Mathematics for Classes 9–12</span>
-            <span className="hidden sm:inline">• 60fps Real-Time WebGL</span>
+            <span>Interactive Labs Division of itsmathtime.co.in</span>
+            <span className="hidden sm:inline">• By Alka Ma'am</span>
           </motion.div>
 
           {/* Main Headline */}
@@ -293,7 +295,7 @@ export const LandingPage: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed text-balance"
           >
-            Interactive physics and math simulators for Class 9–12. Play with Calculus, Trigonometry, and Geometry in real-time.
+            Official 50+ interactive physics &amp; math simulators linked from itsmathtime.co.in for Classes 8–12. Play with Calculus, Trigonometry, and Geometry in real-time.
           </motion.p>
 
           {/* Large Mobile-Friendly CTA Buttons */}
@@ -301,28 +303,26 @@ export const LandingPage: React.FC = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto w-full"
+            className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-xl mx-auto w-full"
           >
             <button
               type="button"
               onClick={handleStartPlaying}
               className="w-full sm:w-auto py-4 px-8 rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-400 to-emerald-400 text-slate-950 font-black text-base flex items-center justify-center gap-2.5 shadow-2xl shadow-cyan-500/30 hover:brightness-110 active:scale-98 transition-all touch-manipulation cursor-pointer"
             >
-              <span>Start Playing for Free</span>
+              <span>Explore 50+ Simulators</span>
               <ArrowRight className="w-5 h-5 stroke-[2.5]" />
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                lightTap();
-                navigateTo('rollercoaster-architect');
-              }}
-              className="w-full sm:w-auto py-4 px-6 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-bold text-sm flex items-center justify-center gap-2 backdrop-blur-sm transition-colors touch-manipulation cursor-pointer"
+            <a
+              href="https://itsmathtime.co.in"
+              className="w-full sm:w-auto py-4 px-6 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700/80 hover:border-emerald-400 font-bold text-sm flex items-center justify-center gap-2 backdrop-blur-sm transition-all touch-manipulation cursor-pointer shadow-md group"
+              title="Return to parent website itsmathtime.co.in"
             >
-              <Play className="w-4 h-4 text-cyan-400 fill-cyan-400" />
-              <span>Launch Rollercoaster Demo</span>
-            </button>
+              <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back to itsmathtime.co.in</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+            </a>
           </motion.div>
 
           {/* Quick Credibility Tags */}

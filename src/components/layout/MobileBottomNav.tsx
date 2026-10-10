@@ -11,6 +11,8 @@ import {
   Zap, 
   Home, 
   Flame,
+  ArrowLeft,
+  ExternalLink,
   GraduationCap,
   Layers,
   X,
@@ -93,6 +95,29 @@ export const MobileBottomNav: React.FC = () => {
             </div>
 
             <div className="space-y-1.5 max-h-[60vh] overflow-y-auto no-scrollbar pt-1">
+              {/* Back to itsmathtime.co.in Link */}
+              <a
+                href="https://itsmathtime.co.in"
+                className="w-full p-2.5 rounded-2xl border border-emerald-500/40 bg-emerald-950/40 hover:bg-emerald-950/60 text-left flex items-center justify-between gap-3 transition-all mb-1 shadow-sm"
+                title="Return to parent website itsmathtime.co.in"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0">
+                    <ArrowLeft className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                      Back to itsmathtime.co.in
+                      <ExternalLink className="w-3 h-3 text-emerald-400" />
+                    </span>
+                    <p className="text-[10px] text-slate-300">Parent site: lectures &amp; curriculum</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500 text-slate-950">
+                  Main Site
+                </span>
+              </a>
+
               {classesList.map((c) => {
                 const isSelected = gradeFilter === c.id;
                 return (
@@ -136,7 +161,7 @@ export const MobileBottomNav: React.FC = () => {
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800/90 backdrop-blur-xl px-2 py-1 pb-safe flex items-center justify-around shadow-2xl select-none"
         aria-label="Mobile Navigation"
       >
-        {/* 1. Explore / Home */}
+        {/* 1. Explore / Lab Home */}
         <button
           type="button"
           onClick={() => {
@@ -151,7 +176,7 @@ export const MobileBottomNav: React.FC = () => {
           }`}
         >
           <Home className={`w-5 h-5 ${currentRoute === 'home' ? 'text-cyan-400 scale-105' : ''}`} />
-          <span className="text-[10px] mt-0.5">Explore</span>
+          <span className="text-[10px] mt-0.5">Lab Home</span>
         </button>
 
         {/* 2. Classes Quick Picker */}

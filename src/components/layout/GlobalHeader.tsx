@@ -21,6 +21,9 @@ import {
   Menu,
   X,
   ArrowRight,
+  ArrowLeft,
+  Home,
+  Globe,
   Brain,
   Shapes,
   Sigma,
@@ -435,14 +438,23 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
         {!isSimulator && (
           <div className="w-full bg-slate-900/95 border-b border-slate-800/90 text-[11px] text-slate-300 py-1 px-3 sm:px-6">
             <div className="w-full max-w-[1720px] mx-auto px-1 sm:px-3 flex items-center justify-between gap-3">
-              {/* Left: Curriculum & Live Status Ticker */}
+              {/* Left: Parent Site link & Curriculum Ticker */}
               <div className="flex items-center gap-2.5 truncate font-medium">
+                <a 
+                  href="https://itsmathtime.co.in"
+                  className="flex items-center gap-1 text-cyan-300 hover:text-white transition-colors font-semibold shrink-0 group"
+                  title="Return to itsmathtime.co.in Main Portal"
+                >
+                  <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform text-cyan-400" />
+                  <span>itsmathtime.co.in</span>
+                </a>
+                <span className="text-slate-600 hidden xs:inline">|</span>
                 <span className="flex items-center gap-1.5 text-emerald-400 font-semibold shrink-0">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  CBSE & NCERT Aligned
+                  Interactive Labs Division
                 </span>
                 <span className="text-slate-600 hidden sm:inline">|</span>
-                <span className="hidden sm:inline text-slate-300 truncate">50 Interactive Visual Laboratories</span>
+                <span className="hidden sm:inline text-slate-300 truncate">50 Visual Laboratories</span>
                 <span className="text-slate-600 hidden md:inline">|</span>
                 <span className="hidden md:inline text-slate-400 truncate">Zero Sign-Up · 100% Free Open Access</span>
               </div>
@@ -551,6 +563,21 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
 
             {/* ZONE 2: HORIZONTAL NAVIGATION LINKS (RELIANCE SCHEME) */}
             <nav className="hidden lg:flex items-center gap-1 xl:gap-2 h-full">
+              {/* 0. Internal Lab Home Button */}
+              <button
+                type="button"
+                onClick={() => handleOpenPage('home')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold tracking-wide transition-all cursor-pointer ${
+                  currentRoute === 'home'
+                    ? 'text-white bg-slate-800/80 border-b-2 border-emerald-400 shadow-sm'
+                    : 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                }`}
+                title="Math Time Lab Homepage (Interactive Simulators)"
+              >
+                <Home className="w-4 h-4 text-emerald-400" />
+                <span>Home</span>
+              </button>
+
               {/* 1. Classes (8–12) */}
               <div 
                 className="relative h-full flex items-center"
@@ -657,8 +684,20 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
               </div>
             </nav>
 
-            {/* ZONE 3: SEARCH, COCKPIT CONTROLS & MOBILE BUTTON */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* ZONE 3: BACK TO PARENT WEBSITE, SEARCH, COCKPIT CONTROLS & MOBILE BUTTON */}
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              {/* Prominent Back to Parent Website Button */}
+              <a
+                href="https://itsmathtime.co.in"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/15 hover:from-emerald-500/25 hover:to-cyan-500/25 border border-emerald-400/40 hover:border-emerald-300 text-emerald-200 hover:text-white text-xs font-bold transition-all shadow-sm hover:shadow-[0_0_12px_rgba(16,185,129,0.3)] active:scale-95 group shrink-0"
+                title="Return to Parent Website: itsmathtime.co.in"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+                <span className="hidden xs:inline">Back to itsmathtime.co.in</span>
+                <span className="xs:hidden">Main Site</span>
+                <ExternalLink className="w-3 h-3 text-emerald-400/70 ml-0.5 opacity-80" />
+              </a>
+
               {/* Global Search Command Bar Trigger (⌘K / Ctrl+K) */}
               <button
                 type="button"
@@ -1182,12 +1221,50 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
             </span>
           </div>
 
-          {/* Quick Action Buttons */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* Back to itsmathtime.co.in Parent Website Banner */}
+          <a
+            href="https://itsmathtime.co.in"
+            className="p-3 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-cyan-950/80 border border-emerald-500/40 flex items-center justify-between gap-3 text-left shadow-lg group active:scale-[0.99] transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300">
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>Back to itsmathtime.co.in</span>
+                  <ExternalLink className="w-3 h-3 text-emerald-400" />
+                </div>
+                <p className="text-[10px] text-slate-300">Parent site: lectures, notes &amp; syllabus</p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500 text-slate-950 shrink-0">
+              Return
+            </span>
+          </a>
+
+          {/* Quick Action Navigation Grid */}
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => handleOpenPage('home')}
-              className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2.5 text-left text-xs font-bold text-white hover:border-cyan-500/40"
+              className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 text-center text-xs font-bold transition-colors ${
+                currentRoute === 'home'
+                  ? 'bg-slate-800 text-emerald-300 border-emerald-400/60 shadow-sm'
+                  : 'bg-slate-900 text-white border-slate-800 hover:border-cyan-500/40'
+              }`}
+            >
+              <Home className="w-4 h-4 text-emerald-400" />
+              <span>Lab Home</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                handleOpenPage('home');
+                const el = document.getElementById('curriculum-directory-section');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center gap-1 text-center text-xs font-bold text-white hover:border-cyan-500/40"
             >
               <Grid className="w-4 h-4 text-cyan-400" />
               <span>All 50 Labs</span>
@@ -1195,10 +1272,10 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
             <button
               type="button"
               onClick={() => handleOpenPage('landing')}
-              className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2.5 text-left text-xs font-bold text-white hover:border-purple-500/40"
+              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center gap-1 text-center text-xs font-bold text-white hover:border-purple-500/40"
             >
               <Compass className="w-4 h-4 text-purple-400" />
-              <span>Visual Overview</span>
+              <span>Overview</span>
             </button>
           </div>
 

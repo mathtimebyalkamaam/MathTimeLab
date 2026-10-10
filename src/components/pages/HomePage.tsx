@@ -19,6 +19,8 @@ import {
   Trophy,
   HelpCircle,
   ArrowRight,
+  ArrowLeft,
+  ExternalLink,
   ChevronRight,
   Globe,
   Scale,
@@ -1407,7 +1409,41 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-8 space-y-6 sm:space-y-10 overflow-x-hidden">
+    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-8 space-y-6 sm:space-y-8 overflow-x-hidden">
+      {/* ======================================================== */}
+      {/* OFFICIAL PARENT SITE AFFILIATION & WELCOME BANNER        */}
+      {/* ======================================================== */}
+      <div className="w-full rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-cyan-950/80 border border-emerald-500/30 p-3 sm:p-4 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-80 h-full bg-emerald-500/5 blur-3xl rounded-full pointer-events-none" />
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0 shadow-md">
+            <Sparkles className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-950/90 border border-emerald-700/70 px-2.5 py-0.5 rounded-full shadow-xs">
+                Official Interactive Division of itsmathtime.co.in
+              </span>
+              <span className="text-xs font-bold text-white">
+                By Alka Ma&apos;am
+              </span>
+            </div>
+            <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
+              Welcome from <strong className="text-emerald-300 font-semibold">itsmathtime.co.in</strong>! You are inside the 50+ Virtual Laboratories for Classes 8–12. Touch, slide, and explore every concept in real time.
+            </p>
+          </div>
+        </div>
+        <a
+          href="https://itsmathtime.co.in"
+          className="shrink-0 px-3.5 py-2 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/90 hover:border-emerald-400 text-xs font-bold text-slate-200 hover:text-white flex items-center gap-2 transition-all shadow-md active:scale-95 group/btn"
+          title="Return to parent website: itsmathtime.co.in"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-emerald-400 group-hover/btn:-translate-x-0.5 transition-transform" />
+          <span>Back to itsmathtime.co.in</span>
+          <ExternalLink className="w-3 h-3 text-slate-400" />
+        </a>
+      </div>
+
       {/* ======================================================== */}
       {/* DESKTOP Cockpit Experience (>= 768px): 100% UNTOUCHED!    */}
       {/* ======================================================== */}
@@ -1460,6 +1496,16 @@ export const HomePage: React.FC = () => {
                 <Play className="w-4 h-4 fill-slate-950" />
                 <span>Explore 50+ Simulators</span>
               </button>
+
+              <a
+                href="https://itsmathtime.co.in"
+                className="px-4 py-3 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-400 text-slate-200 hover:text-white font-bold text-sm flex items-center gap-2 transition-all cursor-pointer shadow-md group"
+                title="Return to parent website itsmathtime.co.in"
+              >
+                <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+                <span>Back to itsmathtime.co.in</span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              </a>
 
               <button
                 type="button"
@@ -1955,11 +2001,17 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          <div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                itsmathtime.co.in Labs
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">By Alka Ma'am</span>
+            </div>
             <h1 className="text-xl sm:text-2xl font-black text-white leading-tight tracking-tight">
               Deep Concept Clarity. <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-300">Math You Can Touch &amp; Master.</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               Experience 50 curriculum-aligned 2D &amp; 3D interactive laboratories built for deep visual intuition and conceptual confidence across Classes 8–12.
             </p>
           </div>
@@ -1984,29 +2036,41 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Quick CTA Actions */}
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/70">
-            <button
-              type="button"
-              onClick={() => {
-                lightTap();
-                const el = document.getElementById('mobile-live-sampler');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-400 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20 active:scale-95 transition-all cursor-pointer"
+          <div className="flex flex-col gap-2 pt-1 border-t border-slate-800/70">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  lightTap();
+                  const el = document.getElementById('mobile-live-sampler');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-400 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20 active:scale-95 transition-all cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Test Live Simulators</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  lightTap();
+                  setClass8OdysseyOpen(true);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 text-slate-200 text-xs font-bold border border-slate-700 active:scale-95 transition-all cursor-pointer"
+              >
+                Odyssey
+              </button>
+            </div>
+
+            <a
+              href="https://itsmathtime.co.in"
+              className="w-full py-2 px-3 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
+              title="Return to parent website itsmathtime.co.in"
             >
-              <Play className="w-3 h-3 fill-current" />
-              <span>Test Live Simulators</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                lightTap();
-                setClass8OdysseyOpen(true);
-              }}
-              className="py-2 px-3 rounded-xl bg-slate-800 text-slate-200 text-xs font-bold border border-slate-700 active:scale-95 transition-all cursor-pointer"
-            >
-              Odyssey
-            </button>
+              <ArrowLeft className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Back to itsmathtime.co.in (Main Portal)</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </a>
           </div>
         </section>
 
