@@ -110,6 +110,16 @@ export class MathErrorBoundary extends Component<Props, State> {
     }
   };
 
+  private handleRetryModule = () => {
+    const simId = this.props.simulatorId;
+    if (simId && typeof window !== 'undefined') {
+      try {
+        (window as any).__mathPrefetchSimulator?.(simId);
+      } catch {}
+    }
+    this.setState({ hasError: false, error: null, errorType: 'generic', showDetails: false });
+  };
+
   private handleReloadModule = () => {
     this.setState({ hasError: false, error: null, errorType: 'generic', showDetails: false });
     if (typeof window !== 'undefined') {
@@ -214,11 +224,11 @@ export class MathErrorBoundary extends Component<Props, State> {
               {content.isModuleError ? (
                 <button
                   type="button"
-                  onClick={this.handleReloadModule}
+                  onClick={this.handleRetryModule}
                   className="py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md hover:brightness-110 active:scale-98 transition-all touch-manipulation cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Reload Module</span>
+                  <span>Retry Laboratory</span>
                 </button>
               ) : (
                 <button

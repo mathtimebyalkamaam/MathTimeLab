@@ -918,6 +918,11 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
 
   navigateTo: (route) => {
     const isSim = route !== 'home' && route !== 'teacher' && route !== 'landing';
+    if (isSim && typeof window !== 'undefined') {
+      try {
+        (window as any).__mathPrefetchSimulator?.(route);
+      } catch {}
+    }
     set({
       currentRoute: route,
       activeSimulatorId: isSim ? (route as SimulatorId) : null,

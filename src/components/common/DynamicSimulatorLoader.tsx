@@ -4,7 +4,7 @@
  * Displays a fluid, math-themed mobile-friendly loading sequence.
  */
 import React, { lazy, Suspense, useEffect, useState, useRef } from 'react';
-import { Sparkles, Orbit, Compass, Activity, BrainCircuit } from 'lucide-react';
+import { Sparkles, Orbit, Compass, Activity, BrainCircuit, RotateCcw } from 'lucide-react';
 import { SimulatorId } from '../../types/simulators';
 import { MathErrorBoundary } from './MathErrorBoundary';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -16,27 +16,151 @@ import { SimulatorMissionBar } from './SimulatorMissionBar';
 import { GoldenTakeawayBanner } from './GoldenTakeawayBanner';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 
-// Lazy-loaded simulator chunks (code-split on demand with auto-retry)
+// Pre-loadable simulator chunk factories for instant warm-caching & 0-latency loading
+export const SIMULATOR_FACTORIES: Record<SimulatorId, () => Promise<any>> = {
+  'drone-navigator': () => import('../simulators/DroneNavigator'),
+  'catapult-siege': () => import('../simulators/CatapultSiege'),
+  'conic-sections': () => import('../simulators/ConeSlicer'),
+  'rollercoaster-architect': () => import('../simulators/RollercoasterArchitect'),
+  'unit-circle': () => import('../simulators/UnitCircleSimulator'),
+  'calculus-sandbox': () => import('../simulators/CalculusSandboxSimulator'),
+  'vector-flight-lab': () => import('../simulators/VectorFlightLabSimulator'),
+  'argand-plane': () => import('../simulators/ArgandPlanePlayground'),
+  'matrix-meme': () => import('../simulators/MatrixMemeMachine'),
+  'monty-hall': () => import('../simulators/MontyHallSimulator'),
+  'quadratic-roots': () => import('../simulators/QuadraticRootsSimulator'),
+  'circle-theorems': () => import('../simulators/CircleTheoremsSimulator'),
+  'linear-systems': () => import('../simulators/LinearSystemsSimulator'),
+  'trig-heights': () => import('../simulators/TrigHeightsSimulator'),
+  'heron-triangles': () => import('../simulators/HeronTrianglesSimulator'),
+  'polynomial-factorizer': () => import('../simulators/PolynomialFactorizerSimulator'),
+  'lines-angles': () => import('../simulators/LinesAnglesSimulator'),
+  'binomial-galton': () => import('../simulators/BinomialGaltonSimulator'),
+  'arithmetic-geometric-explorer': () => import('../simulators/SequenceExplorerSimulator'),
+  'hyperbola-ellipse-orbits': () => import('../simulators/ConicFocalSimulator'),
+  'surface-area-volumes': () => import('../simulators/SurfaceAreaVolumesSimulator'),
+  'circle-chords-cyclic': () => import('../simulators/CircleChordsCyclicSimulator'),
+  'statistics-visualizer': () => import('../simulators/StatisticsVisualizerSimulator'),
+  'limits-derivatives-lab': () => import('../simulators/LimitsDerivativesSimulator'),
+  'linear-inequalities': () => import('../simulators/LinearInequalitiesSimulator'),
+  'permutations-combinations': () => import('../simulators/PermutationsCombinationsSimulator'),
+  'similar-triangles': () => import('../simulators/SimilarTrianglesSimulator'),
+  'ftc-integral-accumulator': () => import('../simulators/FTCIntegralSimulator'),
+  'bayes-probability-lab': () => import('../simulators/BayesProbabilitySimulator'),
+  'euclidean-geometry-sandbox': () => import('../simulators/EuclideanGeometrySimulator'),
+  'three-d-geometry-lab': () => import('../simulators/ThreeDGeometrySimulator'),
+  'differential-equations-lab': () => import('../simulators/DifferentialEquationsSimulator'),
+  'balance-scale-equations': () => import('../simulators/BalanceScaleSimulator'),
+  'algebraic-identities-tiles': () => import('../simulators/AlgebraicTilesSimulator'),
+  'compound-interest-engine': () => import('../simulators/CompoundInterestSimulator'),
+  'quadrilateral-morpher': () => import('../simulators/QuadrilateralMorpherSimulator'),
+  'euler-polyhedra-3d': () => import('../simulators/EulerPolyhedraSimulator'),
+  'direct-inverse-proportions': () => import('../simulators/DirectInverseSimulator'),
+  'dynamic-pie-chart': () => import('../simulators/DynamicPieChartSimulator'),
+  'square-roots-triplets': () => import('../simulators/SquareRootsTripletsSimulator'),
+  'exponents-powers-lab': () => import('../simulators/ExponentsPowersSimulator'),
+  'rational-numbers-density': () => import('../simulators/RationalNumbersDensitySimulator'),
+  'triangle-congruence-forge': () => import('../simulators/TriangleCongruenceForgeSimulator'),
+  'arithmetic-progression-lab': () => import('../simulators/ArithmeticProgressionSimulator'),
+  'coordinate-section-formula': () => import('../simulators/CoordinateSectionSimulator'),
+  'circle-tangents-lab': () => import('../simulators/CircleTangentsSimulator'),
+  'mathematical-induction-dominos': () => import('../simulators/MathematicalInductionSimulator'),
+  'trig-equations-radial': () => import('../simulators/TrigEquationsRadialSimulator'),
+  'linear-programming-lab': () => import('../simulators/LinearProgrammingSimulator'),
+  'probability-distribution-lab': () => import('../simulators/ProbabilityDistributionSimulator'),
+};
+
+const prefetchedSims = new Set<string>();
+
+/**
+ * Prefetch a simulator chunk in the background so it opens instantly (0ms latency) when clicked.
+ */
+export const prefetchSimulator = (simulatorId: SimulatorId) => {
+  if (prefetchedSims.has(simulatorId)) return;
+  const factory = SIMULATOR_FACTORIES[simulatorId];
+  if (factory) {
+    prefetchedSims.add(simulatorId);
+    factory().catch(() => {
+      prefetchedSims.delete(simulatorId);
+    });
+  }
+};
+
+if (typeof window !== 'undefined') {
+  (window as any).__mathPrefetchSimulator = prefetchSimulator;
+}
+
+/**
+ * Prefetch flagship popular simulators during browser idle time on the home page.
+ */
+export const prefetchPopularSimulators = () => {
+  const flagship: SimulatorId[] = [
+    'catapult-siege',
+    'conic-sections',
+    'drone-navigator',
+    'unit-circle',
+    'quadratic-roots',
+    'calculus-sandbox',
+    'vector-flight-lab',
+  ];
+  flagship.forEach((id, index) => {
+    setTimeout(() => {
+      prefetchSimulator(id);
+    }, 500 + index * 300);
+  });
+};
+
+// Lazy-loaded simulator chunks with exponential backoff & post-deployment recovery
 function lazyWithRetry<T extends React.ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
-  retries = 2,
-  interval = 350
+  simulatorId?: SimulatorId
 ): React.LazyExoticComponent<T> {
   return lazy(() =>
     new Promise<{ default: T }>((resolve, reject) => {
-      const attempt = (remaining: number) => {
+      const delays = [800, 2000, 4000];
+      const attempt = (retryIndex: number) => {
         factory()
-          .then(resolve)
+          .then((comp) => {
+            if (typeof window !== 'undefined' && simulatorId) {
+              try {
+                sessionStorage.removeItem(`math_chunk_retry_${simulatorId}`);
+              } catch {}
+            }
+            resolve(comp);
+          })
           .catch((err) => {
-            if (remaining <= 0) {
-              console.error('[DynamicSimulatorLoader] Failed to load simulator module after retries:', err);
+            const msg = (err?.message || '').toLowerCase();
+            const isChunkOrNetworkError =
+              msg.includes('dynamically imported module') ||
+              msg.includes('failed to fetch') ||
+              msg.includes('loading chunk') ||
+              msg.includes('chunkloaderror') ||
+              msg.includes('importing a module script failed') ||
+              msg.includes('networkerror');
+
+            if (retryIndex >= delays.length) {
+              console.error(`[DynamicSimulatorLoader] Failed to load simulator ${simulatorId || ''} after all retries:`, err);
+              // Transparent auto-refresh once if a new build deployment changed chunk file hashes
+              if (isChunkOrNetworkError && typeof window !== 'undefined' && simulatorId) {
+                const reloadKey = `math_chunk_retry_${simulatorId}`;
+                const hasReloaded = sessionStorage.getItem(reloadKey);
+                if (!hasReloaded) {
+                  console.info(`[DynamicSimulatorLoader] Auto-reloading to synchronize latest chunks for ${simulatorId}...`);
+                  sessionStorage.setItem(reloadKey, 'true');
+                  window.location.reload();
+                  return;
+                }
+              }
               reject(err);
               return;
             }
-            setTimeout(() => attempt(remaining - 1), interval);
+
+            const delay = delays[retryIndex];
+            console.warn(`[DynamicSimulatorLoader] Retrying ${simulatorId || 'module'} (attempt ${retryIndex + 1}/${delays.length}) in ${delay}ms...`);
+            setTimeout(() => attempt(retryIndex + 1), delay);
           });
       };
-      attempt(retries);
+      attempt(0);
     })
   );
 }
@@ -207,16 +331,31 @@ interface DynamicSimulatorLoaderProps {
 
 export const SimulatorLoadingFallback: React.FC<{ simulatorId?: SimulatorId }> = () => {
   const [msgIdx, setMsgIdx] = useState(0);
+  const [showSlowNotice, setShowSlowNotice] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setMsgIdx((prev) => (prev + 1) % LOADING_MESSAGES.length);
     }, 1200);
-    return () => clearInterval(timer);
+
+    const slowTimer = setTimeout(() => {
+      setShowSlowNotice(true);
+    }, 3800);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(slowTimer);
+    };
   }, []);
 
+  const handleForceReload = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
+
   return (
-    <div className="w-full h-full min-h-[420px] flex flex-col items-center justify-center p-6 bg-slate-950 text-slate-100 select-none">
+    <div className="w-full h-full min-h-[360px] flex-1 flex flex-col items-center justify-center p-6 bg-slate-950 text-slate-100 select-none">
       <div className="relative flex items-center justify-center mb-6">
         {/* Outer glowing pulsing ring */}
         <div className="w-20 h-20 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />
@@ -242,9 +381,26 @@ export const SimulatorLoadingFallback: React.FC<{ simulatorId?: SimulatorId }> =
       </div>
 
       {/* Progress tick bar */}
-      <div className="w-48 h-1 bg-slate-900 rounded-full overflow-hidden mt-4 border border-slate-800">
+      <div className="w-52 h-1 bg-slate-900 rounded-full overflow-hidden mt-4 border border-slate-800">
         <div className="h-full bg-gradient-to-r from-cyan-500 via-sky-400 to-amber-400 w-full animate-pulse" />
       </div>
+
+      {/* Slow network recovery helper */}
+      {showSlowNotice && (
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <span className="text-[11px] text-slate-500 font-mono">
+            Optimizing 3D physics shaders & WebGL buffers...
+          </span>
+          <button
+            type="button"
+            onClick={handleForceReload}
+            className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-700 hover:border-cyan-500/40 text-[11px] text-cyan-300 font-medium flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+          >
+            <RotateCcw className="w-3 h-3 text-cyan-400" />
+            <span>Taking longer than usual? Tap to reconnect</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -405,9 +561,12 @@ export const DynamicSimulatorLoader: React.FC<DynamicSimulatorLoaderProps> = ({ 
           onOpenControls={handleOpenControls}
           onOpenChallenges={handleOpenChallenges}
         />
-        <Suspense fallback={<SimulatorLoadingFallback simulatorId={simulatorId} />}>
-          {renderSimulator()}
-        </Suspense>
+        {/* Dedicated Isolated Flex-1 Stage for Canvas / Three.js WebGL viewport */}
+        <main className="relative flex-1 w-full min-h-0 overflow-hidden flex flex-col">
+          <Suspense fallback={<SimulatorLoadingFallback simulatorId={simulatorId} />}>
+            {renderSimulator()}
+          </Suspense>
+        </main>
 
         {/* Phase 3: Persistent 1-Sentence Golden Takeaway, Teacher Audio & PYQ Check */}
         <GoldenTakeawayBanner simulatorId={simulatorId} />

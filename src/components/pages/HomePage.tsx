@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Play, 
@@ -46,6 +46,7 @@ import { TeacherSmartboardToolkit } from '../common/TeacherSmartboardToolkit';
 import { AuthorSpotlightSection } from '../common/AuthorSpotlightSection';
 import { HowToLearnGuideRibbon } from '../common/HowToLearnGuideRibbon';
 import { ClassGatewaysSection } from '../common/ClassGatewaysSection';
+import { prefetchSimulator, prefetchPopularSimulators } from '../common/DynamicSimulatorLoader';
 
 export const HomePage: React.FC = () => {
   const { 
@@ -71,6 +72,20 @@ export const HomePage: React.FC = () => {
   const [desktopViewMode, setDesktopViewMode] = useState<'grid' | 'compact'>('grid');
   const [mobileViewMode, setMobileViewMode] = useState<'cards' | 'list'>('list');
   const [isMobileCoachDeskOpen, setIsMobileCoachDeskOpen] = useState(false);
+
+  // Background idle preloader: warms up top flagship simulators so they open instantly (0ms latency)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => {
+        prefetchPopularSimulators();
+      });
+    } else {
+      const timer = setTimeout(() => {
+        prefetchPopularSimulators();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const filteredSimulators = SIMULATORS.filter((sim) => {
     // Grade filter
@@ -1266,6 +1281,8 @@ export const HomePage: React.FC = () => {
     return (
       <div
         key={sim.id}
+        onMouseEnter={() => prefetchSimulator(sim.id)}
+        onTouchStart={() => prefetchSimulator(sim.id)}
         onClick={() => {
           lightTap();
           navigateTo(sim.id);
@@ -1361,6 +1378,8 @@ export const HomePage: React.FC = () => {
     return (
       <div
         key={sim.id}
+        onMouseEnter={() => prefetchSimulator(sim.id)}
+        onTouchStart={() => prefetchSimulator(sim.id)}
         onClick={() => {
           lightTap();
           navigateTo(sim.id);
@@ -1861,6 +1880,8 @@ export const HomePage: React.FC = () => {
               return (
                 <div
                   key={sim.id}
+                  onMouseEnter={() => prefetchSimulator(sim.id)}
+                  onTouchStart={() => prefetchSimulator(sim.id)}
                   onClick={() => {
                     lightTap();
                     navigateTo(sim.id);
@@ -1912,6 +1933,8 @@ export const HomePage: React.FC = () => {
             return (
               <div
                 key={sim.id}
+                onMouseEnter={() => prefetchSimulator(sim.id)}
+                onTouchStart={() => prefetchSimulator(sim.id)}
                 onClick={() => {
                   lightTap();
                   navigateTo(sim.id);
