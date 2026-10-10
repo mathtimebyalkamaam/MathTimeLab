@@ -167,23 +167,24 @@ export const LinearProgrammingSimulator: React.FC = () => {
   }, [profitX, profitY, objectiveMaximize, optimalPoint, showIsoProfitSlider, isoProfitValue, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-4 text-slate-200">
+    <div className="space-y-2 p-2 sm:p-2.5 text-slate-200">
       <LiveSubstitutionCard
-        title="LPP Corner Point Evaluation"
+        compact={true}
+        title="Corner Point Evaluation"
         badge={objectiveMaximize ? 'Max Z' : 'Min Z'}
         symbolicLaw="Z = c_1 x + c_2 y, \quad \text{Optimum at Extreme Vertex}"
         substitutedLatex={`Z(${optimalPoint.label}) = (${profitX})(${optimalPoint.x.toFixed(1)}) + (${profitY})(${optimalPoint.y.toFixed(1)})`}
         evaluatedLatex={`Z^* = ${optimalPoint.z.toFixed(2)} \\quad \\text{at } ${optimalPoint.label}(${optimalPoint.x.toFixed(1)}, ${optimalPoint.y.toFixed(1)})`}
       />
 
-      <div className="flex bg-slate-900 p-1 rounded-2xl border border-slate-800">
+      <div className="flex bg-slate-950/80 p-0.5 rounded-xl border border-slate-800">
         <button
           onClick={() => {
             lightTap();
             updateLinearProgParams({ objectiveMaximize: true });
           }}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            objectiveMaximize ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+          className={`flex-1 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            objectiveMaximize ? 'bg-cyan-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
           }`}
         >
           Maximize Profit (Max Z)
@@ -193,37 +194,40 @@ export const LinearProgrammingSimulator: React.FC = () => {
             lightTap();
             updateLinearProgParams({ objectiveMaximize: false });
           }}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            !objectiveMaximize ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+          className={`flex-1 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            !objectiveMaximize ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
           }`}
         >
           Minimize Cost (Min Z)
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5 bg-slate-900/70 border border-slate-800 rounded-xl p-2">
         <TouchSlider
-          label="Profit / Weight on X (c₁)"
+          compact={true}
+          label="Profit on X (c₁)"
           value={profitX}
           min={1}
           max={12}
           step={1}
-          unit=" ₹/unit"
+          unit=" ₹"
           onChange={(val) => updateLinearProgParams({ profitX: val })}
         />
 
         <TouchSlider
-          label="Profit / Weight on Y (c₂)"
+          compact={true}
+          label="Profit on Y (c₂)"
           value={profitY}
           min={1}
           max={12}
           step={1}
-          unit=" ₹/unit"
+          unit=" ₹"
           onChange={(val) => updateLinearProgParams({ profitY: val })}
         />
 
         <TouchSlider
-          label="Constraint 1 Capacity (x + 2y ≤ C₁)"
+          compact={true}
+          label="Capacity C₁ (x+2y ≤ C₁)"
           value={constraint1_limit}
           min={6}
           max={12}
@@ -233,7 +237,8 @@ export const LinearProgrammingSimulator: React.FC = () => {
         />
 
         <TouchSlider
-          label="Constraint 2 Capacity (3x + 2y ≤ C₂)"
+          compact={true}
+          label="Capacity C₂ (3x+2y ≤ C₂)"
           value={constraint2_limit}
           min={8}
           max={16}
@@ -243,25 +248,26 @@ export const LinearProgrammingSimulator: React.FC = () => {
         />
       </div>
 
-      <div className="pt-2">
+      <div className="space-y-1">
         <button
           onClick={() => {
             lightTap();
             updateLinearProgParams({ showIsoProfitSlider: !showIsoProfitSlider });
           }}
-          className={`w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition-all ${
+          className={`w-full py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
             showIsoProfitSlider
-              ? 'bg-cyan-500 text-slate-950 border-cyan-400'
+              ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-sm'
               : 'bg-slate-900 border-slate-800 text-slate-300'
           }`}
         >
-          <Sliders className="w-4 h-4" />
-          {showIsoProfitSlider ? 'Hide Iso-Profit Line' : 'Show Iso-Profit Line Sweep'}
+          <Sliders className="w-3.5 h-3.5" />
+          <span>{showIsoProfitSlider ? 'Hide Iso-Profit Sweep' : 'Show Iso-Profit Line Sweep'}</span>
         </button>
 
         {showIsoProfitSlider && (
-          <div className="mt-3">
+          <div className="bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
             <TouchSlider
+              compact={true}
               label="Iso-Profit Level (Z)"
               value={isoProfitValue}
               min={0}
@@ -273,6 +279,20 @@ export const LinearProgrammingSimulator: React.FC = () => {
           </div>
         )}
       </div>
+
+      <Eli13ExplainerCard simulatorId="linear-programming-lab" defaultExpanded={false} />
+
+      <button
+        type="button"
+        onClick={() => {
+          lightTap();
+          resetParams('linear-programming-lab');
+        }}
+        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+      >
+        <RotateCcw className="w-3.5 h-3.5" />
+        <span>Reset LPP Parameters</span>
+      </button>
     </div>
   );
 

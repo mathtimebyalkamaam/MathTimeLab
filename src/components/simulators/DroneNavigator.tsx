@@ -865,19 +865,21 @@ export const DroneNavigator: React.FC = () => {
         }
       >
         {/* Controls Tab */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {/* Point 1 & 5: 3-Tier Live KaTeX Substitution with Synchronized Active Term Glow */}
           <LiveSubstitutionCard
+            compact={true}
             title="Euclidean Distance Progression"
             badge="Pythagorean Metric"
-            symbolicLaw="d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2} = \sqrt{(\Delta x)^2 + (\Delta y)^2}"
-            substitutedLatex={`d = \\sqrt{(${targetX} - ${originX})^2 + (${targetY} - ${originY})^2} = \\sqrt{${Math.abs(targetX - originX)}^2 + ${Math.abs(targetY - originY)}^2}`}
-            evaluatedLatex={`d = \\sqrt{${Math.pow(targetX - originX, 2) + Math.pow(targetY - originY, 2)}} = ${Math.hypot(targetX - originX, targetY - originY).toFixed(2)} \\text{ u}`}
+            symbolicLaw="d = \sqrt{(\Delta x)^2 + (\Delta y)^2}"
+            substitutedLatex={`d = \\sqrt{${Math.abs(targetX - originX)}^2 + ${Math.abs(targetY - originY)}^2}`}
+            evaluatedLatex={`d = ${Math.hypot(targetX - originX, targetY - originY).toFixed(2)} \\text{ u}`}
             activeTerm={isDraggingDrone ? 'Target (Δx, Δy)' : undefined}
           />
 
-          <div className="space-y-1.5">
+          <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-900/70 border border-slate-800 rounded-xl p-2">
             <TouchSlider
+              compact={true}
               label="Target X (Δx)"
               min={-8}
               max={8}
@@ -885,13 +887,14 @@ export const DroneNavigator: React.FC = () => {
               value={targetX}
               formulaTerm="x₂"
               causeEffectHint={(val) =>
-                `Horizontal base Δx = ${Math.abs(val - originX)} u. Adds (${Math.abs(val - originX)})² = ${Math.pow(val - originX, 2)} to distance squared.`
+                `Base Δx = ${Math.abs(val - originX)} u. Adds (${Math.abs(val - originX)})² = ${Math.pow(val - originX, 2)}.`
               }
               onChange={(val) => updateDroneParams({ targetX: val })}
               formatValue={(v) => `x = ${v}`}
             />
 
             <TouchSlider
+              compact={true}
               label="Target Y (Δy)"
               min={-8}
               max={8}
@@ -899,7 +902,7 @@ export const DroneNavigator: React.FC = () => {
               value={targetY}
               formulaTerm="y₂"
               causeEffectHint={(val) =>
-                `Vertical height Δy = ${Math.abs(val - originY)} u. Adds (${Math.abs(val - originY)})² = ${Math.pow(val - originY, 2)} to distance squared.`
+                `Height Δy = ${Math.abs(val - originY)} u. Adds (${Math.abs(val - originY)})² = ${Math.pow(val - originY, 2)}.`
               }
               onChange={(val) => updateDroneParams({ targetY: val })}
               formatValue={(v) => `y = ${v}`}

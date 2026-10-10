@@ -983,19 +983,20 @@ export const CatapultSiege: React.FC = () => {
         }
       >
         {/* Controls Tab - Mobile friendly compact layout */}
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {/* Point 1 & 5: Live Substitution Card for Projectile Motion */}
           <LiveSubstitutionCard
+            compact={true}
             title="Projectile Motion"
             badge="Trigonometry"
-            symbolicLaw="v_x = v \cdot \cos\theta, \quad v_y = v \cdot \sin\theta"
-            substitutedLatex={`v_x = ${tension} \\cdot \\cos ${angleDeg}^\\circ, \\quad v_y = ${tension} \\cdot \\sin ${angleDeg}^\\circ`}
-            evaluatedLatex={`v_x = ${adjacent.toFixed(1)}, \\quad v_y = ${opposite.toFixed(1)}, \\quad \\text{Clearance} = ${theoreticalClearance > 0 ? `+${theoreticalClearance.toFixed(1)}` : theoreticalClearance.toFixed(1)}`}
+            symbolicLaw="v_x = v \cos\theta, \quad v_y = v \sin\theta"
+            substitutedLatex={`v_x = ${tension} \\cos ${angleDeg}^\\circ, \\quad v_y = ${tension} \\sin ${angleDeg}^\\circ`}
+            evaluatedLatex={`v_x = ${adjacent.toFixed(1)}, \\; v_y = ${opposite.toFixed(1)}, \\; \\Delta = ${theoreticalClearance > 0 ? `+${theoreticalClearance.toFixed(1)}` : theoreticalClearance.toFixed(1)}`}
             activeTerm={hasLaunched ? (hasClearedWall ? 'Cleared!' : hasHitWall ? 'Hit Wall!' : 'In Flight...') : undefined}
           />
-          <div className="grid grid-cols-2 gap-2 items-center bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
+          <div className="grid grid-cols-2 gap-1.5 items-center bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/80">
             {/* Circular Dial for Elevation Angle θ */}
-            <div className="flex justify-center scale-90 sm:scale-100">
+            <div className="flex justify-center scale-85 sm:scale-95">
               <CircularAngleDial
                 angleDeg={angleDeg}
                 onChange={(val) => {
@@ -1006,7 +1007,7 @@ export const CatapultSiege: React.FC = () => {
             </div>
 
             {/* Vertical Slider for Tension (Hypotenuse) */}
-            <div className="flex justify-center scale-90 sm:scale-100">
+            <div className="flex justify-center scale-85 sm:scale-95">
               <VerticalTensionSlider
                 value={tension}
                 min={12}
@@ -1020,9 +1021,10 @@ export const CatapultSiege: React.FC = () => {
             </div>
           </div>
 
-          {/* Environmental Castle Parameters */}
-          <div className="space-y-1 pt-1 border-t border-slate-800/80">
+          {/* Environmental Castle Parameters in 2-Column Grid */}
+          <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-900/70 border border-slate-800 rounded-xl p-1.5">
             <TouchSlider
+              compact={true}
               label="Wall Height"
               min={80}
               max={230}
@@ -1031,12 +1033,13 @@ export const CatapultSiege: React.FC = () => {
               value={wallHeight}
               formulaTerm="H"
               causeEffectHint={(val) =>
-                `Boulder must fly higher than ${val}px at distance D=${wallDistance}px. Clearance: ${theoreticalClearance > 0 ? `+${theoreticalClearance.toFixed(0)}px (Clears)` : `${theoreticalClearance.toFixed(0)}px (Collides)`}`
+                `Clearance: ${theoreticalClearance > 0 ? `+${theoreticalClearance.toFixed(0)}px (Clears)` : `${theoreticalClearance.toFixed(0)}px (Collides)`}`
               }
               onChange={(val) => updateCatapultParams({ wallHeight: val })}
             />
 
             <TouchSlider
+              compact={true}
               label="Wall Distance"
               min={260}
               max={460}
@@ -1045,7 +1048,7 @@ export const CatapultSiege: React.FC = () => {
               value={wallDistance}
               formulaTerm="D"
               causeEffectHint={(val) =>
-                `Flight time to wall t = D / vx = ${(val / (Math.max(1, adjacent * 0.88))).toFixed(2)}s. Gravity pulls boulder down by ~${(0.5 * gravity * Math.pow(val / Math.max(1, adjacent * 0.88), 2)).toFixed(0)}px`
+                `Flight time t = D/vx = ${(val / (Math.max(1, adjacent * 0.88))).toFixed(2)}s.`
               }
               onChange={(val) => updateCatapultParams({ wallDistance: val })}
             />

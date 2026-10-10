@@ -222,55 +222,55 @@ export const DynamicPieChartSimulator: React.FC = () => {
   }, [datasetKey, selectedSliceIndex, activeSlice, challengeCompleted, completeChallenge, playChime, successBuzz]);
 
   const controlsContent = (
-    <div className="space-y-4 p-4 text-slate-200">
+    <div className="space-y-2 p-2.5 sm:p-3 text-slate-200">
       {/* Dataset Presets */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      <div className="space-y-1">
+        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
           Curriculum Dataset Presets
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {Object.entries(PRESETS).map(([key, p]) => (
             <button
               key={key}
               type="button"
               onClick={() => handleSelectPreset(key)}
-              className={`p-2 rounded-xl border text-center transition cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-xl border text-center transition cursor-pointer ${
                 datasetKey === key
                   ? 'bg-pink-500/20 border-pink-400 text-pink-200 shadow-sm'
                   : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
-              <div className="text-xs font-bold truncate">{p.name}</div>
+              <div className="text-[11px] font-bold truncate">{p.name}</div>
             </button>
           ))}
         </div>
       </div>
 
       {/* Slices Inspector and Value Adjuster */}
-      <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+      <div className="space-y-2 bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 sm:p-3">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
           <span>Categories ({slices.length} Slices)</span>
           <span className="text-pink-400 font-mono">Total = {totalValue}</span>
         </h4>
-        <div className="space-y-2">
+        <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-1.5">
           {slices.map((s, idx) => (
             <div
               key={s.label}
               onClick={() => handleSliceClick(idx)}
-              className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition ${
+              className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition ${
                 selectedSliceIndex === idx
                   ? 'bg-slate-800 border-pink-500/80 shadow-md'
                   : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: s.color }} />
-                <span className="text-xs font-semibold text-white">{s.label}</span>
+              <div className="flex items-center gap-1.5 truncate">
+                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                <span className="text-[11px] font-semibold text-white truncate">{s.label}</span>
               </div>
-              <div className="text-right font-mono">
-                <span className="text-xs font-bold text-white block">{s.value}</span>
-                <span className="text-[10px] text-slate-400">
-                  {((s.value / totalValue) * 360).toFixed(1)}° ({((s.value / totalValue) * 100).toFixed(0)}%)
+              <div className="text-right font-mono shrink-0 ml-1">
+                <span className="text-[11px] font-bold text-white block leading-tight">{s.value}</span>
+                <span className="text-[9px] text-slate-400 block leading-tight">
+                  {((s.value / totalValue) * 360).toFixed(0)}°
                 </span>
               </div>
             </div>
@@ -279,15 +279,15 @@ export const DynamicPieChartSimulator: React.FC = () => {
       </div>
 
       {/* Explain Like I'm 13 Card */}
-      <Eli13ExplainerCard simulatorId="dynamic-pie-chart" />
+      <Eli13ExplainerCard simulatorId="dynamic-pie-chart" defaultExpanded={false} />
 
       <button
         type="button"
         onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
       >
         <RotateCcw className="w-3.5 h-3.5" />
-        <span>Reset to Default Favorite Sports (72 Students)</span>
+        <span>Reset to Default Favorite Sports</span>
       </button>
     </div>
   );
@@ -295,25 +295,25 @@ export const DynamicPieChartSimulator: React.FC = () => {
   return (
     <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
       {/* Interactive Pie Chart Graphic Canvas */}
-      <div className="relative flex-1 w-full min-h-[360px] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
         {/* Central Angle Calculation Formula Card */}
-        <div className="w-full max-w-lg mb-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
+        <div className="w-full max-w-md mb-1.5 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
           <span className="text-[10px] font-mono text-pink-400 uppercase tracking-wider block">
             Central Angle Formula: θ = (Frequency / Total) × 360°
           </span>
-          <div className="text-base sm:text-xl font-mono font-bold text-white flex items-center justify-center gap-2 mt-1">
+          <div className="text-sm sm:text-base font-mono font-bold text-white flex items-center justify-center gap-2 mt-0.5">
             <span style={{ color: activeSlice.color }}>{activeSlice.label}:</span>
-            <span className="text-cyan-300">({activeSlice.value} / {totalValue}) × 360°</span>
+            <span className="text-cyan-300">({activeSlice.value}/{totalValue})×360°</span>
             <span className="text-slate-500">=</span>
             <span className="text-pink-300 font-extrabold">{activeSlice.angleDeg.toFixed(1)}°</span>
           </div>
           <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
-            Represents {activeSlice.percentage.toFixed(1)}% of the full 360° circle
+            Represents {activeSlice.percentage.toFixed(1)}% of 360° circle
           </span>
         </div>
 
         {/* SVG Pie Chart */}
-        <div className="w-full max-w-md h-64 sm:h-72 flex items-center justify-center">
+        <div className="w-full max-w-md h-52 sm:h-64 flex items-center justify-center">
           <svg viewBox="0 0 280 280" className="w-full h-full drop-shadow-2xl overflow-visible">
             <g transform="translate(140, 140)">
               {/* Outer circular protractor ring */}

@@ -55,6 +55,7 @@ export const CompoundInterestSimulator: React.FC = () => {
   const { lightTap, successBuzz } = useHaptics();
   const { playClick, playChime } = useSound();
   const { trackEvent } = useAnalytics();
+  const [controlsSubTab, setControlsSubTab] = React.useState<'params' | 'presets'>('params');
 
   // Mathematical Calculations
   const freqMultiplier = frequency === 'quarterly' ? 4 : frequency === 'half-yearly' ? 2 : 1;
@@ -189,130 +190,181 @@ export const CompoundInterestSimulator: React.FC = () => {
   }, [principal, ratePct, timeYears, frequency, challengeCompleted, completeChallenge, playChime, successBuzz]);
 
   const controlsContent = (
-    <div className="space-y-4 p-4 text-slate-200">
-      <LiveSubstitutionCard
-        title="Exponential Compounding Law"
-        badge={frequency.toUpperCase()}
-        symbolicLaw="A = P\left(1 + \frac{r/k}{100}\right)^{k \cdot t}, \quad CI = A - P"
-        substitutedLatex={`A = ${principal}\\left(1 + \\frac{${periodicRate.toFixed(1)}}{100}\\right)^{${totalPeriods}}`}
-        evaluatedLatex={`A = ₹${compoundTotalAmount.toFixed(2)}, \\quad CI = ₹${compoundInterest.toFixed(2)} \\; (SI = ₹${simpleInterest.toFixed(2)})`}
-      />
+    <div className="space-y-2 p-2 sm:p-2.5 text-slate-200">
+      {/* 2-Segment Sub-Tab Switcher for Guaranteed Zero-Scroll */}
+      <div className="grid grid-cols-2 p-0.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
+        <button
+          type="button"
+          onClick={() => {
+            lightTap();
+            setControlsSubTab('params');
+          }}
+          className={`py-1 px-2 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            controlsSubTab === 'params'
+              ? 'bg-emerald-500 text-slate-950 font-bold shadow'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>Parameters & Freq</span>
+        </button>
 
-      {/* Frequency Toggle */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-          Compounding Frequency (Conversion Period)
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { id: 'annually', label: 'Annually', sub: 'Once a year (R, n)' },
-            { id: 'half-yearly', label: 'Half-Yearly', sub: 'Every 6 mos (R/2, 2n)' },
-            { id: 'quarterly', label: 'Quarterly', sub: 'Every 3 mos (R/4, 4n)' },
-          ].map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => {
-                lightTap();
-                playClick();
-                updateCompoundInterestParams({ frequency: f.id as any });
-                trackEvent('compound_interest_freq', { freq: f.id });
-              }}
-              className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
-                frequency === f.id
-                  ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200 shadow-sm'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              <div className="text-xs font-bold">{f.label}</div>
-              <div className="text-[9px] font-mono text-slate-500 mt-0.5">{f.sub}</div>
-            </button>
-          ))}
+        <button
+          type="button"
+          onClick={() => {
+            lightTap();
+            setControlsSubTab('presets');
+          }}
+          className={`py-1 px-2 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            controlsSubTab === 'presets'
+              ? 'bg-amber-500 text-slate-950 font-bold shadow'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>NCERT Presets & Math</span>
+        </button>
+      </div>
+
+      {controlsSubTab === 'params' && (
+        <div className="space-y-2 animate-fade-in">
+          {/* Frequency Toggle (Compact 3 Pills) */}
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+              Compounding Frequency
+            </span>
+            <div className="grid grid-cols-3 gap-1">
+              {[
+                { id: 'annually', label: 'Annually', sub: 'R, n' },
+                { id: 'half-yearly', label: 'Half-Yearly', sub: 'R/2, 2n' },
+                { id: 'quarterly', label: 'Quarterly', sub: 'R/4, 4n' },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => {
+                    lightTap();
+                    playClick();
+                    updateCompoundInterestParams({ frequency: f.id as any });
+                    trackEvent('compound_interest_freq', { freq: f.id });
+                  }}
+                  className={`p-1.5 rounded-lg border text-center transition cursor-pointer ${
+                    frequency === f.id
+                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200 shadow-sm'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <div className="text-[11px] font-bold">{f.label}</div>
+                  <div className="text-[9px] font-mono text-slate-500">{f.sub}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sliders in Smart 2-Column Cockpit Grid */}
+          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-2">
+            <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5">
+              <TouchSlider
+                compact={true}
+                label="Principal P (₹)"
+                value={principal}
+                min={1000}
+                max={50000}
+                step={1000}
+                onChange={(val) => updateCompoundInterestParams({ principal: val })}
+              />
+              <TouchSlider
+                compact={true}
+                label="Rate R (% p.a.)"
+                value={ratePct}
+                min={1}
+                max={25}
+                step={1}
+                onChange={(val) => updateCompoundInterestParams({ ratePct: val })}
+              />
+              <div className="sm:col-span-2">
+                <TouchSlider
+                  compact={true}
+                  label="Time Horizon T (Years)"
+                  value={timeYears}
+                  min={1}
+                  max={10}
+                  step={1}
+                  onChange={(val) => updateCompoundInterestParams({ timeYears: val })}
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset (₹10,000 @ 10% for 3 yrs)</span>
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* Sliders */}
-      <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
-        <TouchSlider
-          label="Principal Investment P (₹)"
-          value={principal}
-          min={1000}
-          max={50000}
-          step={1000}
-          onChange={(val) => updateCompoundInterestParams({ principal: val })}
-        />
-        <TouchSlider
-          label="Annual Interest Rate R (% p.a.)"
-          value={ratePct}
-          min={1}
-          max={25}
-          step={1}
-          onChange={(val) => updateCompoundInterestParams({ ratePct: val })}
-        />
-        <TouchSlider
-          label="Time Horizon T (Years)"
-          value={timeYears}
-          min={1}
-          max={10}
-          step={1}
-          onChange={(val) => updateCompoundInterestParams({ timeYears: val })}
-        />
-      </div>
+      {controlsSubTab === 'presets' && (
+        <div className="space-y-2 animate-fade-in">
+          {/* Textbook Presets Scratchpad */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+              <BookOpen className="w-3 h-3" />
+              <span>Class 8 Textbook Problems</span>
+            </span>
+            <div className="grid grid-cols-2 gap-1.5 text-xs">
+              {[
+                { label: '₹10,000 @ 10% (3 yrs)', p: 10000, r: 10, t: 3, freq: 'annually' as const },
+                { label: '₹5,000 @ 12% (2 yrs)', p: 5000, r: 12, t: 2, freq: 'annually' as const },
+                { label: '₹8,000 @ 10% Half (1 yr)', p: 8000, r: 10, t: 1, freq: 'half-yearly' as const },
+                { label: '₹20,000 @ 8% Quart (2 yrs)', p: 20000, r: 8, t: 2, freq: 'quarterly' as const },
+              ].map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    lightTap();
+                    playClick();
+                    updateCompoundInterestParams({
+                      principal: preset.p,
+                      ratePct: preset.r,
+                      timeYears: preset.t,
+                      frequency: preset.freq,
+                    });
+                  }}
+                  className="p-2 rounded-lg bg-slate-950/70 hover:bg-slate-950 border border-slate-800 hover:border-emerald-500/40 text-slate-300 hover:text-white font-mono text-[11px] text-left transition cursor-pointer"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* Textbook Presets Scratchpad */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-          <BookOpen className="w-4 h-4" />
-          <span>Class 8 Textbook Problems Scratchpad</span>
-        </h4>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          {[
-            { label: '₹10,000 @ 10% (3 yrs)', p: 10000, r: 10, t: 3, freq: 'annually' as const },
-            { label: '₹5,000 @ 12% (2 yrs)', p: 5000, r: 12, t: 2, freq: 'annually' as const },
-            { label: '₹8,000 @ 10% Half-Yearly (1 yr)', p: 8000, r: 10, t: 1, freq: 'half-yearly' as const },
-            { label: '₹20,000 @ 8% Quarterly (2 yrs)', p: 20000, r: 8, t: 2, freq: 'quarterly' as const },
-          ].map((preset, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                lightTap();
-                playClick();
-                updateCompoundInterestParams({
-                  principal: preset.p,
-                  ratePct: preset.r,
-                  timeYears: preset.t,
-                  frequency: preset.freq,
-                });
-              }}
-              className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-950 border border-slate-800 hover:border-emerald-500/40 text-slate-300 hover:text-white font-mono text-[11px] text-left transition cursor-pointer"
-            >
-              {preset.label}
-            </button>
-          ))}
+          <LiveSubstitutionCard
+            compact={true}
+            title="Compounding Law"
+            badge={frequency.toUpperCase()}
+            symbolicLaw="A = P\left(1 + \frac{r/k}{100}\right)^{k \cdot t}"
+            substitutedLatex={`A = ${principal}\\left(1 + \\frac{${periodicRate.toFixed(1)}}{100}\\right)^{${totalPeriods}}`}
+            evaluatedLatex={`A = ₹${compoundTotalAmount.toFixed(2)}`}
+          />
+
+          {/* Explain Like I'm 13 Card */}
+          <Eli13ExplainerCard simulatorId="compound-interest-engine" defaultExpanded={false} />
         </div>
-      </div>
-
-      {/* Explain Like I'm 13 Card */}
-      <Eli13ExplainerCard simulatorId="compound-interest-engine" />
-
-      <button
-        type="button"
-        onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
-      >
-        <RotateCcw className="w-3.5 h-3.5" />
-        <span>Reset to Default (₹10,000 @ 10% for 3 yrs)</span>
-      </button>
+      )}
     </div>
   );
 
   return (
     <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
       {/* Visual Growth Canvas */}
-      <div className="relative flex-1 w-full min-h-[360px] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
         {/* KPI Vault Metrics Cards */}
-        <div className="w-full max-w-xl grid grid-cols-3 gap-2 mb-3">
+        <div className="w-full max-w-xl grid grid-cols-3 gap-2 mb-2 sm:mb-3">
           <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
             <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider block">
               Simple Interest (SI)
@@ -351,7 +403,7 @@ export const CompoundInterestSimulator: React.FC = () => {
         </div>
 
         {/* Growth Staircase SVG Chart */}
-        <div className="w-full max-w-xl h-60 sm:h-64 flex items-center justify-center bg-slate-900/40 rounded-2xl border border-slate-800/60 p-2">
+        <div className="w-full max-w-xl h-48 sm:h-56 flex items-center justify-center bg-slate-900/40 rounded-2xl border border-slate-800/60 p-2">
           <svg viewBox="0 0 460 210" className="w-full h-full drop-shadow-xl overflow-visible">
             {/* Axis grid lines */}
             <line x1="45" y1="180" x2="440" y2="180" stroke="#334155" strokeWidth="1.5" />

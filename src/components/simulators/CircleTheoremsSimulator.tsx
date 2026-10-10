@@ -847,58 +847,69 @@ export const CircleTheoremsSimulator: React.FC = () => {
         }
       >
         {/* Controls Tab */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <LiveSubstitutionCard
-            title="Tangent Length & Congruence Invariant"
+            compact={true}
+            title="Tangent & Congruence Invariant"
             badge="RHS Congruence"
-            symbolicLaw="PA = PB = \sqrt{d^2 - R^2}, \quad \angle OAP = \angle OBP = 90^\circ"
-            substitutedLatex={`PA = \\sqrt{(${d.toFixed(2)})^2 - (${radius.toFixed(2)})^2} = \\sqrt{${Math.max(0, d * d - radius * radius).toFixed(2)}}`}
-            evaluatedLatex={`PA = PB = ${tangentLength.toFixed(2)} \\text{ cm}, \\quad \\angle AOB = ${centerAngleDeg.toFixed(1)}^\\circ`}
+            symbolicLaw="PA = PB = \sqrt{d^2 - R^2}, \quad \angle OAP = 90^\circ"
+            substitutedLatex={`PA = \\sqrt{(${d.toFixed(1)})^2 - (${radius.toFixed(1)})^2} = \\sqrt{${Math.max(0, d * d - radius * radius).toFixed(1)}}`}
+            evaluatedLatex={`PA = PB = ${tangentLength.toFixed(1)} \\text{ cm}, \\quad \\angle AOB = ${centerAngleDeg.toFixed(1)}^\\circ`}
           />
 
-          <TouchSlider
-            label="Circle Radius R"
-            value={radius}
-            min={2.0}
-            max={6.0}
-            step={0.5}
-            onChange={(val) => updateCircleTheoremsParams({ radius: val })}
-          />
-
-          <TouchSlider
-            label="External Point Distance d (OP)"
-            value={d}
-            min={radius + 0.5}
-            max={12.0}
-            step={0.25}
-            onChange={(val) => updateCircleTheoremsParams({ pointDistance: val })}
-          />
-
-          <TouchSlider
-            label="Point Rotation Angle θ"
-            value={pointAngleDeg}
-            min={0}
-            max={360}
-            step={5}
-            onChange={(val) => updateCircleTheoremsParams({ pointAngleDeg: val })}
-          />
-
-          {showInscribedAngle && (
+          <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5 bg-slate-900/70 border border-slate-800 rounded-xl p-2">
             <TouchSlider
-              label="Inscribed Vertex C Position Angle"
-              value={inscribedVertexAngleDeg}
+              compact={true}
+              label="Circle Radius R"
+              value={radius}
+              min={2.0}
+              max={6.0}
+              step={0.5}
+              onChange={(val) => updateCircleTheoremsParams({ radius: val })}
+            />
+
+            <TouchSlider
+              compact={true}
+              label="Distance d (OP)"
+              value={d}
+              min={radius + 0.5}
+              max={12.0}
+              step={0.25}
+              onChange={(val) => updateCircleTheoremsParams({ pointDistance: val })}
+            />
+
+            <TouchSlider
+              compact={true}
+              label="Point Angle θ"
+              value={pointAngleDeg}
               min={0}
               max={360}
               step={5}
-              onChange={(val) => updateCircleTheoremsParams({ inscribedVertexAngleDeg: val })}
+              onChange={(val) => updateCircleTheoremsParams({ pointAngleDeg: val })}
             />
-          )}
 
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
+            {showInscribedAngle ? (
+              <TouchSlider
+                compact={true}
+                label="Vertex C Angle"
+                value={inscribedVertexAngleDeg}
+                min={0}
+                max={360}
+                step={5}
+                onChange={(val) => updateCircleTheoremsParams({ inscribedVertexAngleDeg: val })}
+              />
+            ) : (
+              <div className="flex items-center justify-center p-2 text-slate-500 text-xs italic">
+                Inscribed vertex hidden
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5">
             <button
               type="button"
               onClick={() => updateCircleTheoremsParams({ showCongruentTriangles: !showCongruentTriangles })}
-              className={`p-2 rounded-lg text-xs font-medium border text-center transition-colors cursor-pointer ${
+              className={`py-1.5 px-2 rounded-lg text-xs font-semibold border text-center transition-colors cursor-pointer ${
                 showCongruentTriangles
                   ? 'bg-cyan-950/80 border-cyan-600 text-cyan-200'
                   : 'bg-slate-900 border-slate-800 text-slate-400'
@@ -909,7 +920,7 @@ export const CircleTheoremsSimulator: React.FC = () => {
             <button
               type="button"
               onClick={() => updateCircleTheoremsParams({ showRadii: !showRadii })}
-              className={`p-2 rounded-lg text-xs font-medium border text-center transition-colors cursor-pointer ${
+              className={`py-1.5 px-2 rounded-lg text-xs font-semibold border text-center transition-colors cursor-pointer ${
                 showRadii
                   ? 'bg-amber-950/80 border-amber-600 text-amber-200'
                   : 'bg-slate-900 border-slate-800 text-slate-400'

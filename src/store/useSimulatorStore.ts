@@ -831,8 +831,8 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
   activeSheetTab: 'controls',
 
   isLeftSidebarOpen: true,
-  isRightSidebarOpen: true,
-  isLeftSidebarWide: false,
+  isRightSidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 1440 : false,
+  isLeftSidebarWide: true,
   isCompactControlsMode: true,
   isCanvasHudPinned: true,
   isAuthorModalOpen: false,

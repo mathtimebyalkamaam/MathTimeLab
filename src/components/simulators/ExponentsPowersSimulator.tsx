@@ -155,14 +155,14 @@ export const ExponentsPowersSimulator: React.FC = () => {
   }, [ruleMode, baseA, exponentM, exponentN, microscopeZoomPower, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-2 p-2 sm:p-2.5 text-slate-200">
       {/* Rule Mode Selector */}
-      <div>
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5 text-cyan-400" />
-          Select Law of Exponents
-        </label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="space-y-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block flex items-center gap-1">
+          <Layers className="w-3 h-3 text-cyan-400" />
+          <span>Laws of Exponents</span>
+        </span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
           {[
             { id: 'product', label: 'aᵐ × aⁿ = aᵐ⁺ⁿ' },
             { id: 'quotient', label: 'aᵐ ÷ aⁿ = aᵐ⁻ⁿ' },
@@ -177,59 +177,65 @@ export const ExponentsPowersSimulator: React.FC = () => {
                 lightTap();
                 updateExponentsParams({ ruleMode: item.id as any });
               }}
-              className={`p-2.5 rounded-xl text-xs font-semibold text-left transition-all border ${
+              className={`p-1.5 rounded-lg text-xs font-semibold text-left transition-all border cursor-pointer ${
                 ruleMode === item.id
-                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-md shadow-cyan-500/10'
+                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-sm'
                   : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
               }`}
             >
-              {item.label}
+              <div className="font-bold text-[11px] truncate">{item.label}</div>
             </button>
           ))}
         </div>
       </div>
 
       {ruleMode !== 'scientific-notation' && (
-        <div className="space-y-4">
-          <TouchSlider
-            label="Base (a)"
-            value={baseA}
-            min={2}
-            max={6}
-            step={1}
-            unit=""
-            onChange={(val) => updateExponentsParams({ baseA: val })}
-          />
-
-          {ruleMode !== 'negative-exponent' && ruleMode !== 'zero-exponent' && (
+        <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-2">
+          <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5">
             <TouchSlider
-              label="Exponent m"
-              value={exponentM}
-              min={1}
-              max={5}
+              compact={true}
+              label="Base a"
+              value={baseA}
+              min={2}
+              max={6}
               step={1}
               unit=""
-              onChange={(val) => updateExponentsParams({ exponentM: val })}
+              onChange={(val) => updateExponentsParams({ baseA: val })}
             />
-          )}
 
-          {ruleMode !== 'zero-exponent' && (
-            <TouchSlider
-              label={ruleMode === 'negative-exponent' ? 'Negative Power |-n|' : 'Exponent n'}
-              value={exponentN}
-              min={1}
-              max={5}
-              step={1}
-              unit=""
-              onChange={(val) => updateExponentsParams({ exponentN: val })}
-            />
-          )}
+            {ruleMode !== 'negative-exponent' && ruleMode !== 'zero-exponent' && (
+              <TouchSlider
+                compact={true}
+                label="Exponent m"
+                value={exponentM}
+                min={1}
+                max={5}
+                step={1}
+                unit=""
+                onChange={(val) => updateExponentsParams({ exponentM: val })}
+              />
+            )}
+
+            {ruleMode !== 'zero-exponent' && (
+              <TouchSlider
+                compact={true}
+                label={ruleMode === 'negative-exponent' ? 'Power |-n|' : 'Exponent n'}
+                value={exponentN}
+                min={1}
+                max={5}
+                step={1}
+                unit=""
+                onChange={(val) => updateExponentsParams({ exponentN: val })}
+              />
+            )}
+          </div>
         </div>
       )}
 
       {ruleMode === 'scientific-notation' && (
-        <div className="space-y-4">
+        <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-2">
           <TouchSlider
+            compact={true}
             label="Scale Power (10ⁿ)"
             value={microscopeZoomPower}
             min={-15}
@@ -241,34 +247,27 @@ export const ExponentsPowersSimulator: React.FC = () => {
         </div>
       )}
 
-      <Eli13ExplainerCard simulatorId="exponents-powers-lab" />
+      <Eli13ExplainerCard simulatorId="exponents-powers-lab" defaultExpanded={false} />
+
+      <button
+        type="button"
+        onClick={() => {
+          lightTap();
+          resetParams('exponents-powers-lab');
+        }}
+        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+      >
+        <RotateCcw className="w-3.5 h-3.5" />
+        <span>Reset Laws & Parameters</span>
+      </button>
     </div>
   );
 
   return (
-    <div className="min-h-full flex flex-col bg-slate-950 text-slate-100 p-3 sm:p-6 pb-32">
-      {/* Top Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-900/40 text-cyan-400 border border-cyan-700/40">
-            Class 8 • Exponents & Powers
-          </span>
-          <h1 className="text-xl sm:text-2xl font-black text-white mt-1 flex items-center gap-2">
-            <Zap className="w-6 h-6 text-amber-400" />
-            Exponents & Powers Lab
-          </h1>
-        </div>
-        <button
-          onClick={handleReset}
-          className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800"
-          title="Reset Parameters"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
-      </div>
-
+    <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
       {/* Main Interactive Stage */}
-      <div className="w-full max-w-4xl mx-auto bg-slate-900/70 border border-slate-800/80 rounded-3xl p-5 sm:p-6 backdrop-blur-sm shadow-xl space-y-6">
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
+        <div className="w-full max-w-xl bg-slate-900/70 border border-slate-800/80 rounded-2xl p-3 sm:p-4 backdrop-blur-sm shadow-xl space-y-2.5">
           {/* Main Visual Formula Bar */}
           <div className="bg-slate-950/80 rounded-2xl p-4 border border-cyan-950/60 text-center">
             <div className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">
@@ -426,6 +425,7 @@ export const ExponentsPowersSimulator: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
 
       <BottomSheet
         title="Exponents & Powers Lab"

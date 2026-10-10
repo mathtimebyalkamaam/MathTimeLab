@@ -350,13 +350,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         </div>
 
         {/* Left Sidebar Body: Smart zero-scroll auto-fitted container */}
-        <div className={`flex-1 overflow-y-auto no-scrollbar p-3 space-y-2 ${
+        <div className={`flex-1 overflow-y-auto no-scrollbar p-2.5 sm:p-3 space-y-2 ${
           isCompactControlsMode ? 'text-xs [&_.TouchSlider]:py-0 [&_label]:mb-0.5' : ''
+        } ${
+          isLeftSidebarWide ? '[&_.cockpit-slider-grid]:grid [&_.cockpit-slider-grid]:grid-cols-2 [&_.cockpit-slider-grid]:gap-2' : ''
         }`}>
           {desktopLeftTab === 'controls' && (
-            <div className={`animate-fade-in ${
-              isLeftSidebarWide ? 'grid grid-cols-2 gap-2.5 items-start' : 'space-y-2'
-            }`}>
+            <div className="animate-fade-in space-y-2">
               {children}
             </div>
           )}

@@ -13,7 +13,9 @@ import {
   Rocket, 
   BrainCircuit,
   Eye,
-  CheckCircle2
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { SimulatorId } from '../../types/simulators';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
@@ -104,49 +106,96 @@ interface Eli13ExplainerCardProps {
 
 export const Eli13ExplainerCard: React.FC<Eli13ExplainerCardProps> = ({
   simulatorId,
-  defaultExpanded = true,
+  defaultExpanded = false,
 }) => {
   const story = ELI13_STORIES[simulatorId];
   const { isEli13Mode, toggleEli13Mode } = useSimulatorStore();
   const { playClick, playChime } = useSound();
   const { lightTap } = useHaptics();
+  const [isExpanded, setIsExpanded] = React.useState<boolean>(defaultExpanded);
 
   if (!story) return null;
 
-  return (
-    <div className="rounded-2xl bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-900 border border-amber-500/40 p-4 sm:p-5 shadow-lg space-y-3.5">
-      {/* Header bar with toggle */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl">{story.emoji}</span>
-          <div>
-            <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
-              <span>Explain Like I'm 13 (ELI-13 Mode)</span>
-              <span>·</span>
-              <span>Zero Textbook Jargon</span>
+  // Compact Collapsed Pill Mode (Zero Scroll on Laptops & Desktops)
+  if (!isExpanded) {
+    return (
+      <div className="rounded-xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-2 sm:p-2.5 shadow-sm transition-all">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 truncate">
+            <span className="text-base sm:text-lg shrink-0">{story.emoji}</span>
+            <div className="truncate">
+              <span className="text-[9px] sm:text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider block leading-tight">
+                ELI-13 Wonder Analogy
+              </span>
+              <span className="text-xs font-bold text-slate-200 truncate block leading-tight">
+                {story.analogyTitle}
+              </span>
             </div>
-            <h3 className="text-sm sm:text-base font-extrabold text-white">
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              lightTap();
+              setIsExpanded(true);
+            }}
+            className="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 shrink-0 transition-all cursor-pointer shadow-sm"
+            title="Expand to read intuitive real-world story"
+          >
+            <Lightbulb className="w-3 h-3 text-amber-400" />
+            <span>Story</span>
+            <ChevronDown className="w-3 h-3 text-amber-400" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-900 border border-amber-500/40 p-3 sm:p-4 shadow-lg space-y-2.5 sm:space-y-3 animate-fade-in">
+      {/* Header bar with collapse and mode toggles */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 truncate">
+          <span className="text-xl shrink-0">{story.emoji}</span>
+          <div className="truncate">
+            <div className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider">
+              <span>ELI-13 Metaphor</span>
+            </div>
+            <h3 className="text-xs sm:text-sm font-extrabold text-white truncate">
               {story.analogyTitle}
             </h3>
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            lightTap();
-            playClick();
-            toggleEli13Mode();
-          }}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-            isEli13Mode 
-              ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-              : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
-          }`}
-          title="Toggle between Academic Board Mode and ELI-13 Student Mode"
-        >
-          {isEli13Mode ? '🎓 Academic Mode' : '🕶️ ELI-13 Mode'}
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              lightTap();
+              playClick();
+              toggleEli13Mode();
+            }}
+            className={`px-2 py-1 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
+              isEli13Mode 
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+            }`}
+            title="Toggle between Academic Board Mode and ELI-13 Student Mode"
+          >
+            {isEli13Mode ? '🎓 Academic' : '🕶️ ELI-13'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              lightTap();
+              setIsExpanded(false);
+            }}
+            className="p-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 transition cursor-pointer"
+            title="Collapse story"
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Relatable Story Analogy */}

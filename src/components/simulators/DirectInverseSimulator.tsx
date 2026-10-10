@@ -210,58 +210,62 @@ export const DirectInverseSimulator: React.FC = () => {
         </div>
       </div>
 
-      {/* Sliders */}
+      {/* Sliders in Smart 2-Column Cockpit Grid */}
       {mode === 'direct-speed' ? (
-        <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
-          <TouchSlider
-            label="Car Speed x (km/h)"
-            value={directX}
-            min={10}
-            max={120}
-            step={5}
-            unit=" km/h"
-            onChange={(val) => updateDirectInverseParams({ directX: val })}
-          />
-          <TouchSlider
-            label="Fixed Travel Time Constant k (Hours)"
-            value={directConstantK}
-            min={1}
-            max={8}
-            step={1}
-            unit=" hrs"
-            onChange={(val) => updateDirectInverseParams({ directConstantK: val })}
-          />
+        <div className="space-y-2 bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 sm:p-3">
+          <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <TouchSlider
+              label="Car Speed x (km/h)"
+              value={directX}
+              min={10}
+              max={120}
+              step={5}
+              unit=" km/h"
+              onChange={(val) => updateDirectInverseParams({ directX: val })}
+            />
+            <TouchSlider
+              label="Time Constant k (Hours)"
+              value={directConstantK}
+              min={1}
+              max={8}
+              step={1}
+              unit=" hrs"
+              onChange={(val) => updateDirectInverseParams({ directConstantK: val })}
+            />
+          </div>
         </div>
       ) : (
-        <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
-          <TouchSlider
-            label="Worker Crew Count x"
-            value={inverseWorkers}
-            min={1}
-            max={24}
-            step={1}
-            unit=" workers"
-            onChange={(val) => updateDirectInverseParams({ inverseWorkers: val })}
-          />
-          <TouchSlider
-            label="Total Job Effort Constant k (Man-Days)"
-            value={inverseTotalWorkDays}
-            min={12}
-            max={48}
-            step={6}
-            unit=" man-days"
-            onChange={(val) => updateDirectInverseParams({ inverseTotalWorkDays: val })}
-          />
+        <div className="space-y-2 bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 sm:p-3">
+          <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <TouchSlider
+              label="Crew Count x (Workers)"
+              value={inverseWorkers}
+              min={1}
+              max={24}
+              step={1}
+              unit=" workers"
+              onChange={(val) => updateDirectInverseParams({ inverseWorkers: val })}
+            />
+            <TouchSlider
+              label="Total Effort k (Man-Days)"
+              value={inverseTotalWorkDays}
+              min={12}
+              max={48}
+              step={6}
+              unit=" man-days"
+              onChange={(val) => updateDirectInverseParams({ inverseTotalWorkDays: val })}
+            />
+          </div>
         </div>
       )}
 
       {/* Explain Like I'm 13 Card */}
-      <Eli13ExplainerCard simulatorId="direct-inverse-proportions" />
+      <Eli13ExplainerCard simulatorId="direct-inverse-proportions" defaultExpanded={false} />
 
       <button
         type="button"
         onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
       >
         <RotateCcw className="w-3.5 h-3.5" />
         <span>Reset to Default Parameters</span>
@@ -272,9 +276,9 @@ export const DirectInverseSimulator: React.FC = () => {
   return (
     <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
       {/* Interactive Visual Graph Canvas */}
-      <div className="relative flex-1 w-full min-h-[360px] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
         {/* Real-time Math HUD Card */}
-        <div className="w-full max-w-lg mb-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
+        <div className="w-full max-w-md mb-1.5 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
           {mode === 'direct-speed' ? (
             <div className="space-y-1">
               <span className="text-[10px] font-mono text-sky-400 uppercase tracking-wider block">

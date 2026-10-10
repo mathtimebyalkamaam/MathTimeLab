@@ -207,7 +207,7 @@ export const EulerPolyhedraSimulator: React.FC = () => {
       </div>
 
       {/* Unfold Slider */}
-      <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
+      <div className="space-y-2 bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 sm:p-3">
         <TouchSlider
           label="Unfold into 2D Flat Net"
           value={Math.round(unfoldProgress * 100)}
@@ -227,7 +227,7 @@ export const EulerPolyhedraSimulator: React.FC = () => {
             lightTap();
             updateEulerPolyhedraParams({ xrayWireframe: !xrayWireframe });
           }}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
             xrayWireframe
               ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
               : 'bg-slate-900 border-slate-800 text-slate-400'
@@ -239,12 +239,12 @@ export const EulerPolyhedraSimulator: React.FC = () => {
       </div>
 
       {/* Explain Like I'm 13 Card */}
-      <Eli13ExplainerCard simulatorId="euler-polyhedra-3d" />
+      <Eli13ExplainerCard simulatorId="euler-polyhedra-3d" defaultExpanded={false} />
 
       <button
         type="button"
         onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
       >
         <RotateCcw className="w-3.5 h-3.5" />
         <span>Reset 3D Orientation & Solid</span>
@@ -259,29 +259,29 @@ export const EulerPolyhedraSimulator: React.FC = () => {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className="relative flex-1 w-full min-h-[360px] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden cursor-grab active:cursor-grabbing touch-none"
+        className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden cursor-grab active:cursor-grabbing touch-none"
       >
         {/* Euler Formula Counter HUD */}
-        <div className="w-full max-w-lg mb-3 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
+        <div className="w-full max-w-md mb-1.5 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
           <span className="text-[10px] uppercase font-mono text-violet-400 font-bold tracking-wider block">
             Euler's Polyhedral Formula
           </span>
-          <div className="text-base sm:text-xl font-mono font-bold text-white flex items-center justify-center gap-3 mt-1">
-            <span className="text-sky-400">{solid.faces} Faces (F)</span>
+          <div className="text-sm sm:text-lg font-mono font-bold text-white flex items-center justify-center gap-2 sm:gap-3 mt-0.5">
+            <span className="text-sky-400">{solid.faces}F</span>
             <span className="text-slate-500">+</span>
-            <span className="text-emerald-400">{solid.vertices} Vertices (V)</span>
+            <span className="text-emerald-400">{solid.vertices}V</span>
             <span className="text-slate-500">-</span>
-            <span className="text-amber-400">{solid.edges} Edges (E)</span>
+            <span className="text-amber-400">{solid.edges}E</span>
             <span className="text-slate-500">=</span>
             <span className="text-violet-300 underline font-extrabold">{eulerSum}</span>
           </div>
-          <span className="text-[10px] text-slate-400 block mt-1 font-mono">
+          <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">
             {solid.name} satisfies F + V - E = 2!
           </span>
         </div>
 
         {/* 3D Polyhedra SVG Projection */}
-        <div className="w-full max-w-md h-64 sm:h-72 flex items-center justify-center">
+        <div className="w-full max-w-md h-52 sm:h-64 flex items-center justify-center">
           <svg viewBox="0 0 300 260" className="w-full h-full drop-shadow-2xl overflow-visible">
             {/* 3D Projection depending on solidType and unfoldProgress */}
             {unfoldProgress < 0.5 ? (

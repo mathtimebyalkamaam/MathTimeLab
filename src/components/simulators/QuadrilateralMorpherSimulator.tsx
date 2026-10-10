@@ -245,21 +245,22 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
   }, [quadType, diagonalAngleDeg, challengeCompleted, completeChallenge, playChime, successBuzz]);
 
   const controlsContent = (
-    <div className="space-y-4 p-4 text-slate-200">
+    <div className="space-y-1.5 p-2 sm:p-2.5 text-slate-200">
       <LiveSubstitutionCard
-        title="Quadrilateral Geometric Invariant"
+        compact={true}
+        title="Quadrilateral Invariant"
         badge={quadType.toUpperCase()}
-        symbolicLaw="\sum_{i=1}^4 \angle_i = 360^\circ, \quad \theta_{\text{diag}} = 90^\circ \iff \text{Rhombus/Kite/Square}"
-        substitutedLatex={`\\text{Shape: } ${quadType}, \\quad \\theta_{\\text{diagonals}} = ${diagonalAngleDeg.toFixed(1)}^\\circ`}
-        evaluatedLatex={`\\Sigma \\angle = 360.0^\\circ, \\quad d_1 \\perp d_2 \\implies ${Math.abs(diagonalAngleDeg - 90) < 1 ? '\\text{True (Perpendicular)}' : '\\text{False (Oblique)}'}`}
+        symbolicLaw="\sum \angle_i = 360^\circ, \quad \theta_{\text{diag}} = 90^\circ"
+        substitutedLatex={`\\text{Shape: } ${quadType}, \\; \\theta_{\\text{diag}} = ${diagonalAngleDeg.toFixed(1)}^\\circ`}
+        evaluatedLatex={`\\Sigma \\angle = 360^\\circ, \\; d_1 \\perp d_2: ${Math.abs(diagonalAngleDeg - 90) < 1 ? '\\text{Yes}' : '\\text{No}'}`}
       />
 
       {/* Shape Snap Buttons */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      <div className="space-y-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
           Shape Constraint Snaps
-        </label>
-        <div className="grid grid-cols-3 gap-2">
+        </span>
+        <div className="grid grid-cols-3 gap-1">
           {[
             { id: 'parallelogram', label: 'Parallelogram' },
             { id: 'rhombus', label: 'Rhombus' },
@@ -272,50 +273,50 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
               key={s.id}
               type="button"
               onClick={() => snapToShape(s.id as any)}
-              className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
+              className={`p-1.5 rounded-lg border text-center transition cursor-pointer ${
                 quadType === s.id
                   ? 'bg-indigo-500/20 border-indigo-400 text-indigo-200 shadow-sm'
                   : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
-              <div className="text-xs font-bold">{s.label}</div>
+              <div className="text-[11px] font-bold truncate">{s.label}</div>
             </button>
           ))}
         </div>
       </div>
 
       {/* Property Checklist */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 space-y-2">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-2 space-y-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
           Active Geometric Properties
-        </h4>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className={`flex items-center gap-1.5 ${Math.abs(ab - cd) < 2 && Math.abs(bc - da) < 2 ? 'text-emerald-400' : 'text-slate-500'}`}>
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Opposite Sides Equal</span>
+        </span>
+        <div className="grid grid-cols-2 gap-1 text-[11px]">
+          <div className={`flex items-center gap-1 ${Math.abs(ab - cd) < 2 && Math.abs(bc - da) < 2 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}`}>
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            <span className="truncate">Opposite Equal</span>
           </div>
-          <div className={`flex items-center gap-1.5 ${Math.abs(ab - bc) < 2 && Math.abs(bc - cd) < 2 ? 'text-emerald-400' : 'text-slate-500'}`}>
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>All 4 Sides Equal</span>
+          <div className={`flex items-center gap-1 ${Math.abs(ab - bc) < 2 && Math.abs(bc - cd) < 2 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}`}>
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            <span className="truncate">All 4 Equal</span>
           </div>
-          <div className={`flex items-center gap-1.5 ${Math.abs(diagAC - diagBD) < 2 ? 'text-emerald-400' : 'text-slate-500'}`}>
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Diagonals Equal</span>
+          <div className={`flex items-center gap-1 ${Math.abs(diagAC - diagBD) < 2 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}`}>
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            <span className="truncate">Diagonals Equal</span>
           </div>
-          <div className={`flex items-center gap-1.5 ${Math.abs(diagonalAngleDeg - 90) < 1 ? 'text-emerald-400' : 'text-slate-500'}`}>
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Diagonals ⊥ (90°)</span>
+          <div className={`flex items-center gap-1 ${Math.abs(diagonalAngleDeg - 90) < 1 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}`}>
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            <span className="truncate">Diagonals ⊥ 90°</span>
           </div>
         </div>
       </div>
 
       {/* Explain Like I'm 13 Card */}
-      <Eli13ExplainerCard simulatorId="quadrilateral-morpher" />
+      <Eli13ExplainerCard simulatorId="quadrilateral-morpher" defaultExpanded={false} />
 
       <button
         type="button"
         onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
       >
         <RotateCcw className="w-3.5 h-3.5" />
         <span>Reset to Default Parallelogram</span>
@@ -326,9 +327,9 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
   return (
     <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
       {/* Rubber-band Interactive Polygon Canvas */}
-      <div className="relative flex-1 w-full min-h-[360px] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
         {/* Metric Inspector HUD */}
-        <div className="w-full max-w-lg mb-2 p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl flex items-center justify-between text-center font-mono text-xs">
+        <div className="w-full max-w-lg mb-1.5 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl flex items-center justify-between text-center font-mono text-xs">
           <div>
             <span className="text-[10px] text-slate-400 uppercase block">Diagonal AC</span>
             <span className="text-sky-300 font-bold">{diagAC.toFixed(1)} u</span>
@@ -350,7 +351,7 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
         </div>
 
         {/* SVG Drawing Area */}
-        <div className="w-full max-w-md h-64 sm:h-72 flex items-center justify-center">
+        <div className="w-full max-w-md h-52 sm:h-64 flex items-center justify-center">
           <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl overflow-visible">
             {/* Background Grid */}
             <defs>

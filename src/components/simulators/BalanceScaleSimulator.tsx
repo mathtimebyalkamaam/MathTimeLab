@@ -60,6 +60,7 @@ export const BalanceScaleSimulator: React.FC = () => {
   const { trackEvent } = useAnalytics();
 
   const [isTrapActive, setIsTrapActive] = React.useState<boolean>(false);
+  const [controlsSubTab, setControlsSubTab] = React.useState<'actions' | 'presets'>('actions');
 
   // Physics calculation of scale torque and tilt angle
   const leftTotal = leftXCount * actualXValue + leftWeight;
@@ -232,200 +233,249 @@ export const BalanceScaleSimulator: React.FC = () => {
 
   // Controls UI for Bottom Sheet and Desktop Left Sidebar
   const controlsContent = (
-    <div className="space-y-4 p-4 text-slate-200">
-      {/* Both-Sides Action Buttons */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-3">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-          <Scale className="w-4 h-4" />
-          <span>Equilibrium Actions (Both Sides)</span>
-        </h4>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            disabled={leftXCount === 0 || rightXCount === 0}
-            onClick={handleSubtractX}
-            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-sky-950/60 border border-sky-800/60 text-sky-300 text-xs font-semibold hover:bg-sky-900/60 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-          >
-            <Minus className="w-3.5 h-3.5" />
-            <span>-1x from Both</span>
-          </button>
-          <button
-            type="button"
-            disabled={leftWeight < 1 || rightWeight < 1}
-            onClick={() => handleSubtractWeight(1)}
-            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-amber-950/60 border border-amber-800/60 text-amber-300 text-xs font-semibold hover:bg-amber-900/60 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-          >
-            <Minus className="w-3.5 h-3.5" />
-            <span>-1g from Both</span>
-          </button>
-          <button
-            type="button"
-            disabled={leftWeight < 2 || rightWeight < 2}
-            onClick={() => handleSubtractWeight(2)}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-300 text-xs font-semibold hover:bg-amber-900/40 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-          >
-            <Minus className="w-3.5 h-3.5" />
-            <span>-2g from Both</span>
-          </button>
-          <button
-            type="button"
-            disabled={!(leftXCount > 1 && rightXCount === 0 && rightWeight % leftXCount === 0)}
-            onClick={handleDivideSides}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-semibold hover:bg-emerald-900/60 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-          >
-            <Divide className="w-3.5 h-3.5" />
-            <span>Divide by {leftXCount}</span>
-          </button>
-        </div>
+    <div className="space-y-2 p-2 sm:p-2.5 text-slate-200">
+      {/* 2-Segment Sub-Tab Switcher for Guaranteed Zero-Scroll */}
+      <div className="grid grid-cols-2 p-0.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
+        <button
+          type="button"
+          onClick={() => {
+            lightTap();
+            setControlsSubTab('actions');
+          }}
+          className={`py-1 px-2 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            controlsSubTab === 'actions'
+              ? 'bg-cyan-500 text-slate-950 font-bold shadow'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Scale className="w-3.5 h-3.5" />
+          <span>Actions & Sliders</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            lightTap();
+            setControlsSubTab('presets');
+          }}
+          className={`py-1 px-2 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            controlsSubTab === 'presets'
+              ? 'bg-amber-500 text-slate-950 font-bold shadow'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>NCERT Presets & Trap</span>
+        </button>
       </div>
 
-      {/* Trap Alert: One-Sided Operation */}
-      <div className="bg-rose-950/30 border border-rose-800/50 rounded-2xl p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-            <ShieldAlert className="w-4 h-4 text-rose-400" />
-            <span>Mythbuster: The One-Sided Trap</span>
-          </h4>
-          <span className="text-[10px] text-rose-400 font-mono font-bold bg-rose-950 px-2 py-0.5 rounded border border-rose-800/60">
-            CBSE #1 Lost Mark
-          </span>
+      {controlsSubTab === 'actions' && (
+        <div className="space-y-2 animate-fade-in">
+          {/* Both-Sides Action Buttons in Ultra-Compact Grid */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                <Scale className="w-3 h-3" />
+                <span>Both-Sides Operations (Isolate x)</span>
+              </span>
+              <span className="text-[9px] font-mono text-slate-400">Preserves Equality</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              <button
+                type="button"
+                disabled={leftXCount === 0 || rightXCount === 0}
+                onClick={handleSubtractX}
+                className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-sky-950/60 border border-sky-800/60 text-sky-300 text-[11px] font-semibold hover:bg-sky-900/60 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+              >
+                <Minus className="w-3 h-3" />
+                <span>-1x Both</span>
+              </button>
+              <button
+                type="button"
+                disabled={leftWeight < 1 || rightWeight < 1}
+                onClick={() => handleSubtractWeight(1)}
+                className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-amber-950/60 border border-amber-800/60 text-amber-300 text-[11px] font-semibold hover:bg-amber-900/60 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+              >
+                <Minus className="w-3 h-3" />
+                <span>-1g Both</span>
+              </button>
+              <button
+                type="button"
+                disabled={leftWeight < 2 || rightWeight < 2}
+                onClick={() => handleSubtractWeight(2)}
+                className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-amber-950/40 border border-amber-800/40 text-amber-300 text-[11px] font-semibold hover:bg-amber-900/40 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+              >
+                <Minus className="w-3 h-3" />
+                <span>-2g Both</span>
+              </button>
+              <button
+                type="button"
+                disabled={!(leftXCount > 1 && rightXCount === 0 && rightWeight % leftXCount === 0)}
+                onClick={handleDivideSides}
+                className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-[11px] font-semibold hover:bg-emerald-900/60 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+              >
+                <Divide className="w-3 h-3" />
+                <span>÷ {leftXCount}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Direct Parameter Sliders in Smart 2-Column Cockpit Grid */}
+          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-2 space-y-1">
+            <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5">
+              <TouchSlider
+                compact={true}
+                label="Left Pan: Mystery x"
+                value={leftXCount}
+                min={0}
+                max={5}
+                step={1}
+                onChange={(val) => updateBalanceScaleParams({ leftXCount: val })}
+              />
+              <TouchSlider
+                compact={true}
+                label="Left Pan: Grams (g)"
+                value={leftWeight}
+                min={0}
+                max={30}
+                step={1}
+                onChange={(val) => updateBalanceScaleParams({ leftWeight: val })}
+              />
+              <TouchSlider
+                compact={true}
+                label="Right Pan: Mystery x"
+                value={rightXCount}
+                min={0}
+                max={5}
+                step={1}
+                onChange={(val) => updateBalanceScaleParams({ rightXCount: val })}
+              />
+              <TouchSlider
+                compact={true}
+                label="Right Pan: Grams (g)"
+                value={rightWeight}
+                min={0}
+                max={30}
+                step={1}
+                onChange={(val) => updateBalanceScaleParams({ rightWeight: val })}
+              />
+              <div className="sm:col-span-2">
+                <TouchSlider
+                  compact={true}
+                  label="True x (Secret Mass)"
+                  value={actualXValue}
+                  min={1}
+                  max={15}
+                  step={1}
+                  onChange={(val) => updateBalanceScaleParams({ actualXValue: val })}
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Problem (3x + 4 = x + 12)</span>
+          </button>
         </div>
-        <p className="text-[11px] text-slate-300 leading-relaxed">
-          What happens when a student moves +4 across "=" without subtracting it from both sides?
-        </p>
-        <div className="flex items-center gap-2">
-          {!isTrapActive ? (
-            <button
-              type="button"
-              onClick={handleTriggerTrap}
-              className="flex-1 px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
-            >
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-              <span>Test One-Sided Trap (-4g on Left only)</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleFixTrap}
-              className="flex-1 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 animate-pulse transition cursor-pointer"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Restore Equilibrium (-4g from Right too)</span>
-            </button>
-          )}
+      )}
+
+      {controlsSubTab === 'presets' && (
+        <div className="space-y-2 animate-fade-in">
+          {/* Textbook Equation Scratchpad Presets */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1">
+              <BookOpen className="w-3 h-3" />
+              <span>Class 8 Textbook Scratchpad</span>
+            </span>
+            <div className="grid grid-cols-2 gap-1.5 text-xs">
+              {[
+                { label: '2x + 3 = 11 (x = 4)', lX: 2, lW: 3, rX: 0, rW: 11, xVal: 4 },
+                { label: '3x + 2 = x + 10 (x = 4)', lX: 3, lW: 2, rX: 1, rW: 10, xVal: 4 },
+                { label: '4x + 6 = 2x + 16 (x = 5)', lX: 4, lW: 6, rX: 2, rW: 16, xVal: 5 },
+                { label: '5x + 3 = 2x + 18 (x = 5)', lX: 5, lW: 3, rX: 2, rW: 18, xVal: 5 },
+              ].map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    lightTap();
+                    playClick();
+                    setIsTrapActive(false);
+                    updateBalanceScaleParams({
+                      leftXCount: preset.lX,
+                      leftWeight: preset.lW,
+                      rightXCount: preset.rX,
+                      rightWeight: preset.rW,
+                      actualXValue: preset.xVal,
+                    });
+                  }}
+                  className="p-2 rounded-lg bg-slate-950/70 hover:bg-slate-950 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white font-mono text-[11px] text-left transition cursor-pointer"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Trap Alert: One-Sided Operation */}
+          <div className="bg-rose-950/30 border border-rose-800/50 rounded-xl p-2.5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1">
+                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                <span>Mythbuster: One-Sided Trap</span>
+              </span>
+              <span className="text-[9px] text-rose-400 font-mono font-bold bg-rose-950 px-1.5 py-0.2 rounded border border-rose-800/60">
+                CBSE #1 Error
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-300 leading-tight">
+              Moving +4 across "=" without subtracting it from both sides unbalances the equation!
+            </p>
+            {!isTrapActive ? (
+              <button
+                type="button"
+                onClick={handleTriggerTrap}
+                className="w-full px-2 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                <span>Test One-Sided Trap (-4g on Left only)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFixTrap}
+                className="w-full px-2 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 animate-pulse transition cursor-pointer"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Restore Equilibrium (-4g from Right too)</span>
+              </button>
+            )}
+          </div>
+
+          {/* Explain Like I'm 13 Wonder Card */}
+          <Eli13ExplainerCard simulatorId="balance-scale-equations" defaultExpanded={false} />
         </div>
-      </div>
-
-      {/* Textbook Equation Scratchpad Presets */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-          <BookOpen className="w-4 h-4" />
-          <span>Class 8 Textbook Problem Scratchpad</span>
-        </h4>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          {[
-            { label: '2x + 3 = 11 (x = 4)', lX: 2, lW: 3, rX: 0, rW: 11, xVal: 4 },
-            { label: '3x + 2 = x + 10 (x = 4)', lX: 3, lW: 2, rX: 1, rW: 10, xVal: 4 },
-            { label: '4x + 6 = 2x + 16 (x = 5)', lX: 4, lW: 6, rX: 2, rW: 16, xVal: 5 },
-            { label: '5x + 3 = 2x + 18 (x = 5)', lX: 5, lW: 3, rX: 2, rW: 18, xVal: 5 },
-          ].map((preset, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                lightTap();
-                playClick();
-                setIsTrapActive(false);
-                updateBalanceScaleParams({
-                  leftXCount: preset.lX,
-                  leftWeight: preset.lW,
-                  rightXCount: preset.rX,
-                  rightWeight: preset.rW,
-                  actualXValue: preset.xVal,
-                });
-              }}
-              className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-950 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white font-mono text-[11px] text-left transition cursor-pointer"
-            >
-              {preset.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Explain Like I'm 13 Wonder Card */}
-      <Eli13ExplainerCard simulatorId="balance-scale-equations" />
-
-      {/* Direct Parameter Sliders */}
-      <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-          <Sliders className="w-4 h-4 text-cyan-400" />
-          <span>Pan Contents Setup</span>
-        </h4>
-        <TouchSlider
-          label="Left Pan: Mystery x Boxes"
-          value={leftXCount}
-          min={0}
-          max={5}
-          step={1}
-          onChange={(val) => updateBalanceScaleParams({ leftXCount: val })}
-        />
-        <TouchSlider
-          label="Left Pan: Weights (grams)"
-          value={leftWeight}
-          min={0}
-          max={30}
-          step={1}
-          onChange={(val) => updateBalanceScaleParams({ leftWeight: val })}
-        />
-        <TouchSlider
-          label="Right Pan: Mystery x Boxes"
-          value={rightXCount}
-          min={0}
-          max={5}
-          step={1}
-          onChange={(val) => updateBalanceScaleParams({ rightXCount: val })}
-        />
-        <TouchSlider
-          label="Right Pan: Weights (grams)"
-          value={rightWeight}
-          min={0}
-          max={30}
-          step={1}
-          onChange={(val) => updateBalanceScaleParams({ rightWeight: val })}
-        />
-        <TouchSlider
-          label="True Value of x (Secret Weight)"
-          value={actualXValue}
-          min={1}
-          max={15}
-          step={1}
-          onChange={(val) => updateBalanceScaleParams({ actualXValue: val })}
-        />
-      </div>
-
-      <button
-        type="button"
-        onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
-      >
-        <RotateCcw className="w-3.5 h-3.5" />
-        <span>Reset to Default Problem (3x + 4 = x + 12)</span>
-      </button>
+      )}
     </div>
   );
 
   return (
     <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
       {/* Interactive Visual Canvas Area */}
-      <div className="relative flex-1 w-full min-h-[360px] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
         {/* Dynamic Chalkboard Equation Display */}
         {showEquationChalkboard && (
-          <div className="w-full max-w-md mb-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl flex items-center justify-between text-center animate-in fade-in duration-200">
+          <div className="w-full max-w-md mb-1.5 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl flex items-center justify-between text-center animate-in fade-in duration-200">
             <div className="flex-1">
               <span className="text-[10px] uppercase font-mono text-sky-400 font-bold tracking-wider block">
                 Left Pan (LHS)
               </span>
-              <span className="text-base sm:text-lg font-mono font-bold text-white">
+              <span className="text-sm sm:text-base font-mono font-bold text-white">
                 {leftXCount > 0 ? `${leftXCount > 1 ? leftXCount : ''}x` : ''}
                 {leftXCount > 0 && leftWeight > 0 ? ' + ' : ''}
                 {leftWeight > 0 || leftXCount === 0 ? `${leftWeight}` : ''}

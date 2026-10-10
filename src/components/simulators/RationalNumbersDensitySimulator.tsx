@@ -191,21 +191,21 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
   }, [fractionA_num, fractionA_den, fractionB_num, fractionB_den, subdivisions, meanStepsCount, challengeCompleted, completeChallenge, successBuzz, playChime]);
 
   const controlsContent = (
-    <div className="space-y-6 text-slate-200">
+    <div className="space-y-2 p-2 sm:p-2.5 text-slate-200">
       {/* Navigation tabs */}
-      <div className="flex bg-slate-900 p-1 rounded-2xl border border-slate-800">
+      <div className="flex bg-slate-950/80 p-0.5 rounded-xl border border-slate-800">
         <button
           onClick={() => { lightTap(); setActiveTab('density'); }}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            activeTab === 'density' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+          className={`flex-1 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            activeTab === 'density' ? 'bg-cyan-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
           }`}
         >
           Density & Zoom
         </button>
         <button
           onClick={() => { lightTap(); setActiveTab('properties'); }}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            activeTab === 'properties' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+          className={`flex-1 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            activeTab === 'properties' ? 'bg-cyan-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
           }`}
         >
           Properties Audit
@@ -213,11 +213,12 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
       </div>
 
       {activeTab === 'density' ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-cyan-400 uppercase">Fraction A</span>
+        <div className="space-y-1.5 animate-fade-in">
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 space-y-0.5">
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">Fraction A</span>
               <TouchSlider
+                compact={true}
                 label="Numerator"
                 value={fractionA_num}
                 min={-5}
@@ -227,6 +228,7 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
                 onChange={(val) => updateRationalNumbersParams({ fractionA_num: val })}
               />
               <TouchSlider
+                compact={true}
                 label="Denominator"
                 value={fractionA_den}
                 min={1}
@@ -237,9 +239,10 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
               />
             </div>
 
-            <div className="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-amber-400 uppercase">Fraction B</span>
+            <div className="bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 space-y-0.5">
+              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Fraction B</span>
               <TouchSlider
+                compact={true}
                 label="Numerator"
                 value={fractionB_num}
                 min={-5}
@@ -249,6 +252,7 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
                 onChange={(val) => updateRationalNumbersParams({ fractionB_num: val })}
               />
               <TouchSlider
+                compact={true}
                 label="Denominator"
                 value={fractionB_den}
                 min={1}
@@ -260,37 +264,41 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
             </div>
           </div>
 
-          <TouchSlider
-            label="Multiplier Subdivisions (Window expander)"
-            value={subdivisions}
-            min={1}
-            max={15}
-            step={1}
-            unit="x"
-            onChange={(val) => updateRationalNumbersParams({ subdivisions: val })}
-          />
+          <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5 bg-slate-900/70 border border-slate-800 rounded-xl p-1.5">
+            <TouchSlider
+              compact={true}
+              label="Subdivisions"
+              value={subdivisions}
+              min={1}
+              max={15}
+              step={1}
+              unit="x"
+              onChange={(val) => updateRationalNumbersParams({ subdivisions: val })}
+            />
 
-          <TouchSlider
-            label="Mean Bisection Steps (a + b)/2"
-            value={meanStepsCount}
-            min={0}
-            max={6}
-            step={1}
-            unit=" points"
-            onChange={(val) => updateRationalNumbersParams({ meanStepsCount: val })}
-          />
+            <TouchSlider
+              compact={true}
+              label="Mean Steps (a+b)/2"
+              value={meanStepsCount}
+              min={0}
+              max={6}
+              step={1}
+              unit=" pts"
+              onChange={(val) => updateRationalNumbersParams({ meanStepsCount: val })}
+            />
+          </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          <label className="text-xs font-bold uppercase text-slate-400 block">
+        <div className="space-y-1.5 animate-fade-in">
+          <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
             Test Arithmetic Operation
-          </label>
-          <div className="flex gap-2">
+          </span>
+          <div className="flex gap-1.5">
             {(['+', '-', '*', '/'] as const).map((op) => (
               <button
                 key={op}
                 onClick={() => { lightTap(); setPropertyOp(op); }}
-                className={`flex-1 py-2 rounded-xl font-bold font-mono text-sm border ${
+                className={`flex-1 py-1 rounded-lg font-bold font-mono text-sm border cursor-pointer ${
                   propertyOp === op
                     ? 'bg-cyan-500 text-slate-950 border-cyan-400'
                     : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
@@ -301,21 +309,21 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
             ))}
           </div>
 
-          <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 text-xs space-y-2.5">
+          <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800 text-[11px] space-y-1">
             <div className="flex justify-between items-center text-slate-300">
-              <span className="font-semibold">Closure Property:</span>
+              <span className="font-semibold">Closure:</span>
               <span className="text-emerald-400 font-bold">
-                {propertyOp === '/' ? 'Closed for non-zero division' : 'Always Closed (Rational)'}
+                {propertyOp === '/' ? 'Closed (q ≠ 0)' : 'Closed (Rational)'}
               </span>
             </div>
             <div className="flex justify-between items-center text-slate-300">
-              <span className="font-semibold">Commutative Property:</span>
+              <span className="font-semibold">Commutative:</span>
               <span className={propertyOp === '+' || propertyOp === '*' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
                 {propertyOp === '+' || propertyOp === '*' ? 'YES (a ∘ b = b ∘ a)' : 'NO (order matters)'}
               </span>
             </div>
             <div className="flex justify-between items-center text-slate-300">
-              <span className="font-semibold">Associative Property:</span>
+              <span className="font-semibold">Associative:</span>
               <span className={propertyOp === '+' || propertyOp === '*' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
                 {propertyOp === '+' || propertyOp === '*' ? 'YES: (a ∘ b) ∘ c = a ∘ (b ∘ c)' : 'NO'}
               </span>
@@ -324,35 +332,29 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
         </div>
       )}
 
-      <Eli13ExplainerCard simulatorId="rational-numbers-density" />
+      <Eli13ExplainerCard simulatorId="rational-numbers-density" defaultExpanded={false} />
+
+      <button
+        type="button"
+        onClick={() => {
+          lightTap();
+          resetParams('rational-numbers-density');
+        }}
+        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+      >
+        <RotateCcw className="w-3.5 h-3.5" />
+        <span>Reset to Default Fractions</span>
+      </button>
     </div>
   );
 
   return (
-    <div className="min-h-full flex flex-col bg-slate-950 text-slate-100 p-3 sm:p-6 pb-32">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-900/40 text-cyan-400 border border-cyan-700/40">
-            Class 8 • Rational Numbers
-          </span>
-          <h1 className="text-xl sm:text-2xl font-black text-white mt-1 flex items-center gap-2">
-            <ZoomIn className="w-6 h-6 text-cyan-400" />
-            Rational Numbers & Infinite Density
-          </h1>
-        </div>
-        <button
-          onClick={handleReset}
-          className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800"
-          title="Reset Parameters"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="w-full max-w-4xl mx-auto bg-slate-900/70 border border-slate-800/80 rounded-3xl p-5 sm:p-6 backdrop-blur-sm shadow-xl space-y-6">
+    <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
+      {/* Main Interactive Stage */}
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
+        <div className="w-full max-w-xl bg-slate-900/70 border border-slate-800/80 rounded-2xl p-3 sm:p-4 backdrop-blur-sm shadow-xl space-y-2.5">
           {/* Interval Indicator */}
-          <div className="bg-slate-950/80 rounded-2xl p-4 border border-cyan-950/60 text-center flex items-center justify-around">
+          <div className="bg-slate-950/80 rounded-2xl p-3 border border-cyan-950/60 text-center flex items-center justify-around">
             <div>
               <span className="text-xs text-slate-400 uppercase font-semibold">Point A</span>
               <div className="text-2xl font-mono font-bold text-cyan-400">
@@ -441,6 +443,7 @@ export const RationalNumbersDensitySimulator: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
       <BottomSheet
         title="Rational Numbers & Infinite Density"

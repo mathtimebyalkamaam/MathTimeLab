@@ -201,7 +201,7 @@ export const SquareRootsTripletsSimulator: React.FC = () => {
 
       {/* Sliders */}
       {mode === 'tile-packing' ? (
-        <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
+        <div className="space-y-2 bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 sm:p-3">
           <TouchSlider
             label="Total Unit Tiles N"
             value={numberN}
@@ -212,7 +212,7 @@ export const SquareRootsTripletsSimulator: React.FC = () => {
           />
         </div>
       ) : (
-        <div className="space-y-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5">
+        <div className="space-y-2 bg-slate-900/70 border border-slate-800 rounded-2xl p-2.5 sm:p-3">
           <TouchSlider
             label="Integer Generator m (m ≥ 2)"
             value={tripletM}
@@ -225,12 +225,12 @@ export const SquareRootsTripletsSimulator: React.FC = () => {
       )}
 
       {/* Explain Like I'm 13 Card */}
-      <Eli13ExplainerCard simulatorId="square-roots-triplets" />
+      <Eli13ExplainerCard simulatorId="square-roots-triplets" defaultExpanded={false} />
 
       <button
         type="button"
         onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-700/60 cursor-pointer"
       >
         <RotateCcw className="w-3.5 h-3.5" />
         <span>Reset to Default (N=25 / m=3)</span>
@@ -241,21 +241,21 @@ export const SquareRootsTripletsSimulator: React.FC = () => {
   return (
     <div className="relative w-full h-full flex flex-col flex-1 select-none overflow-hidden bg-slate-950">
       {/* Interactive Visual Arena Canvas */}
-      <div className="relative flex-1 w-full min-h-[360px] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="relative flex-1 w-full min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
         {/* Math HUD Banner */}
-        <div className="w-full max-w-lg mb-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
+        <div className="w-full max-w-md mb-1.5 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-xl text-center">
           {mode === 'tile-packing' ? (
             <div className="space-y-1">
               <span className="text-[10px] font-mono text-teal-400 uppercase tracking-wider block">
                 Square Root Decomposition: N = m² + Remainder
               </span>
-              <div className="text-base sm:text-xl font-mono font-bold text-white flex items-center justify-center gap-2">
+              <div className="text-sm sm:text-base font-mono font-bold text-white flex items-center justify-center gap-2">
                 <span>{numberN} Tiles =</span>
                 <span className="text-teal-300">{floorRoot}² ({packedCount})</span>
                 {remainder > 0 ? (
                   <>
                     <span className="text-slate-500">+</span>
-                    <span className="text-amber-400">{remainder} Remainder</span>
+                    <span className="text-amber-400">{remainder} Rem</span>
                   </>
                 ) : (
                   <span className="text-emerald-400 text-xs font-bold uppercase ml-1 px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40">
@@ -264,7 +264,7 @@ export const SquareRootsTripletsSimulator: React.FC = () => {
                 )}
               </div>
               <span className="text-[10px] text-slate-400 font-mono block">
-                √{numberN} ≈ {Math.sqrt(numberN).toFixed(2)} (Largest packed square is {floorRoot}×{floorRoot})
+                √{numberN} ≈ {Math.sqrt(numberN).toFixed(2)} (Packed {floorRoot}×{floorRoot})
               </span>
             </div>
           ) : (
@@ -272,20 +272,20 @@ export const SquareRootsTripletsSimulator: React.FC = () => {
               <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wider block">
                 Pythagorean Triplet: (2m, m² - 1, m² + 1)
               </span>
-              <div className="text-base sm:text-xl font-mono font-bold text-white flex items-center justify-center gap-3">
+              <div className="text-sm sm:text-base font-mono font-bold text-white flex items-center justify-center gap-2 sm:gap-3">
                 <span className="text-sky-400">2m = {leg1}</span>
                 <span className="text-amber-300">m²-1 = {leg2}</span>
                 <span className="text-emerald-400">m²+1 = {hypotenuse}</span>
               </div>
               <span className="text-[10px] text-slate-300 font-mono block">
-                {leg1}² + {leg2}² = {leg1 * leg1} + {leg2 * leg2} = {hypSquare} = {hypotenuse}² (Valid Right Triangle!)
+                {leg1}² + {leg2}² = {leg1 * leg1} + {leg2 * leg2} = {hypSquare} = {hypotenuse}²
               </span>
             </div>
           )}
         </div>
 
         {/* Dynamic SVG Visuals */}
-        <div className="w-full max-w-md h-64 sm:h-72 flex items-center justify-center">
+        <div className="w-full max-w-md h-52 sm:h-64 flex items-center justify-center">
           {mode === 'tile-packing' ? (
             <svg viewBox="0 0 280 260" className="w-full h-full drop-shadow-xl overflow-visible">
               {/* Packed Grid */}

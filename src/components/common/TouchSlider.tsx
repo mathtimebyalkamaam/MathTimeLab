@@ -4,6 +4,8 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from './SoundManager';
 import { InlineMath, MathText } from './MathFormula';
 
+import { useSimulatorStore } from '../../store/useSimulatorStore';
+
 interface TouchSliderProps {
   label: string;
   value: number;
@@ -30,9 +32,12 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
   unit = '',
   onChange,
   formatValue,
+  compact: compactProp,
   causeEffectHint,
   formulaTerm,
 }) => {
+  const { isCompactControlsMode } = useSimulatorStore();
+  const compact = compactProp !== undefined ? compactProp : isCompactControlsMode;
   const { lightTap } = useHaptics();
   const { playClick } = useSound();
   const lastTickTime = useRef(0);
@@ -126,19 +131,19 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
   const hintText = typeof causeEffectHint === 'function' ? causeEffectHint(value) : causeEffectHint;
 
   return (
-    <div className="flex flex-col py-1.5 select-none w-full group">
+    <div className={`flex flex-col select-none w-full group ${compact ? 'py-0.5' : 'py-1.5'}`}>
       {/* Row 1: Header with Label, Formula badge, and Bold Value Readout */}
-      <div className="flex items-center justify-between gap-2 w-full mb-1">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+      <div className={`flex items-center justify-between gap-1.5 w-full ${compact ? 'mb-0.5' : 'mb-1'}`}>
+        <div className="flex items-center gap-1 min-w-0 flex-1">
           <span 
-            className="text-xs sm:text-sm font-semibold text-slate-200 truncate tracking-tight"
+            className={`font-semibold text-slate-200 truncate tracking-tight ${compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'}`}
             title={label}
           >
             {label}
           </span>
           {formulaTerm && (
             <span 
-              className={`text-[11px] px-1.5 py-0.2 rounded border transition-colors shrink-0 ${
+              className={`text-[10px] px-1 py-0 rounded border transition-colors shrink-0 ${
                 isInteracting 
                   ? 'bg-amber-500/25 border-amber-500/60 text-amber-300 font-bold' 
                   : 'bg-slate-800 border-slate-700 text-cyan-300'
@@ -151,7 +156,7 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
         </div>
 
         {/* Monospace Precise Value Display (Top Right) */}
-        <span className={`font-mono text-xs sm:text-sm tabular-nums font-bold text-right shrink-0 transition-colors ${
+        <span className={`font-mono tabular-nums font-bold text-right shrink-0 transition-colors ${compact ? 'text-xs' : 'text-xs sm:text-sm'} ${
           isInteracting ? 'text-amber-300 font-extrabold' : 'text-cyan-300'
         }`}>
           {displayVal}
@@ -159,7 +164,7 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
       </div>
 
       {/* Row 2: Full-Width Scroller & Steppers: [-] Button, Range Slider, [+] Button */}
-      <div className="flex items-center gap-1.5 sm:gap-2 w-full">
+      <div className={`flex items-center w-full ${compact ? 'gap-1' : 'gap-1.5 sm:gap-2'}`}>
         {/* Large Ergonomic Stepper Minus */}
         <button
           type="button"
@@ -170,20 +175,22 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
           onContextMenu={(e) => e.preventDefault()}
           aria-label={`Decrease ${label}`}
           title={`Decrease ${label} (Hold for fast scroll)`}
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-cyan-500/30 active:border-cyan-400 active:scale-95 text-slate-200 hover:text-white flex items-center justify-center shrink-0 touch-manipulation cursor-pointer border border-slate-700 hover:border-slate-500 transition-all shadow-md select-none"
+          className={`${
+            compact ? 'w-7 h-7 rounded-lg' : 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl'
+          } bg-slate-800 hover:bg-slate-700 active:bg-cyan-500/30 active:border-cyan-400 active:scale-95 text-slate-200 hover:text-white flex items-center justify-center shrink-0 touch-manipulation cursor-pointer border border-slate-700 hover:border-slate-500 transition-all shadow-md select-none`}
         >
-          <Minus className="w-4 h-4 stroke-[2.5]" />
+          <Minus className={`${compact ? 'w-3 h-3 stroke-[2.5]' : 'w-4 h-4 stroke-[2.5]'}`} />
         </button>
 
         {/* Sleek Touch Range Scrub Slider Track (Fills all available width) */}
         <div 
-          className="relative flex-1 flex items-center h-8 sm:h-9 py-1 min-w-[50px]"
+          className={`relative flex-1 flex items-center min-w-[40px] ${compact ? 'h-7 py-0.5' : 'h-8 sm:h-9 py-1'}`}
           onPointerDown={() => setIsInteracting(true)}
           onPointerUp={() => setIsInteracting(false)}
           onPointerCancel={() => setIsInteracting(false)}
         >
           {/* Custom Track Background with Instant Filled Gradient Accent */}
-          <div className="absolute inset-x-0 h-2 sm:h-2.5 bg-slate-800/90 rounded-full overflow-hidden pointer-events-none border border-slate-700/60">
+          <div className={`absolute inset-x-0 ${compact ? 'h-1.5' : 'h-2 sm:h-2.5'} bg-slate-800/90 rounded-full overflow-hidden pointer-events-none border border-slate-700/60`}>
             <div 
               className={`h-full bg-gradient-to-r from-cyan-500 to-teal-400 rounded-full ${isInteracting ? 'transition-none' : 'transition-all duration-75'}`}
               style={{ width: `${percent}%` }}
@@ -203,11 +210,13 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
               triggerFeedback(roundedVal);
               onChange(roundedVal);
             }}
-            className="w-full cursor-pointer accent-cyan-400 opacity-0 relative z-10 h-8 sm:h-9 touch-manipulation"
+            className={`w-full cursor-pointer accent-cyan-400 opacity-0 relative z-10 touch-manipulation ${compact ? 'h-7' : 'h-8 sm:h-9'}`}
           />
           {/* Visible glowing thumb handle with zero-lag positioning */}
           <div 
-            className={`absolute w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full shadow-lg border-2 pointer-events-none -ml-2 sm:-ml-2.5 ${
+            className={`absolute rounded-full shadow-lg border-2 pointer-events-none ${
+              compact ? 'w-3.5 h-3.5 -ml-1.75 bg-white' : 'w-4 h-4 sm:w-5 sm:h-5 -ml-2 sm:-ml-2.5 bg-white'
+            } ${
               isInteracting 
                 ? 'transition-none border-amber-400 ring-4 ring-amber-400/50 scale-125' 
                 : 'transition-all duration-75 border-cyan-400 group-hover:scale-110'
@@ -226,21 +235,23 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
           onContextMenu={(e) => e.preventDefault()}
           aria-label={`Increase ${label}`}
           title={`Increase ${label} (Hold for fast scroll)`}
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-cyan-500/30 active:border-cyan-400 active:scale-95 text-slate-200 hover:text-white flex items-center justify-center shrink-0 touch-manipulation cursor-pointer border border-slate-700 hover:border-slate-500 transition-all shadow-md select-none"
+          className={`${
+            compact ? 'w-7 h-7 rounded-lg' : 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl'
+          } bg-slate-800 hover:bg-slate-700 active:bg-cyan-500/30 active:border-cyan-400 active:scale-95 text-slate-200 hover:text-white flex items-center justify-center shrink-0 touch-manipulation cursor-pointer border border-slate-700 hover:border-slate-500 transition-all shadow-md select-none`}
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <Plus className={`${compact ? 'w-3 h-3 stroke-[2.5]' : 'w-4 h-4 stroke-[2.5]'}`} />
         </button>
       </div>
 
-      {/* Row 3: Dynamic Cause-and-Effect Pedagogical Micro-Annotation */}
-      {hintText && (
-        <div className={`mt-1 flex items-start gap-1.5 text-xs leading-relaxed transition-all duration-200 rounded-lg px-2 py-1 ${
+      {/* Row 3: Dynamic Cause-and-Effect Pedagogical Micro-Annotation (Only shown on non-compact or on active interaction) */}
+      {hintText && (!compact || isInteracting) && (
+        <div className={`mt-1 flex items-start gap-1 text-[11px] leading-snug transition-all duration-200 rounded-lg px-2 py-0.5 ${
           isInteracting 
-            ? 'text-amber-100 bg-amber-950/60 border border-amber-500/50 shadow-sm' 
-            : 'text-slate-300 group-hover:text-cyan-100 group-hover:bg-slate-900/90 group-hover:border group-hover:border-cyan-500/40'
+            ? 'text-amber-100 bg-amber-950/80 border border-amber-500/50 shadow-sm' 
+            : 'text-slate-300 bg-slate-900/90 border border-cyan-500/30'
         }`}>
-          <span className={`shrink-0 font-bold text-[10px] sm:text-xs uppercase tracking-wider ${
-            isInteracting ? 'text-amber-400' : 'text-slate-400 group-hover:text-cyan-300'
+          <span className={`shrink-0 font-bold text-[9px] uppercase tracking-wider ${
+            isInteracting ? 'text-amber-400' : 'text-cyan-300'
           }`}>
             {isInteracting ? '⚡ Effect:' : '💡 Concept:'}
           </span>
