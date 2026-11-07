@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Core Portal Routes -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://labs.itsmathtime.co.in/landing</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://labs.itsmathtime.co.in/teacher</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- The Drone Navigator: Coordinate Geometry & Distance (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/drone-navigator</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Catapult Siege: Trigonometry, Heights & Elevation (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/catapult-siege</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Trigonometric Unit Circle & Wave Synthesizer (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/unit-circle</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Flashlight & Cone Slicer: 3D Conic Sections (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/conic-sections</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Argand Plane Playground: Complex Numbers & Phase Rotations (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/argand-plane</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Matrix Meme Machine: 2D Transformations & Singularities (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/matrix-meme</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Derivative Tangent & Riemann Sum Sandbox (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/calculus-sandbox</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Rollercoaster Architect: Derivatives, Curvature & Integrals (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/rollercoaster-architect</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- 3D Vector Flight Lab: Dot & Cross Product (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/vector-flight-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Monty Hall Probability Casino: Bayes & Conditional Odds (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/monty-hall</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Parabola Root Hunter: Quadratic Equations & Zeroes (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/quadratic-roots</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Tangent Guardian: Circle Theorems & Tangent Properties (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/circle-theorems</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Linear Crossroads: Systems of Two-Variable Equations (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/linear-systems</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Lighthouse Clinometer: Heights & Distances (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/trig-heights</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Heron Surveyor: Triangle Area & Heron's Formula (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/heron-triangles</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Geometric Factorizer: Polynomials & Middle-Term Splitting (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/polynomial-factorizer</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Angle Detective: Parallel Lines & Transversals (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/lines-angles</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Binomial Galton Board: Pascal's Triangle & Combinations (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/binomial-galton</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Sequence Explorer: Arithmetic & Geometric Progressions (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/arithmetic-geometric-explorer</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Focal Orbit Lab: Kepler's Laws & Conic String Properties (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/hyperbola-ellipse-orbits</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The 3D Solid Unfolder: Surface Area, Volumes & Net Geometry (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/surface-area-volumes</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Circle Chord & Cyclic Quad Lab: Theorems & Supplementary Angles (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/circle-chords-cyclic</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Data Fulcrum: Mean, Median, Mode & Outlier Tug-of-War (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/statistics-visualizer</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Tangent Secant Zoom Lab: Limits & First Principles (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/limits-derivatives-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Feasible Region: Linear Inequalities & Half-Plane Optimizer (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/linear-inequalities</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- The Arrangement Matrix: Permutations vs Combinations Lock (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/permutations-combinations</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Similar Triangles & Thales Theorem: Basic Proportionality Lab (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/similar-triangles</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Fundamental Theorem of Calculus: Dynamic Area Accumulator (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/ftc-integral-accumulator</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Bayes' Theorem: The Medical Test & Rare Event Detective (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/bayes-probability-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Euclid's Axioms & Non-Euclidean Geometry Sandbox (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/euclidean-geometry-sandbox</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- 3D Geometry: Skew Lines, Shortest Distance & Planes (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/three-d-geometry-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Differential Equations & Slope Fields: Dynamic Trajectory Lab (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/differential-equations-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Linear Equations: Two-Pan Balance Scale Lab (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/balance-scale-equations</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Algebraic Identities: Visual Area Tile Lab (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/algebraic-identities-tiles</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Comparing Quantities: Compound Interest Vault (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/compound-interest-engine</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Understanding Quadrilaterals: The Morphing Lab (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/quadrilateral-morpher</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Visualising Solid Shapes: Euler's 3D Polyhedra Workshop (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/euler-polyhedra-3d</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Direct vs. Inverse Proportions Machine (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/direct-inverse-proportions</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Data Handling: Dynamic Pie Chart & Central Angle Cutter (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/dynamic-pie-chart</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Squares & Square Roots: Triplet Forge Lab (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/square-roots-triplets</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Exponents & Powers: Laws of Indices & Cosmic Scales (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/exponents-powers-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Rational Numbers: Number Line & Infinite Density (Class 8) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/rational-numbers-density</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Triangle Congruence Forge: SAS, SSS, ASA & Traps (Class 9) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/triangle-congruence-forge</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Arithmetic Progression (AP): nth Term & Gauss Ladder (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/arithmetic-progression-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Coordinate Geometry: Section Formula & Centroid (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/coordinate-section-formula</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Circle Tangents: Equal Lengths & Perpendicular Radii (Class 10) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/circle-tangents-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Principle of Mathematical Induction: Domino Chain (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/mathematical-induction-dominos</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Trigonometric Equations: General Solutions & Radial Radar (Class 11) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/trig-equations-radial</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Linear Programming (LPP): Feasible Polygon & Iso-Profit (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/linear-programming-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Probability Distributions: Random Variables & Expected Value (Class 12) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/simulators/probability-distribution-lab</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>

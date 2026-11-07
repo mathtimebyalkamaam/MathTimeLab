@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getRouteFromUrl, syncRouteSeo } from '../utils/seo';
 import {
   AppRoute,
   BinomialGaltonParameters,
@@ -169,7 +170,7 @@ interface SimulatorStoreState {
   probDistParams: ProbabilityDistributionParameters;
 
   // Actions
-  navigateTo: (route: AppRoute) => void;
+  navigateTo: (route: AppRoute, replaceHistory?: boolean) => void;
   setGradeFilter: (grade: GradeLevel) => void;
   setSearchQuery: (query: string) => void;
 
@@ -819,14 +820,21 @@ const loadStoredProgress = () => {
 };
 
 const initialSaved = loadStoredProgress();
+const initialRoute = typeof window !== 'undefined' ? getRouteFromUrl() : 'home';
+const initialIsSim = initialRoute !== 'home' && initialRoute !== 'teacher' && initialRoute !== 'landing';
+
+// Initial sync of SEO and meta tags on boot
+if (typeof window !== 'undefined') {
+  syncRouteSeo(initialRoute, true);
+}
 
 export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
-  currentRoute: 'home',
-  activeSimulatorId: null,
+  currentRoute: initialRoute,
+  activeSimulatorId: initialIsSim ? (initialRoute as SimulatorId) : null,
   gradeFilter: 'all',
   searchQuery: '',
 
-  isBottomSheetOpen: true,
+  isBottomSheetOpen: initialIsSim,
   bottomSheetSnap: 'peek',
   activeSheetTab: 'controls',
 
@@ -916,13 +924,14 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
   linearProgParams: { ...DEFAULT_LINEAR_PROG },
   probDistParams: { ...DEFAULT_PROB_DIST },
 
-  navigateTo: (route) => {
+  navigateTo: (route, replaceHistory = false) => {
     const isSim = route !== 'home' && route !== 'teacher' && route !== 'landing';
     if (isSim && typeof window !== 'undefined') {
       try {
         (window as any).__mathPrefetchSimulator?.(route);
       } catch {}
     }
+    syncRouteSeo(route, replaceHistory);
     set({
       currentRoute: route,
       activeSimulatorId: isSim ? (route as SimulatorId) : null,
@@ -1353,3 +1362,12 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
 
   addXp: (amount) => set((state) => ({ xp: state.xp + amount })),
 }));
+
+// Listen to browser Back/Forward navigation buttons for SPA deep-linking
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', () => {
+    const route = getRouteFromUrl();
+    useSimulatorStore.getState().navigateTo(route, true);
+  });
+}
+

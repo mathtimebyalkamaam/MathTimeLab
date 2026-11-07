@@ -1,0 +1,30 @@
+# Math Time Lab Robots & AI Search Indexer Rules
+# Website: https://labs.itsmathtime.co.in/
+# Parent Platform: https://itsmathtime.co.in by Alka Ma'am
+
+User-agent: *
+Allow: /
+
+# Allow AI Search & Citation Engines (Perplexity, ChatGPT Search, Claude, Gemini, Apple Intelligence)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://labs.itsmathtime.co.in/sitemap.xml
