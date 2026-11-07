@@ -23,7 +23,18 @@ import { ChallengeManager } from '../common/ChallengeManager';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
-import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer, drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import {
+  drawGripAffordance,
+  checkMagneticSnap,
+  GhostTrailBuffer,
+  drawShadowDrops,
+  CriticalEventFlareManager,
+  drawMagnifierLoupe,
+  drawNeonLine,
+  drawNeonCircle,
+  drawNeonArc,
+  drawNeonWave
+} from '../../utils/canvasFx';
 import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 import { InvariantLockBadge } from '../common/InvariantLockBadge';
 import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
@@ -41,13 +52,25 @@ export const UnitCircleSimulator: React.FC = () => {
   } = useSimulatorStore();
 
   const { lightTap } = useHaptics();
-  const { playClick, playPitchTone } = useSound();
+  const { 
+    playClick, 
+    playPitchTone, 
+    startContinuousTone, 
+    setContinuousToneFreq, 
+    stopContinuousTone 
+  } = useSound();
   const lastAngleRef = useRef(unitCircleParams.angleDeg);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ghostPointRef = useRef(new GhostTrailBuffer(700, 8));
   const flareManagerRef = useRef(new CriticalEventFlareManager());
   const [isDraggingCircle, setIsDraggingCircle] = useState(false);
+
+  // Priority 3: Angular Velocity & Inertial Coasting References
+  const pointerVelocityRef = useRef(0);
+  const lastPointerTimeRef = useRef(0);
+  const lastPointerAngleRef = useRef(unitCircleParams.angleDeg);
+  const inertiaAnimRef = useRef<number | null>(null);
 
   // Recommendations 11, 13, 15 Modal States
   const [showLoupe, setShowLoupe] = useState(false);
@@ -96,8 +119,21 @@ export const UnitCircleSimulator: React.FC = () => {
     }
   }, [unitCircleParams.angleDeg, challengeCompleted, completeChallenge]);
 
-  // Touch & Pointer interaction on the unit circle
+  // Priority 6: Stop continuous audio on unmount
+  useEffect(() => {
+    return () => {
+      stopContinuousTone();
+    };
+  }, [stopContinuousTone]);
+
+  // Touch & Pointer interaction on the unit circle with Inertial Dragging & Release Velocity
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Cancel any active coasting inertia
+    if (inertiaAnimRef.current) {
+      cancelAnimationFrame(inertiaAnimRef.current);
+      inertiaAnimRef.current = null;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -113,6 +149,14 @@ export const UnitCircleSimulator: React.FC = () => {
     if (dist < 180) {
       setIsDraggingCircle(true);
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+      pointerVelocityRef.current = 0;
+      lastPointerTimeRef.current = performance.now();
+      lastPointerAngleRef.current = unitCircleParams.angleDeg;
+
+      // Priority 6: Tactile Continuous Pitch Audio start
+      startContinuousTone(220 + (unitCircleParams.angleDeg / 360) * 440, 0.025);
+
       updateAngleFromPoint(x, y, circleCenterX, circleCenterY);
     }
   };
@@ -129,11 +173,70 @@ export const UnitCircleSimulator: React.FC = () => {
     const circleCenterX = isMobile ? rect.width / 2 : rect.width * 0.32;
     const circleCenterY = isMobile ? rect.height * 0.28 : rect.height * 0.44;
 
+    const dx = x - circleCenterX;
+    const dy = circleCenterY - y;
+    let rad = Math.atan2(dy, dx);
+    if (rad < 0) rad += Math.PI * 2;
+    const rawDeg = (rad * 180) / Math.PI;
+
+    // Priority 6: Tactile Continuous Pitch Audio frequency tracking
+    setContinuousToneFreq(220 + (rawDeg / 360) * 440);
+
+    // Compute angular velocity for natural inertial release
+    const now = performance.now();
+    const dt = now - lastPointerTimeRef.current;
+    if (dt > 6) {
+      let dTheta = rawDeg - lastPointerAngleRef.current;
+      if (dTheta > 180) dTheta -= 360;
+      if (dTheta < -180) dTheta += 360;
+      pointerVelocityRef.current = pointerVelocityRef.current * 0.3 + (dTheta / dt) * 0.7;
+      lastPointerTimeRef.current = now;
+      lastPointerAngleRef.current = rawDeg;
+    }
+
     updateAngleFromPoint(x, y, circleCenterX, circleCenterY);
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
     setIsDraggingCircle(false);
+    stopContinuousTone();
+
+    // If student released with flick momentum, coast with viscous damping
+    const velocity = pointerVelocityRef.current;
+    if (Math.abs(velocity) > 0.08) {
+      let vel = velocity * 16; // deg per frame
+      let cur = unitCircleParams.angleDeg;
+
+      const coast = () => {
+        vel *= 0.90; // viscous deceleration
+        cur = (cur + vel + 360) % 360;
+
+        const snapped = checkMagneticSnap(Math.round(cur), [
+          { value: 0, label: '0°', tolerance: 2 },
+          { value: 30, label: '30°', tolerance: 2 },
+          { value: 45, label: '45°', tolerance: 2 },
+          { value: 60, label: '60°', tolerance: 2 },
+          { value: 90, label: '90°', tolerance: 2 },
+          { value: 120, label: '120°', tolerance: 2 },
+          { value: 135, label: '135°', tolerance: 2 },
+          { value: 150, label: '150°', tolerance: 2 },
+          { value: 180, label: '180°', tolerance: 2 },
+          { value: 270, label: '270°', tolerance: 2 },
+          { value: 360, label: '360°', tolerance: 2 },
+        ]);
+
+        const finalAngle = snapped.didSnap ? (snapped.value >= 360 ? 0 : snapped.value) : Math.round(cur);
+        updateUnitCircleParams({ angleDeg: finalAngle });
+
+        if (Math.abs(vel) > 0.2 && !snapped.didSnap) {
+          inertiaAnimRef.current = requestAnimationFrame(coast);
+        } else {
+          inertiaAnimRef.current = null;
+        }
+      };
+
+      inertiaAnimRef.current = requestAnimationFrame(coast);
+    }
   };
 
   const updateAngleFromPoint = (px: number, py: number, cx: number, cy: number) => {
@@ -248,12 +351,15 @@ export const UnitCircleSimulator: React.FC = () => {
       ctx.fillText('+1', circleCenterX + 4, circleCenterY - circleRadius - 6);
       ctx.fillText('-1', circleCenterX + 4, circleCenterY + circleRadius + 14);
 
-      // 3. Draw Unit Circle Outline
-      ctx.beginPath();
-      ctx.arc(circleCenterX, circleCenterY, circleRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      // 3. Draw Unit Circle Outline (Luminous Neon Rim & Cosmic Aura)
+      drawNeonCircle(ctx, circleCenterX, circleCenterY, circleRadius, {
+        color: '#0ea5e9',
+        glowColor: '#38bdf8',
+        width: 2.5,
+        glowBlur: 16,
+        withRadialAura: true,
+        fillOpacity: 0.05,
+      });
 
       // Special angle tick marks (30, 45, 60, 90, etc.)
       const specialAngles = [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330];
@@ -261,9 +367,10 @@ export const UnitCircleSimulator: React.FC = () => {
         const rad = (ang * Math.PI) / 180;
         const tx = circleCenterX + Math.cos(rad) * circleRadius;
         const ty = circleCenterY - Math.sin(rad) * circleRadius;
+        const isCardinal = ang % 90 === 0;
         ctx.beginPath();
-        ctx.arc(tx, ty, 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#64748b';
+        ctx.arc(tx, ty, isCardinal ? 3 : 2, 0, Math.PI * 2);
+        ctx.fillStyle = isCardinal ? '#38bdf8' : '#64748b';
         ctx.fill();
       });
 
@@ -271,76 +378,106 @@ export const UnitCircleSimulator: React.FC = () => {
       const pointX = circleCenterX + Math.cos(angleRad) * circleRadius;
       const pointY = circleCenterY - Math.sin(angleRad) * circleRadius;
 
-      // Angle Arc
-      ctx.beginPath();
-      ctx.arc(circleCenterX, circleCenterY, 28, 0, -angleRad, true);
-      ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      // Angle Arc with Vibrant Amber Glow
+      drawNeonArc(ctx, circleCenterX, circleCenterY, 28, 0, -angleRad, true, {
+        color: '#f59e0b',
+        glowColor: '#fbbf24',
+        width: 2.5,
+        glowBlur: 14,
+      });
 
-      // Angle theta text
-      ctx.fillStyle = '#f59e0b';
+      // Angle theta text with glow
+      ctx.save();
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#f59e0b';
+      ctx.fillStyle = '#fde68a';
       ctx.font = 'bold 11px monospace';
       ctx.fillText(`θ = ${unitCircleParams.angleDeg}°`, circleCenterX + 34, circleCenterY - 8);
+      ctx.restore();
 
-      // Reference Triangle & Projections
-      // Cosine projection (Emerald base)
+      // Reference Triangle & Projections with Vivid Neon Bloom
+      // Cosine projection (Emerald Base Laser Beam)
       if (unitCircleParams.showCos) {
-        ctx.beginPath();
-        ctx.moveTo(circleCenterX, circleCenterY);
-        ctx.lineTo(pointX, circleCenterY);
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 3;
-        ctx.stroke();
+        drawNeonLine(ctx, circleCenterX, circleCenterY, pointX, circleCenterY, {
+          color: '#10b981',
+          glowColor: '#34d399',
+          width: 3.5,
+          glowBlur: 16,
+          coreIntensity: 0.85,
+        });
 
-        ctx.fillStyle = '#10b981';
+        ctx.save();
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#10b981';
+        ctx.fillStyle = '#a7f3d0';
         ctx.font = 'bold 10px monospace';
         ctx.fillText(`cos: ${cosVal.toFixed(2)}`, circleCenterX + (pointX - circleCenterX) / 2 - 16, circleCenterY + 16);
+        ctx.restore();
       }
 
-      // Sine projection (Cyan vertical)
+      // Sine projection (Cyan Vertical Laser Beam)
       if (unitCircleParams.showSin) {
-        ctx.beginPath();
-        ctx.moveTo(pointX, circleCenterY);
-        ctx.lineTo(pointX, pointY);
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 3;
-        ctx.stroke();
+        drawNeonLine(ctx, pointX, circleCenterY, pointX, pointY, {
+          color: '#06b6d4',
+          glowColor: '#22d3ee',
+          width: 3.5,
+          glowBlur: 16,
+          coreIntensity: 0.85,
+        });
 
-        ctx.fillStyle = '#38bdf8';
+        ctx.save();
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#06b6d4';
+        ctx.fillStyle = '#bae6fd';
         ctx.font = 'bold 10px monospace';
         ctx.fillText(`sin: ${sinVal.toFixed(2)}`, pointX + 6, circleCenterY + (pointY - circleCenterY) / 2);
+        ctx.restore();
       }
 
-      // Tangent Line (Amber vertical from x=1)
+      // Tangent Line (Amber High-Voltage Vertical from x=1)
       if (unitCircleParams.showTan && Math.abs(cosVal) > 0.05) {
         const tanY = circleCenterY - tanVal * circleRadius;
         if (Math.abs(tanY - circleCenterY) < height * 0.8) {
-          ctx.beginPath();
-          ctx.moveTo(circleCenterX + circleRadius, circleCenterY);
-          ctx.lineTo(circleCenterX + circleRadius, tanY);
-          ctx.strokeStyle = '#f59e0b';
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
+          drawNeonLine(ctx, circleCenterX + circleRadius, circleCenterY, circleCenterX + circleRadius, tanY, {
+            color: '#f59e0b',
+            glowColor: '#fbbf24',
+            width: 3.5,
+            glowBlur: 16,
+            coreIntensity: 0.85,
+          });
 
-          // Extended ray to tangent
-          ctx.beginPath();
-          ctx.moveTo(circleCenterX, circleCenterY);
-          ctx.lineTo(circleCenterX + circleRadius, tanY);
-          ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
-          ctx.setLineDash([3, 3]);
-          ctx.stroke();
-          ctx.setLineDash([]);
+          // Extended ray to tangent with laser dash
+          ctx.save();
+          drawNeonLine(ctx, circleCenterX, circleCenterY, circleCenterX + circleRadius, tanY, {
+            color: 'rgba(245, 158, 11, 0.7)',
+            glowColor: 'rgba(251, 191, 36, 0.4)',
+            width: 1.5,
+            glowBlur: 8,
+            dash: [4, 4],
+            coreIntensity: 0.5,
+          });
+          ctx.restore();
         }
       }
 
-      // Radius Vector (Hypotenuse)
+      // Radius Vector (Hypotenuse - Crystalline Laser Rod)
+      drawNeonLine(ctx, circleCenterX, circleCenterY, pointX, pointY, {
+        color: '#cbd5e1',
+        glowColor: '#94a3b8',
+        width: 2.2,
+        glowBlur: 12,
+        coreIntensity: 0.95,
+      });
+
+      // Pivot node at center (0, 0)
+      ctx.save();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#38bdf8';
+      ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.moveTo(circleCenterX, circleCenterY);
-      ctx.lineTo(pointX, pointY);
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      ctx.arc(circleCenterX, circleCenterY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
 
       // Recommendation 6: Component Shadow Drops (Cartesian Projections to Axes)
       drawShadowDrops(ctx, pointX, pointY, circleCenterX, circleCenterY, {
@@ -389,8 +526,8 @@ export const UnitCircleSimulator: React.FC = () => {
         ctx.stroke();
 
         // Wave curve y = A * sin(kx - phase)
-        ctx.beginPath();
         const waveSteps = 120;
+        const wavePoints: { x: number; y: number }[] = [];
         for (let i = 0; i <= waveSteps; i++) {
           const t = i / waveSteps;
           const wx = waveStartX + t * waveWidth;
@@ -398,30 +535,42 @@ export const UnitCircleSimulator: React.FC = () => {
           const currentPhase = angleRad;
           const theta = currentPhase - t * Math.PI * 4 * unitCircleParams.frequency;
           const wy = waveCenterY - Math.sin(theta) * waveAmp;
-
-          if (i === 0) ctx.moveTo(wx, wy);
-          else ctx.lineTo(wx, wy);
+          wavePoints.push({ x: wx, y: wy });
         }
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 3;
-        ctx.stroke();
 
-        // Wave leading point at waveStartX
+        // Luminous Neon Sine Wave with Ambient Bloom
+        drawNeonWave(ctx, wavePoints, {
+          color: '#0ea5e9',
+          glowColor: '#38bdf8',
+          width: 3,
+          glowBlur: 16,
+          coreIntensity: 0.85,
+        });
+
+        // Wave leading photon point at waveStartX
         const waveHeadY = waveCenterY - Math.sin(angleRad) * waveAmp;
+        ctx.save();
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = '#38bdf8';
         ctx.beginPath();
         ctx.arc(waveStartX, waveHeadY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#38bdf8';
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
+        ctx.restore();
 
-        // Connecting dashed tracking line from unit circle to wave
-        ctx.beginPath();
-        ctx.moveTo(pointX, pointY);
-        ctx.lineTo(waveStartX, waveHeadY);
-        ctx.strokeStyle = 'rgba(244, 63, 94, 0.6)';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([4, 4]);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        // Connecting animated neon laser ray from unit circle to wave
+        const animDashOffset = -(performance.now() / 25) % 12;
+        ctx.save();
+        ctx.lineDashOffset = animDashOffset;
+        drawNeonLine(ctx, pointX, pointY, waveStartX, waveHeadY, {
+          color: '#f43f5e',
+          glowColor: '#fb7185',
+          width: 2,
+          glowBlur: 12,
+          dash: [6, 6],
+          coreIntensity: 0.9,
+        });
+        ctx.restore();
 
         // Wave Label
         ctx.fillStyle = '#64748b';
@@ -714,24 +863,30 @@ export const UnitCircleSimulator: React.FC = () => {
             simulatorId="unit-circle"
             extraLiveDetails={
               <div className="space-y-2">
-                <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="p-2 rounded-xl bg-cyan-950/30 border border-cyan-800/40">
-                    <span className="text-[10px] text-cyan-300 block font-semibold">sin(θ)</span>
-                    <span className="font-mono text-white font-bold">{sinVal.toFixed(3)}</span>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs sm:text-sm">
+                  <div className="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/60 shadow-sm">
+                    <span className="text-xs text-cyan-300 block font-semibold mb-0.5">
+                      <InlineMath math="\sin\theta" />
+                    </span>
+                    <span className="text-sm sm:text-base font-mono text-white font-bold">{sinVal.toFixed(3)}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-emerald-950/30 border border-emerald-800/40">
-                    <span className="text-[10px] text-emerald-300 block font-semibold">cos(θ)</span>
-                    <span className="font-mono text-white font-bold">{cosVal.toFixed(3)}</span>
+                  <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-800/60 shadow-sm">
+                    <span className="text-xs text-emerald-300 block font-semibold mb-0.5">
+                      <InlineMath math="\cos\theta" />
+                    </span>
+                    <span className="text-sm sm:text-base font-mono text-white font-bold">{cosVal.toFixed(3)}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-amber-950/30 border border-amber-800/40">
-                    <span className="text-[10px] text-amber-300 block font-semibold">tan(θ)</span>
-                    <span className="font-mono text-white font-bold">
+                  <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-800/60 shadow-sm">
+                    <span className="text-xs text-amber-300 block font-semibold mb-0.5">
+                      <InlineMath math="\tan\theta" />
+                    </span>
+                    <span className="text-sm sm:text-base font-mono text-white font-bold">
                       {Math.abs(cosVal) < 0.001 ? '±∞' : (sinVal / cosVal).toFixed(3)}
                     </span>
                   </div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-950/70 border border-slate-800 text-center font-mono text-xs text-cyan-300">
-                  sin²({unitCircleParams.angleDeg}°) + cos²({unitCircleParams.angleDeg}°) = {(sinVal * sinVal + cosVal * cosVal).toFixed(4)}
+                <div className="p-2.5 rounded-xl bg-slate-950/90 border border-slate-700 text-center font-mono text-xs sm:text-sm text-cyan-300 shadow-inner overflow-x-auto no-scrollbar">
+                  <InlineMath math={`\\sin^2(${unitCircleParams.angleDeg}^\\circ) + \\cos^2(${unitCircleParams.angleDeg}^\\circ) = ${(sinVal * sinVal + cosVal * cosVal).toFixed(4)}`} />
                 </div>
               </div>
             }
@@ -797,14 +952,19 @@ export const UnitCircleSimulator: React.FC = () => {
       >
         {/* Controls Tab */}
         <div className="space-y-2.5">
-          {/* Point 1 & 5: 3-Tier Live KaTeX Substitution with Synchronized Active Term Glow */}
+          {/* Point 1 & 5: 3Blue1Brown Synchronized Color-Breathing KaTeX Progression */}
           <LiveSubstitutionCard
-            title="Unit Circle Identity"
-            badge="Pythagorean"
-            symbolicLaw="P(\theta) = (\cos\theta,\; \sin\theta), \quad \sin^2\theta + \cos^2\theta = 1"
-            substitutedLatex={`P(${unitCircleParams.angleDeg}^\\circ) = (\\cos ${unitCircleParams.angleDeg}^\\circ,\\; \\sin ${unitCircleParams.angleDeg}^\\circ)`}
-            evaluatedLatex={`= (${cosVal.toFixed(3)},\\; ${sinVal.toFixed(3)}), \\quad ${(cosVal*cosVal).toFixed(3)} + ${(sinVal*sinVal).toFixed(3)} = ${(cosVal*cosVal+sinVal*sinVal).toFixed(4)}`}
+            title="3Blue1Brown Geometric Identity"
+            badge="Pythagorean Invariant"
+            symbolicLaw="P(\color{#f59e0b}{\theta}) = (\color{#10b981}{\cos\theta},\; \color{#06b6d4}{\sin\theta}), \quad \color{#10b981}{\cos^2\theta} + \color{#06b6d4}{\sin^2\theta} = \color{#ffffff}{1}"
+            substitutedLatex={`P(\\color{#f59e0b}{${unitCircleParams.angleDeg}^\\circ}) = (\\color{#10b981}{\\cos ${unitCircleParams.angleDeg}^\\circ},\\; \\color{#06b6d4}{\\sin ${unitCircleParams.angleDeg}^\\circ})`}
+            evaluatedLatex={`= (\\color{#10b981}{${cosVal.toFixed(3)}},\\; \\color{#06b6d4}{${sinVal.toFixed(3)}}), \\quad \\color{#10b981}{${(cosVal*cosVal).toFixed(3)}} + \\color{#06b6d4}{${(sinVal*sinVal).toFixed(3)}} = \\mathbf{\\color{#ffffff}{1.000}}`}
             activeTerm={isDraggingCircle ? `θ = ${unitCircleParams.angleDeg}°` : undefined}
+            legendItems={[
+              { label: 'Horizontal Base', color: '#10b981', symbol: 'cos(θ)' },
+              { label: 'Vertical Altitude', color: '#06b6d4', symbol: 'sin(θ)' },
+              { label: 'Arc Angle', color: '#f59e0b', symbol: 'θ' },
+            ]}
           />
 
           <TouchSlider

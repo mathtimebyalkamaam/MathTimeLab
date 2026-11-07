@@ -27,6 +27,7 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { Eli13ExplainerCard } from '../common/Eli13ExplainerCard';
 
 export const LinearProgrammingSimulator: React.FC = () => {
   const {

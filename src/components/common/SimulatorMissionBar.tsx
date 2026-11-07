@@ -17,7 +17,7 @@ import { SimulatorId } from '../../types/simulators';
 import { SIMULATORS } from '../../data/simulators';
 import { getNcertMapping } from '../../data/ncertMappings';
 import { INSTRUCTIONS } from './SimulatorInstructionBanner';
-import { BlockMath } from './MathFormula';
+import { BlockMath, MathText } from './MathFormula';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { useSound } from './SoundManager';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -29,7 +29,7 @@ interface SimulatorMissionBarProps {
 export const SimulatorMissionBar: React.FC<SimulatorMissionBarProps> = ({ simulatorId }) => {
   const { isZenMode, resetParams, setActiveSheetTab, setBottomSheetSnap, openExamPYQModal } = useSimulatorStore();
   const { playClick, playChime } = useSound();
-  const { lightTap, successNotification } = useHaptics();
+  const { lightTap, successBuzz } = useHaptics();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showResetFeedback, setShowResetFeedback] = useState(false);
@@ -258,20 +258,20 @@ export const SimulatorMissionBar: React.FC<SimulatorMissionBarProps> = ({ simula
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Step 3: The Discovery</span>
                 </div>
-                <p className="text-slate-200 leading-relaxed text-[11px]">
-                  {instruction?.mathInsight || 'Understand why the theorem or equation remains invariant.'}
-                </p>
+                <div className="text-slate-200 leading-relaxed text-xs sm:text-[13px]">
+                  <MathText text={instruction?.mathInsight || 'Understand why the theorem or equation remains invariant.'} />
+                </div>
               </div>
             </div>
 
             {/* Coach's Secret callout */}
             {sim?.coachSecret && (
-              <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-800/40 text-[11px] text-amber-200 flex items-start gap-2">
-                <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                <p className="leading-relaxed">
-                  <strong className="text-amber-300">Alka Ma'am's Coach Note: </strong>
-                  {sim.coachSecret}
-                </p>
+              <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-800/40 text-xs sm:text-[13px] text-amber-200 flex items-start gap-2.5">
+                <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div className="leading-relaxed flex-1">
+                  <strong className="text-amber-300 font-bold block mb-0.5">Alka Ma'am's Coach Note: </strong>
+                  <MathText text={sim.coachSecret} />
+                </div>
               </div>
             )}
           </div>

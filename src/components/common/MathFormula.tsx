@@ -73,19 +73,19 @@ export const MathFormula: React.FC<MathFormulaProps> = ({
 
       {/* Textbook Myth vs Tutor Reality (Coaching Feature) */}
       {textbookMyth && (
-        <div className="pt-1.5 border-t border-slate-800/80 text-[11px] text-slate-400">
+        <div className="pt-1.5 border-t border-slate-800/80 text-xs sm:text-[13px] text-slate-300">
           <span className="text-rose-400 font-semibold">Textbook Confusion: </span>
-          <span>{textbookMyth}</span>
+          <MathText text={textbookMyth} />
         </div>
       )}
 
       {/* Tutor Coaching Insight */}
       {coachTip && (
-        <div className="p-2 rounded-xl bg-cyan-950/30 border border-cyan-800/40 text-[11px] text-cyan-200 flex items-start gap-1.5">
-          <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-          <div>
+        <div className="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/50 text-xs sm:text-[13px] text-cyan-200 flex items-start gap-2">
+          <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="flex-1 leading-relaxed">
             <strong className="text-amber-300">Coach Intuition: </strong>
-            <span>{coachTip}</span>
+            <MathText text={coachTip} />
           </div>
         </div>
       )}

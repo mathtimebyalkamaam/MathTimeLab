@@ -650,18 +650,22 @@ export const ArgandPlanePlayground: React.FC = () => {
             simulatorId="argand-plane"
             extraLiveDetails={
               <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 rounded-xl bg-cyan-950/30 border border-cyan-800/40">
-                    <span className="text-[10px] text-cyan-300 block font-semibold">Active Vector z₁:</span>
-                    <span className="font-mono text-white font-bold">{z1.r} + {z1.i}i</span>
+                <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+                  <div className="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/60 shadow-sm">
+                    <span className="text-[11px] text-cyan-300 block font-semibold mb-0.5">Active Vector z₁:</span>
+                    <span className="text-sm sm:text-base font-bold text-white">
+                      <InlineMath math={`z_1 = ${z1.r} ${z1.i >= 0 ? '+' : '-'} ${Math.abs(z1.i)}i`} />
+                    </span>
                   </div>
-                  <div className="p-2 rounded-xl bg-purple-950/30 border border-purple-800/40">
-                    <span className="text-[10px] text-purple-300 block font-semibold">Modulus |z₁| = √(a² + b²):</span>
-                    <span className="font-mono text-white font-bold">{z1Modulus.toFixed(3)}</span>
+                  <div className="p-2.5 rounded-xl bg-purple-950/40 border border-purple-800/60 shadow-sm">
+                    <span className="text-[11px] text-purple-300 block font-semibold mb-0.5">Modulus |z₁| = √(a² + b²):</span>
+                    <span className="text-sm sm:text-base font-bold text-white">
+                      <InlineMath math={`|z_1| = ${z1Modulus.toFixed(3)}`} />
+                    </span>
                   </div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-950/70 border border-slate-800 text-center font-mono text-xs text-amber-300">
-                  Argument θ = {(Math.atan2(z1.i, z1.r) * (180 / Math.PI)).toFixed(1)}° · z₁ = {z1Modulus.toFixed(2)} e^(i·{(Math.atan2(z1.i, z1.r) * (180 / Math.PI)).toFixed(0)}°)
+                <div className="p-2.5 rounded-xl bg-slate-950/90 border border-slate-700 text-center font-mono text-xs sm:text-sm text-amber-300 shadow-inner overflow-x-auto no-scrollbar">
+                  <InlineMath math={`\\text{Arg } \\theta = ${(Math.atan2(z1.i, z1.r) * (180 / Math.PI)).toFixed(1)}^\\circ \\quad \\Longleftrightarrow \\quad z_1 = ${z1Modulus.toFixed(2)} e^{i ${((Math.atan2(z1.i, z1.r) * (180 / Math.PI)) * Math.PI / 180).toFixed(2)}}`} />
                 </div>
               </div>
             }

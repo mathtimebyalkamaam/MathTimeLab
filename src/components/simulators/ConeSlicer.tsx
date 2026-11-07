@@ -1,6 +1,7 @@
-import React, { Suspense, useEffect, useState, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import * as THREE from 'three';
 import confetti from 'canvas-confetti';
 import { 
   Orbit, 
@@ -12,7 +13,9 @@ import {
   Eye, 
   Maximize2,
   Zap,
-  Info
+  Info,
+  Compass,
+  Video
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -25,6 +28,86 @@ import { DoubleCone } from './conic3d/DoubleCone';
 import { LaserCuttingPlane } from './conic3d/LaserCuttingPlane';
 import { ConicIntersectionCurve } from './conic3d/ConicIntersectionCurve';
 import { usePerformanceMode } from '../../hooks/usePerformanceMode';
+
+export type CameraPreset = 'isometric' | 'top' | 'front' | 'slice';
+
+interface CameraControllerProps {
+  preset: CameraPreset;
+  planeAngleDeg: number;
+  planeHeight: number;
+  autoRotate: boolean;
+  onUserInteraction: () => void;
+}
+
+const PRESET_VECTORS: Record<CameraPreset, [number, number, number]> = {
+  isometric: [3.6, 2.5, 4.2],
+  top: [0.01, 5.8, 0.01],
+  front: [0, 0.4, 5.5],
+  slice: [0, 2.0, 4.0],
+};
+
+const CinematicCameraController: React.FC<CameraControllerProps> = ({
+  preset,
+  planeAngleDeg,
+  planeHeight,
+  autoRotate,
+  onUserInteraction,
+}) => {
+  const { camera } = useThree();
+  const controlsRef = useRef<any>(null);
+  const targetPosRef = useRef(new THREE.Vector3(...PRESET_VECTORS[preset]));
+  const targetLookAtRef = useRef(new THREE.Vector3(0, 0, 0));
+  const isTransitioningRef = useRef(false);
+
+  useEffect(() => {
+    let targetX = PRESET_VECTORS[preset][0];
+    let targetY = PRESET_VECTORS[preset][1];
+    let targetZ = PRESET_VECTORS[preset][2];
+    let lookY = 0;
+
+    if (preset === 'slice') {
+      const tiltRad = (planeAngleDeg * Math.PI) / 180;
+      const dist = 4.8;
+      targetX = 0;
+      targetY = planeHeight + dist * Math.sin(tiltRad + Math.PI / 6);
+      targetZ = dist * Math.cos(tiltRad + Math.PI / 6);
+      lookY = planeHeight;
+    } else if (preset === 'top') {
+      lookY = 0;
+    }
+
+    targetPosRef.current.set(targetX, targetY, targetZ);
+    targetLookAtRef.current.set(0, lookY, 0);
+    isTransitioningRef.current = true;
+  }, [preset, planeAngleDeg, planeHeight]);
+
+  useFrame((_, delta) => {
+    if (isTransitioningRef.current && controlsRef.current) {
+      const step = Math.min(delta * 4.5, 0.12);
+      camera.position.lerp(targetPosRef.current, step);
+      controlsRef.current.target.lerp(targetLookAtRef.current, step);
+      controlsRef.current.update();
+
+      if (camera.position.distanceTo(targetPosRef.current) < 0.05) {
+        isTransitioningRef.current = false;
+      }
+    }
+  });
+
+  return (
+    <OrbitControls
+      ref={controlsRef}
+      enableDamping
+      dampingFactor={0.06}
+      minDistance={2.0}
+      maxDistance={10}
+      autoRotate={autoRotate && !isTransitioningRef.current}
+      autoRotateSpeed={0.65}
+      maxPolarAngle={Math.PI / 2 + 0.35}
+      onStart={onUserInteraction}
+    />
+  );
+};
 
 export const ConeSlicer: React.FC = () => {
   const {
@@ -40,6 +123,8 @@ export const ConeSlicer: React.FC = () => {
   const { dpr, enableAntialias, isLowEnd } = usePerformanceMode();
 
   const [showJoystick, setShowJoystick] = useState(true);
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset>('isometric');
+  const [autoRotate, setAutoRotate] = useState<boolean>(true);
 
   const { planeAngleDeg, planeHeight, planeRollDeg, coneApertureDeg, showWireframe, showCuttingPlane, showTraceLine, flashlightIntensity } = conicParams;
 
@@ -143,12 +228,13 @@ export const ConeSlicer: React.FC = () => {
           className="w-full h-full cursor-grab active:cursor-grabbing touch-none"
         >
           <PerspectiveCamera makeDefault position={[3.6, 2.5, 4.2]} fov={45} />
-          <OrbitControls
-            enableDamping
-            dampingFactor={0.05}
-            minDistance={2.5}
-            maxDistance={10}
-            maxPolarAngle={Math.PI / 2 + 0.3}
+          {/* Priority 4: Cinematic Lerping Camera Controller */}
+          <CinematicCameraController
+            preset={cameraPreset}
+            planeAngleDeg={planeAngleDeg}
+            planeHeight={planeHeight}
+            autoRotate={autoRotate}
+            onUserInteraction={() => setAutoRotate(false)}
           />
 
           {/* Ambient & Directional Lighting */}
@@ -188,6 +274,68 @@ export const ConeSlicer: React.FC = () => {
           {/* Subtle Ground Stage Floor */}
           <gridHelper args={[8, 16, '#1e293b', '#0f172a']} position={[0, -2.4, 0]} />
         </Canvas>
+
+        {/* Priority 4: Cinematic 3D Camera Viewport Selector */}
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex items-center gap-1 bg-slate-900/85 backdrop-blur-md border border-slate-700/80 p-1 rounded-xl shadow-lg">
+          <button
+            type="button"
+            onClick={() => setCameraPreset('isometric')}
+            className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer ${
+              cameraPreset === 'isometric'
+                ? 'bg-cyan-500 text-slate-950 font-bold shadow'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Orbit className="w-3 h-3" />
+            <span className="hidden sm:inline">3D</span> Iso
+          </button>
+          <button
+            type="button"
+            onClick={() => setCameraPreset('top')}
+            className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer ${
+              cameraPreset === 'top'
+                ? 'bg-cyan-500 text-slate-950 font-bold shadow'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Eye className="w-3 h-3" />
+            Top View
+          </button>
+          <button
+            type="button"
+            onClick={() => setCameraPreset('front')}
+            className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer ${
+              cameraPreset === 'front'
+                ? 'bg-cyan-500 text-slate-950 font-bold shadow'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Compass className="w-3 h-3" />
+            Front
+          </button>
+          <button
+            type="button"
+            onClick={() => setCameraPreset('slice')}
+            className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer ${
+              cameraPreset === 'slice'
+                ? 'bg-rose-500 text-white font-bold shadow'
+                : 'text-rose-400 hover:text-rose-200'
+            }`}
+          >
+            <Zap className="w-3 h-3" />
+            Laser Align
+          </button>
+          <button
+            type="button"
+            title="Toggle Idle Cinematic Drift"
+            onClick={() => setAutoRotate(!autoRotate)}
+            className={`p-1 rounded-lg text-[10px] transition cursor-pointer ${
+              autoRotate ? 'text-amber-400 bg-amber-950/60' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <RotateCcw className={`w-3 h-3 ${autoRotate ? 'animate-spin' : ''}`} style={{ animationDuration: '8s' }} />
+          </button>
+        </div>
 
         {/* Dynamic Mathematical HUD Overlay (Top-Right) */}
         {!isZenMode && (

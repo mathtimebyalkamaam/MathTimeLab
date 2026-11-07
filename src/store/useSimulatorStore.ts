@@ -82,8 +82,9 @@ interface SimulatorStoreState {
   isAuthorModalOpen: boolean;
   setIsAuthorModalOpen: (open: boolean) => void;
 
-  // Zen / Pure Canvas Focus Mode (Mobile Space Optimizer)
+  // Zen / Pure Canvas Focus Mode (Mobile Space Optimizer & Cinema Mode)
   isZenMode: boolean;
+  sidebarMemory: { left: boolean; right: boolean } | null;
   activeGuideModal: boolean;
   activeMissionsModal: boolean;
 
@@ -263,6 +264,11 @@ interface SimulatorStoreState {
   toggleBookmark: (id: SimulatorId) => void;
   completeChallenge: (challengeKey: string, xpReward?: number) => void;
   addXp: (amount: number) => void;
+
+  // Priority 9: Micro-Celebration & Eureka Feedback
+  activeEureka: { title: string; xp: number } | null;
+  triggerEureka: (title: string, xp?: number) => void;
+  clearEureka: () => void;
 }
 
 const DEFAULT_DRONE: DroneParameters = {
@@ -846,6 +852,7 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
   isAuthorModalOpen: false,
 
   isZenMode: false,
+  sidebarMemory: null,
   activeGuideModal: false,
   activeMissionsModal: false,
 
@@ -993,7 +1000,48 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
     }
   },
 
-  toggleZenMode: () => set((state) => ({ isZenMode: !state.isZenMode })),
+  // Priority 10: Cinema / Theater Fullscreen Mode with Sidebar Memory
+  toggleZenMode: () =>
+    set((state) => {
+      const willEnter = !state.isZenMode;
+      if (willEnter) {
+        if (typeof document !== 'undefined') {
+          try {
+            if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen().catch(() => {});
+            }
+          } catch {}
+        }
+        if (typeof window !== 'undefined') {
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 80);
+        }
+        return {
+          isZenMode: true,
+          sidebarMemory: { left: state.isLeftSidebarOpen, right: state.isRightSidebarOpen },
+          isLeftSidebarOpen: false,
+          isRightSidebarOpen: false,
+        };
+      } else {
+        if (typeof document !== 'undefined') {
+          try {
+            if (document.fullscreenElement && document.exitFullscreen) {
+              document.exitFullscreen().catch(() => {});
+            }
+          } catch {}
+        }
+        if (typeof window !== 'undefined') {
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 80);
+        }
+        const restoredLeft = state.sidebarMemory?.left ?? true;
+        const restoredRight = state.sidebarMemory?.right ?? false;
+        return {
+          isZenMode: false,
+          sidebarMemory: null,
+          isLeftSidebarOpen: restoredLeft,
+          isRightSidebarOpen: restoredRight,
+        };
+      }
+    }),
   setZenMode: (zen) => set({ isZenMode: zen }),
   setActiveGuideModal: (open) => set({ activeGuideModal: open }),
   setActiveMissionsModal: (open) => set({ activeMissionsModal: open }),
@@ -1354,13 +1402,25 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
       if (state.challengeCompleted[challengeKey]) return state;
       const updatedMap = { ...state.challengeCompleted, [challengeKey]: true };
       const newXp = state.xp + xpReward;
+      const formattedTitle = challengeKey
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
       return {
         challengeCompleted: updatedMap,
         xp: newXp,
+        activeEureka: { title: formattedTitle, xp: xpReward },
       };
     }),
 
   addXp: (amount) => set((state) => ({ xp: state.xp + amount })),
+
+  activeEureka: null,
+  triggerEureka: (title, xp = 35) =>
+    set((state) => ({
+      activeEureka: { title, xp },
+      xp: state.xp + xp,
+    })),
+  clearEureka: () => set({ activeEureka: null }),
 }));
 
 // Listen to browser Back/Forward navigation buttons for SPA deep-linking

@@ -7,6 +7,8 @@
  * 4. Direct On-Canvas Hover Rings & Pulsing Affordances
  */
 
+import confetti from 'canvas-confetti';
+
 export interface Landmark {
   value: number;
   label?: string;
@@ -381,6 +383,7 @@ export function drawMagnifierLoupe(
     radius?: number;
     borderColor?: string;
     label?: string;
+    renderContent?: (clipCtx: CanvasRenderingContext2D, cx: number, cy: number, r: number) => void;
   } = {}
 ) {
   const {
@@ -388,6 +391,7 @@ export function drawMagnifierLoupe(
     radius = 56,
     borderColor = '#38bdf8',
     label = '2.5x ZOOM',
+    renderContent,
   } = options;
 
   const dpr = window.devicePixelRatio || 1;
@@ -414,20 +418,39 @@ export function drawMagnifierLoupe(
   ctx.save();
   ctx.clip();
 
-  // 3. Draw magnified section of canvas
-  try {
-    ctx.drawImage(
-      canvas,
-      Math.max(0, sourceX),
-      Math.max(0, sourceY),
-      sourceWidth * dpr,
-      sourceHeight * dpr,
-      lensX - radius,
-      lensY - radius,
-      radius * 2,
-      radius * 2
-    );
-  } catch {}
+  // 3. Draw contents (either custom vector renderer or magnified canvas slice)
+  if (renderContent) {
+    renderContent(ctx, lensX, lensY, radius);
+  } else {
+    try {
+      ctx.drawImage(
+        canvas,
+        Math.max(0, sourceX),
+        Math.max(0, sourceY),
+        sourceWidth * dpr,
+        sourceHeight * dpr,
+        lensX - radius,
+        lensY - radius,
+        radius * 2,
+        radius * 2
+      );
+    } catch {}
+  }
+
+  // Subtle glass optical sheen
+  const glassGrad = ctx.createRadialGradient(
+    lensX - radius * 0.35,
+    lensY - radius * 0.35,
+    radius * 0.1,
+    lensX,
+    lensY,
+    radius
+  );
+  glassGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+  glassGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.01)');
+  glassGrad.addColorStop(1, 'rgba(56, 189, 248, 0.15)');
+  ctx.fillStyle = glassGrad;
+  ctx.fillRect(lensX - radius, lensY - radius, radius * 2, radius * 2);
 
   // 4. Reticle Crosshair inside the lens
   ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
@@ -450,12 +473,15 @@ export function drawMagnifierLoupe(
 
   ctx.restore(); // end clip
 
-  // 5. High-contrast metallic bezel
+  // 5. High-contrast metallic & neon bezel
   ctx.strokeStyle = borderColor;
+  ctx.shadowColor = borderColor;
+  ctx.shadowBlur = 10;
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.arc(lensX, lensY, radius, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
   // 6. Connecting dotted guide line from target to lens
   ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
@@ -494,3 +520,511 @@ export function drawMagnifierLoupe(
 
   ctx.restore();
 }
+
+// ============================================================================
+// 8. PRIORITY 1: PREMIUM NEON GLOW & MULTI-LAYER CANVAS BLOOM ENGINE
+// ============================================================================
+
+export interface NeonStyleOptions {
+  color: string;           // Base hex or rgb color (e.g. '#38bdf8', '#10b981', '#f59e0b')
+  glowColor?: string;      // Optional outer aura color, defaults to color
+  width?: number;          // Base stroke width (default: 3)
+  glowBlur?: number;       // Shadow blur radius (default: 16)
+  glowLayers?: number;     // Number of bloom passes (1, 2, or 3, default: 2)
+  coreIntensity?: number;  // 0 to 1, strength of white-hot laser core (default: 0.8)
+  dash?: number[];         // Optional line dash
+}
+
+/**
+ * Draws a high-intensity neon laser line with multi-layer bloom and white core.
+ */
+export function drawNeonLine(
+  ctx: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  options: NeonStyleOptions
+) {
+  const {
+    color,
+    glowColor = color,
+    width = 3,
+    glowBlur = 18,
+    coreIntensity = 0.8,
+    dash = [],
+  } = options;
+
+  ctx.save();
+  if (dash.length > 0) ctx.setLineDash(dash);
+
+  // 1. Broad Outer Bloom Halo
+  ctx.save();
+  ctx.shadowBlur = glowBlur * 1.5;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = glowColor;
+  ctx.lineWidth = width * 2.2;
+  ctx.globalAlpha = 0.28;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.restore();
+
+  // 2. Focused Neon Core Glow
+  ctx.save();
+  ctx.shadowBlur = glowBlur;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.globalAlpha = 0.95;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.restore();
+
+  // 3. White-Hot Energy Filament Core (Laser look)
+  if (coreIntensity > 0 && width >= 2) {
+    ctx.save();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, width * 0.35);
+    ctx.globalAlpha = coreIntensity;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draws a glowing neon circle / ring with optional subtle radial atmospheric fill.
+ */
+export function drawNeonCircle(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  options: NeonStyleOptions & { withRadialAura?: boolean; fillOpacity?: number }
+) {
+  const {
+    color,
+    glowColor = color,
+    width = 2.5,
+    glowBlur = 16,
+    coreIntensity = 0.7,
+    withRadialAura = true,
+    fillOpacity = 0.07,
+  } = options;
+
+  ctx.save();
+
+  // 1. Atmospheric Ambient Radial Glow inside circle
+  if (withRadialAura && radius > 10) {
+    const grad = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.85, color.replace(')', `, ${fillOpacity})`).replace('rgb', 'rgba').replace('#', 'rgba('));
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 2. Wide Outer Bloom Rim
+  ctx.save();
+  ctx.shadowBlur = glowBlur * 1.4;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = glowColor;
+  ctx.lineWidth = width * 2;
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // 3. Primary Luminous Rim
+  ctx.save();
+  ctx.shadowBlur = glowBlur;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.globalAlpha = 1.0;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // 4. White-Hot Accent Edge
+  if (coreIntensity > 0 && width >= 2) {
+    ctx.save();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, width * 0.3);
+    ctx.globalAlpha = coreIntensity * 0.75;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draws a glowing neon circular arc (e.g. for dynamic angle arcs θ).
+ */
+export function drawNeonArc(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+  anticlockwise: boolean,
+  options: NeonStyleOptions
+) {
+  const {
+    color,
+    glowColor = color,
+    width = 2.5,
+    glowBlur = 14,
+    coreIntensity = 0.75,
+  } = options;
+
+  ctx.save();
+
+  // Outer Bloom
+  ctx.save();
+  ctx.shadowBlur = glowBlur * 1.3;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = glowColor;
+  ctx.lineWidth = width * 2;
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, startAngle, endAngle, anticlockwise);
+  ctx.stroke();
+  ctx.restore();
+
+  // Core Glow
+  ctx.save();
+  ctx.shadowBlur = glowBlur;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, startAngle, endAngle, anticlockwise);
+  ctx.stroke();
+  ctx.restore();
+
+  // Filament Core
+  if (coreIntensity > 0) {
+    ctx.save();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, width * 0.35);
+    ctx.globalAlpha = coreIntensity;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, startAngle, endAngle, anticlockwise);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draws a flowing neon curve/path (e.g. harmonic sine/cosine wave or parabola)
+ * with an optional animated traveling energy photon pulse.
+ */
+export function drawNeonWave(
+  ctx: CanvasRenderingContext2D,
+  points: { x: number; y: number }[],
+  options: NeonStyleOptions & { progressFraction?: number }
+) {
+  if (points.length < 2) return;
+  const {
+    color,
+    glowColor = color,
+    width = 2.5,
+    glowBlur = 16,
+    coreIntensity = 0.8,
+    progressFraction = 1,
+  } = options;
+
+  const count = Math.max(2, Math.floor(points.length * Math.min(1, Math.max(0, progressFraction))));
+
+  ctx.save();
+
+  const tracePath = () => {
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < count; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+  };
+
+  // 1. Ambient Bloom Wave
+  ctx.save();
+  ctx.shadowBlur = glowBlur * 1.5;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = glowColor;
+  ctx.lineWidth = width * 2.2;
+  ctx.globalAlpha = 0.3;
+  tracePath();
+  ctx.stroke();
+  ctx.restore();
+
+  // 2. Focused Neon Wave
+  ctx.save();
+  ctx.shadowBlur = glowBlur;
+  ctx.shadowColor = glowColor;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.globalAlpha = 0.95;
+  tracePath();
+  ctx.stroke();
+  ctx.restore();
+
+  // 3. Crisp White Core Filament
+  if (coreIntensity > 0) {
+    ctx.save();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, width * 0.32);
+    ctx.globalAlpha = coreIntensity * 0.85;
+    tracePath();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 4. Leading Photon Flare Head (Pulse where wave meets the current angle)
+  if (count > 0 && count < points.length) {
+    const head = points[count - 1];
+    ctx.save();
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = '#ffffff';
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(head.x, head.y, width * 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+// ============================================================================
+// 9. PRIORITY 3: DAMPED HARMONIC SPRING OSCILLATOR (PHYSICAL INERTIAL DYNAMICS)
+// ============================================================================
+
+/**
+ * Solves damped harmonic spring dynamics for natural physical follow-through:
+ * m * a + c * v + k * (x - x_target) = 0
+ */
+export class SpringOscillator {
+  current: number;
+  target: number;
+  velocity: number;
+  stiffness: number; // k (spring constant)
+  damping: number;   // c (viscous damping ratio)
+  mass: number;      // m (inertia)
+
+  constructor(initialValue: number = 0, stiffness = 150, damping = 14, mass = 1) {
+    this.current = initialValue;
+    this.target = initialValue;
+    this.velocity = 0;
+    this.stiffness = stiffness;
+    this.damping = damping;
+    this.mass = mass;
+  }
+
+  setTarget(target: number) {
+    this.target = target;
+  }
+
+  snapTo(val: number) {
+    this.current = val;
+    this.target = val;
+    this.velocity = 0;
+  }
+
+  addImpulse(impulseVelocity: number) {
+    this.velocity += impulseVelocity;
+  }
+
+  step(dt: number = 0.016): number {
+    // Clamp dt to avoid explosion on background tab throttling
+    const safeDt = Math.min(dt, 0.05);
+    const displacement = this.current - this.target;
+    const springForce = -this.stiffness * displacement;
+    const dampingForce = -this.damping * this.velocity;
+    const acceleration = (springForce + dampingForce) / this.mass;
+
+    this.velocity += acceleration * safeDt;
+    this.current += this.velocity * safeDt;
+
+    if (Math.abs(this.velocity) < 0.0005 && Math.abs(displacement) < 0.0005) {
+      this.current = this.target;
+      this.velocity = 0;
+    }
+
+    return this.current;
+  }
+
+  isSettled(tolerance: number = 0.008): boolean {
+    return (
+      Math.abs(this.current - this.target) < tolerance &&
+      Math.abs(this.velocity) < tolerance
+    );
+  }
+}
+
+// ============================================================================
+// 10. PRIORITY 8: CALCULUS FLUX PARTICLE ENGINE (RIEMANN ACCUMULATION PARTICLES)
+// ============================================================================
+
+export interface FluxParticle {
+  progressT: number; // 0 to 1 along [lowerBound, upperBound]
+  yRatio: number;    // 0 (axis) to 1 (curve)
+  speed: number;     // advancement rate
+  size: number;      // particle radius
+  alpha: number;     // transparency
+}
+
+/**
+ * Simulates micro-flux particles streaming beneath the curve f(t) into the
+ * accumulated area reservoir, providing an intuitive visualization of
+ * infinitesimal Riemann accumulation (f(t) dt).
+ */
+export class CalculusFluxEngine {
+  private particles: FluxParticle[] = [];
+  private readonly maxParticles: number;
+
+  constructor(count = 50) {
+    this.maxParticles = count;
+    this.init();
+  }
+
+  private init() {
+    this.particles = [];
+    for (let i = 0; i < this.maxParticles; i++) {
+      this.particles.push({
+        progressT: Math.random(),
+        yRatio: Math.random(),
+        speed: 0.003 + Math.random() * 0.006,
+        size: 1.2 + Math.random() * 2.0,
+        alpha: 0.35 + Math.random() * 0.55,
+      });
+    }
+  }
+
+  public updateAndDraw(
+    ctx: CanvasRenderingContext2D,
+    lowerBoundA: number,
+    upperBoundX: number,
+    f: (t: number) => number,
+    toScreen: (t: number, y: number) => { x: number; y: number },
+    options: {
+      isSweeping?: boolean;
+      particleColor?: string;
+    } = {}
+  ) {
+    if (upperBoundX <= lowerBoundA) return;
+    const { isSweeping = false, particleColor = '#38bdf8' } = options;
+    const speedMult = isSweeping ? 2.8 : 1.0;
+    const span = upperBoundX - lowerBoundA;
+
+    ctx.save();
+    for (const p of this.particles) {
+      // Advance particle position
+      p.progressT += p.speed * speedMult;
+      if (p.progressT > 1) {
+        p.progressT = 0;
+        p.yRatio = Math.random();
+      }
+
+      const t = lowerBoundA + p.progressT * span;
+      const ft = f(t);
+      const yVal = ft * p.yRatio;
+
+      const pt = toScreen(t, yVal);
+      const intensity = isSweeping ? 1.0 : p.alpha;
+
+      // Glow halo
+      ctx.shadowBlur = isSweeping ? 8 : 4;
+      ctx.shadowColor = particleColor;
+      ctx.fillStyle = particleColor;
+      ctx.globalAlpha = intensity;
+
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, isSweeping ? p.size * 1.3 : p.size, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Velocity trail toward the curve
+      ctx.strokeStyle = particleColor;
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = intensity * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pt.x, pt.y);
+      ctx.lineTo(pt.x, pt.y + (ft >= 0 ? 3 : -3));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+// ============================================================================
+// 11. PRIORITY 9: CANVAS-ORIGIN EUREKA CELEBRATION DISPATCHER
+// ============================================================================
+
+export interface EurekaCelebrationOptions {
+  origin?: { x: number; y: number }; // Normalized 0..1 viewport coordinates
+  particleCount?: number;
+  spread?: number;
+  colors?: string[];
+}
+
+/**
+ * Triggers a dual-stage micro-celebration burst anchored to the exact location of mathematical discovery.
+ */
+export function triggerEurekaCelebration(options: EurekaCelebrationOptions = {}) {
+  const {
+    origin = { x: 0.5, y: 0.5 },
+    particleCount = 55,
+    spread = 70,
+    colors = ['#38bdf8', '#34d399', '#f59e0b', '#ec4899', '#a855f7', '#ffffff'],
+  } = options;
+
+  try {
+    // Stage 1: Concentrated epicenter pop
+    confetti({
+      particleCount,
+      spread,
+      startVelocity: 36,
+      origin,
+      colors,
+      scalar: 1.1,
+      ticks: 180,
+    });
+
+    // Stage 2: Flanking fireworks
+    setTimeout(() => {
+      confetti({
+        particleCount: Math.round(particleCount * 0.5),
+        angle: 60,
+        spread: 50,
+        origin: { x: Math.max(0.1, origin.x - 0.18), y: origin.y },
+        colors,
+      });
+      confetti({
+        particleCount: Math.round(particleCount * 0.5),
+        angle: 120,
+        spread: 50,
+        origin: { x: Math.min(0.9, origin.x + 0.18), y: origin.y },
+        colors,
+      });
+    }, 180);
+  } catch {}
+}
+

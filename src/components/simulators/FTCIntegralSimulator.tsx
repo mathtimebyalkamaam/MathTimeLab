@@ -30,6 +30,7 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
+import { CalculusFluxEngine, drawNeonLine } from '../../utils/canvasFx';
 
 export const FTCIntegralSimulator: React.FC = () => {
   const {
@@ -53,12 +54,26 @@ export const FTCIntegralSimulator: React.FC = () => {
   } = ftcIntegralParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { 
+    playClick, 
+    playChime, 
+    startContinuousTone, 
+    setContinuousToneFreq, 
+    stopContinuousTone 
+  } = useSound();
   const { trackEvent } = useAnalytics();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fluxEngineRef = useRef(new CalculusFluxEngine(52));
   const [isDraggingSweep, setIsDraggingSweep] = useState(false);
   const [isHoveringSweep, setIsHoveringSweep] = useState(false);
+
+  // Stop sound on unmount
+  useEffect(() => {
+    return () => {
+      stopContinuousTone();
+    };
+  }, [stopContinuousTone]);
 
   // Mathematical definitions: f(t), exact antiderivative F(t), and interval bounds
   const config = useMemo(() => {
@@ -196,243 +211,283 @@ export const FTCIntegralSimulator: React.FC = () => {
     trackEvent,
   ]);
 
-  // Canvas drawing loop
+  // Canvas drawing loop with 60fps Calculus Flux Particle Simulation
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
+    let animId: number;
 
-    // Clear background
-    ctx.fillStyle = '#020617';
-    ctx.fillRect(0, 0, width, height);
-
-    // Layout: If showAccumulationCurve, split vertically into 2 panels
-    const hasDual = showAccumulationCurve;
-    const panelH = hasDual ? height / 2 : height;
-
-    // Panel 1: Integrand f(t)
-    const p1 = {
-      x: 45,
-      y: 15,
-      w: width - 60,
-      h: panelH - 35,
-    };
-
-    const toScreen1 = (t: number, y: number) => {
-      const sx = p1.x + ((t - config.tMin) / (config.tMax - config.tMin)) * p1.w;
-      const sy = p1.y + p1.h - ((y - config.yMin) / (config.yMax - config.yMin)) * p1.h;
-      return { x: sx, y: sy };
-    };
-
-    // Draw Grid & Axes for Panel 1
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth = 1;
-    const zeroY1 = toScreen1(0, 0).y;
-
-    // Zero axis line
-    ctx.beginPath();
-    ctx.moveTo(p1.x, zeroY1);
-    ctx.lineTo(p1.x + p1.w, zeroY1);
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Riemann rectangles under f(t) from a to x
-    const N = Math.max(1, rectanglesN);
-    const dt = (upperBoundX - lowerBoundA) / N;
-
-    if (riemannMethod !== 'exact' && dt > 0) {
-      for (let i = 0; i < N; i++) {
-        const tLeft = lowerBoundA + i * dt;
-        const tRight = tLeft + dt;
-        let sampleT = (tLeft + tRight) / 2;
-        if (riemannMethod === 'left') sampleT = tLeft;
-        if (riemannMethod === 'right') sampleT = tRight;
-
-        const val = config.f(sampleT);
-        const pTL = toScreen1(tLeft, Math.max(0, val));
-        const pBR = toScreen1(tRight, Math.min(0, val));
-        const rectW = Math.max(1, pBR.x - pTL.x);
-        const rectH = Math.abs(toScreen1(sampleT, val).y - zeroY1);
-
-        const isPositive = val >= 0;
-        ctx.fillStyle = isPositive ? 'rgba(56, 189, 248, 0.28)' : 'rgba(239, 68, 68, 0.28)';
-        ctx.strokeStyle = isPositive ? '#38bdf8' : '#ef4444';
-        ctx.lineWidth = 1;
-
-        if (isPositive) {
-          ctx.fillRect(pTL.x, pTL.y, rectW, rectH);
-          ctx.strokeRect(pTL.x, pTL.y, rectW, rectH);
-        } else {
-          ctx.fillRect(pTL.x, zeroY1, rectW, rectH);
-          ctx.strokeRect(pTL.x, zeroY1, rectW, rectH);
-        }
+    const render = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
       }
-    } else {
-      // Smooth shaded area from a to x
-      ctx.beginPath();
-      const startPt = toScreen1(lowerBoundA, 0);
-      ctx.moveTo(startPt.x, startPt.y);
+      ctx.save();
+      ctx.scale(dpr, dpr);
 
-      const steps = 60;
-      for (let s = 0; s <= steps; s++) {
-        const t = lowerBoundA + (s / steps) * (upperBoundX - lowerBoundA);
-        const pt = toScreen1(t, config.f(t));
-        ctx.lineTo(pt.x, pt.y);
-      }
-      const endPt = toScreen1(upperBoundX, 0);
-      ctx.lineTo(endPt.x, endPt.y);
-      ctx.closePath();
+      // Clear background
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, width, height);
 
-      const grad = ctx.createLinearGradient(0, p1.y, 0, p1.y + p1.h);
-      grad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
-      grad.addColorStop(1, 'rgba(14, 165, 233, 0.05)');
-      ctx.fillStyle = grad;
-      ctx.fill();
-    }
+      // Layout: If showAccumulationCurve, split vertically into 2 panels
+      const hasDual = showAccumulationCurve;
+      const panelH = hasDual ? height / 2 : height;
 
-    // Curve f(t)
-    ctx.beginPath();
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2.5;
-    for (let px = 0; px <= p1.w; px += 2) {
-      const t = config.tMin + (px / p1.w) * (config.tMax - config.tMin);
-      const pt = toScreen1(t, config.f(t));
-      if (px === 0) ctx.moveTo(pt.x, pt.y);
-      else ctx.lineTo(pt.x, pt.y);
-    }
-    ctx.stroke();
-
-    // Upper limit sweep vertical line at x
-    const sweepTop = toScreen1(upperBoundX, config.yMax).y;
-    const sweepBot = toScreen1(upperBoundX, config.yMin).y;
-    const sweepX = toScreen1(upperBoundX, 0).x;
-
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(sweepX, sweepTop);
-    ctx.lineTo(sweepX, sweepBot);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Curve point (x, f(x))
-    const currPt1 = toScreen1(upperBoundX, currentHeight_fx);
-    const isSweepActive = isDraggingSweep || isHoveringSweep;
-    ctx.fillStyle = isSweepActive ? '#38bdf8' : '#f59e0b';
-    ctx.beginPath();
-    ctx.arc(currPt1.x, currPt1.y, isSweepActive ? 8 : 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    ctx.strokeStyle = isSweepActive ? 'rgba(56, 189, 248, 0.5)' : 'rgba(245, 158, 11, 0.4)';
-    ctx.lineWidth = isSweepActive ? 6 : 3;
-    ctx.beginPath();
-    ctx.arc(currPt1.x, currPt1.y, isSweepActive ? 15 : 11, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Top Label
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px monospace';
-    ctx.fillText(`Integrand f(t) | Height f(x) = ${currentHeight_fx.toFixed(2)}`, p1.x + 4, p1.y + 12);
-
-    // Panel 2: Accumulator Function A(x) = ∫_a^x f(t) dt
-    if (hasDual) {
-      const p2 = {
+      // Panel 1: Integrand f(t)
+      const p1 = {
         x: 45,
-        y: panelH + 15,
+        y: 15,
         w: width - 60,
         h: panelH - 35,
       };
 
-      // Find max A(x) across interval to auto-scale
-      let maxA = 1;
-      let minA = 0;
-      for (let s = 0; s <= 40; s++) {
-        const t = config.tMin + (s / 40) * (config.tMax - config.tMin);
-        const valA = config.F(t) - config.F(lowerBoundA);
-        if (valA > maxA) maxA = valA;
-        if (valA < minA) minA = valA;
-      }
-      maxA *= 1.15;
-      minA = Math.min(-0.5, minA * 1.15);
-
-      const toScreen2 = (t: number, y: number) => {
-        const sx = p2.x + ((t - config.tMin) / (config.tMax - config.tMin)) * p2.w;
-        const sy = p2.y + p2.h - ((y - minA) / (maxA - minA)) * p2.h;
+      const toScreen1 = (t: number, y: number) => {
+        const sx = p1.x + ((t - config.tMin) / (config.tMax - config.tMin)) * p1.w;
+        const sy = p1.y + p1.h - ((y - config.yMin) / (config.yMax - config.yMin)) * p1.h;
         return { x: sx, y: sy };
       };
 
-      // Axis for Panel 2
-      const zeroY2 = toScreen2(0, 0).y;
+      // Draw Grid & Axes for Panel 1
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      const zeroY1 = toScreen1(0, 0).y;
+
+      // Zero axis line
+      ctx.beginPath();
+      ctx.moveTo(p1.x, zeroY1);
+      ctx.lineTo(p1.x + p1.w, zeroY1);
       ctx.strokeStyle = '#475569';
       ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(p2.x, zeroY2);
-      ctx.lineTo(p2.x + p2.w, zeroY2);
       ctx.stroke();
 
-      // Plot A(t) curve
+      // Riemann rectangles under f(t) from a to x
+      const N = Math.max(1, rectanglesN);
+      const dt = (upperBoundX - lowerBoundA) / N;
+
+      if (riemannMethod !== 'exact' && dt > 0) {
+        for (let i = 0; i < N; i++) {
+          const tLeft = lowerBoundA + i * dt;
+          const tRight = tLeft + dt;
+          let sampleT = (tLeft + tRight) / 2;
+          if (riemannMethod === 'left') sampleT = tLeft;
+          if (riemannMethod === 'right') sampleT = tRight;
+
+          const val = config.f(sampleT);
+          const pTL = toScreen1(tLeft, Math.max(0, val));
+          const pBR = toScreen1(tRight, Math.min(0, val));
+          const rectW = Math.max(1, pBR.x - pTL.x);
+          const rectH = Math.abs(toScreen1(sampleT, val).y - zeroY1);
+
+          const isPositive = val >= 0;
+          ctx.fillStyle = isPositive ? 'rgba(56, 189, 248, 0.28)' : 'rgba(239, 68, 68, 0.28)';
+          ctx.strokeStyle = isPositive ? '#38bdf8' : '#ef4444';
+          ctx.lineWidth = 1;
+
+          if (isPositive) {
+            ctx.fillRect(pTL.x, pTL.y, rectW, rectH);
+            ctx.strokeRect(pTL.x, pTL.y, rectW, rectH);
+          } else {
+            ctx.fillRect(pTL.x, zeroY1, rectW, rectH);
+            ctx.strokeRect(pTL.x, zeroY1, rectW, rectH);
+          }
+        }
+      } else {
+        // Smooth shaded area from a to x
+        ctx.beginPath();
+        const startPt = toScreen1(lowerBoundA, 0);
+        ctx.moveTo(startPt.x, startPt.y);
+
+        const steps = 60;
+        for (let s = 0; s <= steps; s++) {
+          const t = lowerBoundA + (s / steps) * (upperBoundX - lowerBoundA);
+          const pt = toScreen1(t, config.f(t));
+          ctx.lineTo(pt.x, pt.y);
+        }
+        const endPt = toScreen1(upperBoundX, 0);
+        ctx.lineTo(endPt.x, endPt.y);
+        ctx.closePath();
+
+        const grad = ctx.createLinearGradient(0, p1.y, 0, p1.y + p1.h);
+        grad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+        grad.addColorStop(1, 'rgba(14, 165, 233, 0.04)');
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      // Priority 8: Floating Velocity Particles & Calculus Flux Streams
+      fluxEngineRef.current.updateAndDraw(
+        ctx,
+        lowerBoundA,
+        upperBoundX,
+        config.f,
+        toScreen1,
+        {
+          isSweeping: isDraggingSweep,
+          particleColor: '#38bdf8',
+        }
+      );
+
+      // Curve f(t) with glowing neon laser stroke
       ctx.beginPath();
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 2.5;
-      for (let px = 0; px <= p2.w; px += 2) {
-        const t = config.tMin + (px / p2.w) * (config.tMax - config.tMin);
-        const valA = config.F(t) - config.F(lowerBoundA);
-        const pt = toScreen2(t, valA);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.shadowColor = '#0284c7';
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = 2.8;
+      for (let px = 0; px <= p1.w; px += 2) {
+        const t = config.tMin + (px / p1.w) * (config.tMax - config.tMin);
+        const pt = toScreen1(t, config.f(t));
         if (px === 0) ctx.moveTo(pt.x, pt.y);
         else ctx.lineTo(pt.x, pt.y);
       }
       ctx.stroke();
+      ctx.shadowBlur = 0;
 
-      // Tangent line on A(x) at point (x, A(x)) with slope m = f(x)
-      const currPt2 = toScreen2(upperBoundX, exactIntegral);
+      // Upper limit sweep vertical line at x with neon bloom
+      const sweepTop = toScreen1(upperBoundX, config.yMax).y;
+      const sweepBot = toScreen1(upperBoundX, config.yMin).y;
+      const sweepX = toScreen1(upperBoundX, 0).x;
+      const isSweepActive = isDraggingSweep || isHoveringSweep;
 
-      if (showTangentSlopeAtX) {
-        const slope = currentHeight_fx;
-        // Tangent segment: deltaX = 0.4
-        const dx = 0.5;
-        const ptLeft = toScreen2(upperBoundX - dx, exactIntegral - slope * dx);
-        const ptRight = toScreen2(upperBoundX + dx, exactIntegral + slope * dx);
+      drawNeonLine(ctx, sweepX, sweepTop, sweepX, sweepBot, {
+        color: isSweepActive ? '#38bdf8' : '#f59e0b',
+        glowColor: isSweepActive ? '#0284c7' : '#fbbf24',
+        width: isSweepActive ? 2.5 : 2.0,
+        glowBlur: 10,
+        glowLayers: 2,
+        dash: [4, 4],
+      });
 
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(ptLeft.x, ptLeft.y);
-        ctx.lineTo(ptRight.x, ptRight.y);
-        ctx.stroke();
-
-        // Tangent slope badge
-        ctx.fillStyle = '#10b981';
-        ctx.font = 'bold 11px monospace';
-        ctx.fillText(`Slope A'(x) = ${slope.toFixed(2)} (locks onto f(x)!)`, currPt2.x + 8, currPt2.y - 8);
-      }
-
-      // Point (x, A(x))
-      ctx.fillStyle = '#a855f7';
+      // Curve point (x, f(x)) with photon halo
+      const currPt1 = toScreen1(upperBoundX, currentHeight_fx);
+      ctx.fillStyle = isSweepActive ? '#38bdf8' : '#f59e0b';
+      ctx.shadowColor = isSweepActive ? '#38bdf8' : '#f59e0b';
+      ctx.shadowBlur = 12;
       ctx.beginPath();
-      ctx.arc(currPt2.x, currPt2.y, 6, 0, Math.PI * 2);
+      ctx.arc(currPt1.x, currPt1.y, isSweepActive ? 8 : 6, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Panel 2 Label
-      ctx.fillStyle = '#c084fc';
+      ctx.strokeStyle = isSweepActive ? 'rgba(56, 189, 248, 0.5)' : 'rgba(245, 158, 11, 0.4)';
+      ctx.lineWidth = isSweepActive ? 6 : 3;
+      ctx.beginPath();
+      ctx.arc(currPt1.x, currPt1.y, isSweepActive ? 15 : 11, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Top Label
+      ctx.fillStyle = '#94a3b8';
       ctx.font = '10px monospace';
-      ctx.fillText(`Accumulated Area A(x) = ∫ f dt = ${exactIntegral.toFixed(3)}`, p2.x + 4, p2.y + 12);
-    }
+      ctx.fillText(`Integrand f(t) | Height f(x) = ${currentHeight_fx.toFixed(2)}`, p1.x + 4, p1.y + 12);
+
+      // Panel 2: Accumulator Function A(x) = ∫_a^x f(t) dt
+      if (hasDual) {
+        const p2 = {
+          x: 45,
+          y: panelH + 15,
+          w: width - 60,
+          h: panelH - 35,
+        };
+
+        // Find max A(x) across interval to auto-scale
+        let maxA = 1;
+        let minA = 0;
+        for (let s = 0; s <= 40; s++) {
+          const t = config.tMin + (s / 40) * (config.tMax - config.tMin);
+          const valA = config.F(t) - config.F(lowerBoundA);
+          if (valA > maxA) maxA = valA;
+          if (valA < minA) minA = valA;
+        }
+        maxA *= 1.15;
+        minA = Math.min(-0.5, minA * 1.15);
+
+        const toScreen2 = (t: number, y: number) => {
+          const sx = p2.x + ((t - config.tMin) / (config.tMax - config.tMin)) * p2.w;
+          const sy = p2.y + p2.h - ((y - minA) / (maxA - minA)) * p2.h;
+          return { x: sx, y: sy };
+        };
+
+        // Axis for Panel 2
+        const zeroY2 = toScreen2(0, 0).y;
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(p2.x, zeroY2);
+        ctx.lineTo(p2.x + p2.w, zeroY2);
+        ctx.stroke();
+
+        // Plot A(t) curve with purple neon glow
+        ctx.beginPath();
+        ctx.strokeStyle = '#c084fc';
+        ctx.shadowColor = '#a855f7';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2.8;
+        for (let px = 0; px <= p2.w; px += 2) {
+          const t = config.tMin + (px / p2.w) * (config.tMax - config.tMin);
+          const valA = config.F(t) - config.F(lowerBoundA);
+          const pt = toScreen2(t, valA);
+          if (px === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Tangent line on A(x) at point (x, A(x)) with slope m = f(x)
+        const currPt2 = toScreen2(upperBoundX, exactIntegral);
+
+        if (showTangentSlopeAtX) {
+          const slope = currentHeight_fx;
+          const dx = 0.5;
+          const ptLeft = toScreen2(upperBoundX - dx, exactIntegral - slope * dx);
+          const ptRight = toScreen2(upperBoundX + dx, exactIntegral + slope * dx);
+
+          // Priority 1: High-intensity emerald laser tangent
+          drawNeonLine(ctx, ptLeft.x, ptLeft.y, ptRight.x, ptRight.y, {
+            color: '#10b981',
+            glowColor: '#34d399',
+            width: 3.2,
+            glowBlur: 14,
+            glowLayers: 2,
+            coreIntensity: 0.85,
+          });
+
+          // Tangent slope badge
+          ctx.fillStyle = '#10b981';
+          ctx.font = 'bold 11px monospace';
+          ctx.fillText(`Slope A'(x) = ${slope.toFixed(2)} (locks onto f(x)!)`, currPt2.x + 8, currPt2.y - 8);
+        }
+
+        // Point (x, A(x))
+        ctx.fillStyle = '#a855f7';
+        ctx.shadowColor = '#a855f7';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(currPt2.x, currPt2.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Panel 2 Label
+        ctx.fillStyle = '#c084fc';
+        ctx.font = '10px monospace';
+        ctx.fillText(`Accumulated Area A(x) = ∫ f dt = ${exactIntegral.toFixed(3)}`, p2.x + 4, p2.y + 12);
+      }
+
+      ctx.restore();
+      animId = requestAnimationFrame(render);
+    };
+
+    animId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(animId);
   }, [
     functionType,
     lowerBoundA,
@@ -468,6 +523,10 @@ export const FTCIntegralSimulator: React.FC = () => {
       updateFTCIntegralParams({ upperBoundX: boundedT });
       lightTap();
       playClick(1.2);
+
+      // Continuous pitch audio: frequency maps directly to current integrand height f(x)
+      const normH = Math.max(0, Math.min(1, (config.f(boundedT) - config.yMin) / (config.yMax - config.yMin)));
+      startContinuousTone(220 + normH * 500, 0.025);
     }
   };
 
@@ -484,6 +543,8 @@ export const FTCIntegralSimulator: React.FC = () => {
     if (isDraggingSweep) {
       const mathT = config.tMin + ((sx - p1.x) / p1.w) * (config.tMax - config.tMin);
       const boundedT = Math.max(lowerBoundA, Math.min(config.tMax, Number(mathT.toFixed(2))));
+      const normH = Math.max(0, Math.min(1, (config.f(boundedT) - config.yMin) / (config.yMax - config.yMin)));
+      setContinuousToneFreq(220 + normH * 500);
       updateFTCIntegralParams({ upperBoundX: boundedT });
       return;
     }
@@ -497,6 +558,7 @@ export const FTCIntegralSimulator: React.FC = () => {
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    stopContinuousTone();
     if (isDraggingSweep) {
       setIsDraggingSweep(false);
       try {

@@ -3,6 +3,12 @@ import { Sparkles, Calculator, ArrowRight } from 'lucide-react';
 import { BlockMath } from './MathFormula';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 
+export interface ColorBreathingLegend {
+  label: string;
+  color: string;
+  symbol: string;
+}
+
 export interface LiveSubstitutionCardProps {
   title: string;
   badge?: string;
@@ -17,6 +23,8 @@ export interface LiveSubstitutionCardProps {
   accentColor?: string;
   compact?: boolean;
   className?: string;
+  /** 3Blue1Brown Color-Breathing Legends */
+  legendItems?: ColorBreathingLegend[];
 }
 
 export const LiveSubstitutionCard: React.FC<LiveSubstitutionCardProps> = ({
@@ -29,14 +37,19 @@ export const LiveSubstitutionCard: React.FC<LiveSubstitutionCardProps> = ({
   accentColor = 'cyan',
   compact: compactProp,
   className = '',
+  legendItems,
 }) => {
   const { isCompactControlsMode } = useSimulatorStore();
   const compact = compactProp !== undefined ? compactProp : isCompactControlsMode;
+  const isBreathing = Boolean(activeTerm);
+
   return (
     <div
-      className={`rounded-2xl bg-slate-900/90 border border-slate-800 shadow-sm select-all ${
-        compact ? 'p-2 space-y-1' : 'p-3 space-y-2'
-      } ${className}`}
+      className={`rounded-2xl bg-slate-900/90 border transition-all duration-300 shadow-sm select-all ${
+        isBreathing
+          ? 'border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/20'
+          : 'border-slate-800'
+      } ${compact ? 'p-2 space-y-1' : 'p-3 space-y-2'} ${className}`}
     >
       {/* Header */}
       <div className={`flex items-center justify-between border-b border-slate-800/80 ${compact ? 'pb-1' : 'pb-1.5'}`}>
@@ -60,46 +73,68 @@ export const LiveSubstitutionCard: React.FC<LiveSubstitutionCardProps> = ({
       </div>
 
       {/* 3-Tier Live Progression: Symbolic Law -> Active Substitution -> Evaluated Result */}
-      <div className={`grid ${compact ? 'grid-cols-2 sm:grid-cols-3 gap-1' : 'grid-cols-1 md:grid-cols-3 gap-1.5'} items-center`}>
+      <div className="flex flex-col gap-1.5 w-full">
         {/* Tier 1: General Symbolic Invariant */}
-        <div className={`rounded-xl bg-slate-950/80 border border-slate-800/80 text-center flex flex-col justify-center ${
-          compact ? 'p-1.5 min-h-[36px]' : 'p-2 min-h-[48px]'
-        }`}>
-          <span className={`uppercase font-bold text-slate-400 tracking-wider ${compact ? 'text-[8px] mb-0' : 'text-[9px] mb-0.5'}`}>
+        <div className="rounded-xl bg-slate-950/80 border border-slate-800/80 p-2 flex flex-col justify-center">
+          <span className="uppercase font-bold text-slate-400 tracking-wider text-[9px] mb-0.5 text-center">
             1. Symbolic Law
           </span>
-          <div className="overflow-hidden">
-            <BlockMath math={symbolicLaw} className={`!my-0 text-slate-200 ${compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'}`} />
+          <div className="overflow-x-auto no-scrollbar py-0.5 text-center">
+            <BlockMath math={symbolicLaw} className="!my-0 text-slate-100 text-xs sm:text-sm font-semibold" />
           </div>
         </div>
 
         {/* Tier 2: Live Substitution */}
-        <div className={`rounded-xl bg-slate-950/90 border border-cyan-900/40 text-center flex flex-col justify-center relative group ${
-          compact ? 'p-1.5 min-h-[36px]' : 'p-2 min-h-[48px]'
-        }`}>
-          <span className={`uppercase font-bold text-cyan-400 tracking-wider flex items-center justify-center gap-1 ${compact ? 'text-[8px] mb-0' : 'text-[9px] mb-0.5'}`}>
+        <div className="rounded-xl bg-slate-950/90 border border-cyan-900/60 p-2 flex flex-col justify-center relative group">
+          <span className="uppercase font-bold text-cyan-400 tracking-wider flex items-center justify-center gap-1 text-[9px] mb-0.5 text-center">
             <span>2. Live Substitution</span>
-            <ArrowRight className="w-2.5 h-2.5 text-cyan-500" />
+            <ArrowRight className="w-2.5 h-2.5 text-cyan-400" />
           </span>
-          <div className="overflow-hidden">
-            <BlockMath math={substitutedLatex} className={`!my-0 text-cyan-300 font-semibold ${compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'}`} />
+          <div className="overflow-x-auto no-scrollbar py-0.5 text-center">
+            <BlockMath math={substitutedLatex} className="!my-0 text-cyan-200 text-xs sm:text-sm font-bold" />
           </div>
         </div>
 
         {/* Tier 3: Evaluated Result */}
         {evaluatedLatex && (
-          <div className={`rounded-xl bg-emerald-950/30 border border-emerald-800/40 text-center flex flex-col justify-center ${
-            compact ? 'col-span-2 sm:col-span-1 p-1.5 min-h-[36px]' : 'p-2 min-h-[48px]'
-          }`}>
-            <span className={`uppercase font-bold text-emerald-400 tracking-wider ${compact ? 'text-[8px] mb-0' : 'text-[9px] mb-0.5'}`}>
+          <div className="rounded-xl bg-emerald-950/40 border border-emerald-700/60 p-2 flex flex-col justify-center">
+            <span className="uppercase font-bold text-emerald-400 tracking-wider text-[9px] mb-0.5 text-center">
               3. Evaluated Result
             </span>
-            <div className="overflow-hidden">
-              <BlockMath math={evaluatedLatex} className={`!my-0 text-emerald-300 font-bold ${compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'}`} />
+            <div className="overflow-x-auto no-scrollbar py-0.5 text-center">
+              <BlockMath math={evaluatedLatex} className="!my-0 text-emerald-200 text-xs sm:text-sm md:text-base font-extrabold" />
             </div>
           </div>
         )}
       </div>
+
+      {/* 3Blue1Brown Color Breathing Legend Ribbon */}
+      {legendItems && legendItems.length > 0 && (
+        <div className="pt-1.5 border-t border-slate-800/60 flex flex-wrap items-center justify-center gap-1.5">
+          <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider mr-1">
+            Visual Guide:
+          </span>
+          {legendItems.map((item, idx) => (
+            <div
+              key={idx}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-950 border border-slate-800 text-[10px] font-mono text-slate-300 shadow-sm"
+              style={{
+                borderColor: `${item.color}40`,
+              }}
+            >
+              <span
+                className="w-2 h-2 rounded-full inline-block animate-pulse"
+                style={{
+                  backgroundColor: item.color,
+                  boxShadow: `0 0 8px ${item.color}`,
+                }}
+              />
+              <span className="font-semibold text-white">{item.symbol}</span>
+              <span className="text-slate-400 text-[9px]">({item.label})</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

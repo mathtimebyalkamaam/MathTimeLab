@@ -38,6 +38,7 @@ import { usePerformanceMode } from '../../hooks/usePerformanceMode';
 import { MathErrorBoundary } from '../common/MathErrorBoundary';
 import { XPBar } from '../common/XPBar';
 import { BadgeUnlockedToast } from '../common/BadgeUnlockedToast';
+import { EurekaToast } from '../common/EurekaToast';
 import { useProgressStore, getCurrentRank } from '../../store/useProgressStore';
 import { ClassCodeInput } from '../common/ClassCodeInput';
 import { useClassStore } from '../../store/useClassStore';
@@ -120,6 +121,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     completedSimulators,
     isZenMode,
     toggleZenMode,
+    resetParams,
     bottomSheetSnap,
     setBottomSheetSnap,
     activeSheetTab,
@@ -197,6 +199,29 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     };
   }, []);
 
+  // Priority 10: Cinema Fullscreen keyboard [Esc] and API synchronization
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isZenMode) {
+        toggleZenMode();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isZenMode) {
+        toggleZenMode();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isZenMode, toggleZenMode]);
+
   const navItems: { id: 'home' | SimulatorId; label: string; icon: LucideIcon }[] = [
     { id: 'home', label: 'Explore', icon: Compass },
     { id: 'drone-navigator', label: 'Class 9', icon: Navigation },
@@ -209,17 +234,73 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className={`min-h-screen ${isSimulator ? 'h-screen h-[100dvh] overflow-hidden' : ''} bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-cyan-500 selection:text-white`}>
-      {/* Floating Zen Mode Exit Pill (When UI chrome is hidden) */}
+      {/* Priority 10: Cinema / Theater Mode Glassmorphic Cockpit Island */}
       {isZenMode && (
-        <button
-          type="button"
-          onClick={toggleZenMode}
-          className="fixed top-2.5 right-2.5 z-50 px-3 py-1 rounded-full bg-slate-900/90 backdrop-blur-md border border-slate-700 text-cyan-300 text-[11px] font-semibold flex items-center gap-1.5 shadow-xl active:scale-95 transition-transform cursor-pointer"
-          title="Exit Full-Screen Zen Mode"
-        >
-          <Minimize2 className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Exit Zen</span>
-        </button>
+        <>
+          {/* Ambient Dark Theater Edge Vignette */}
+          <div className="pointer-events-none fixed inset-0 z-40 shadow-[inset_0_0_120px_rgba(0,0,0,0.85)]" />
+
+          {/* Floating Glassmorphic Cinema Island */}
+          <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-cyan-500/40 shadow-[0_10px_35px_rgba(0,0,0,0.6)] select-none">
+            {/* Cinema Title & Status */}
+            <div className="flex items-center gap-1.5 pr-2 border-r border-slate-700/60">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#38bdf8]" />
+              <span className="text-[11px] font-mono font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-cyan-400" />
+                Cinema Mode
+              </span>
+            </div>
+
+            {/* Simulator Title */}
+            <span className="text-xs font-semibold text-slate-200 hidden sm:inline max-w-[200px] truncate">
+              {SIMULATOR_TITLES[currentRoute] || 'Math Simulator'}
+            </span>
+
+            {/* Audio Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                lightTap();
+                toggleMute();
+              }}
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+            >
+              {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
+            </button>
+
+            {/* Reset Simulator State */}
+            {isSimulator && (
+              <button
+                type="button"
+                onClick={() => {
+                  lightTap();
+                  playClick();
+                  resetParams(currentRoute as SimulatorId);
+                }}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                title="Reset Simulator Parameters"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+              </button>
+            )}
+
+            {/* Exit Cinema Mode Button */}
+            <button
+              type="button"
+              onClick={() => {
+                lightTap();
+                toggleZenMode();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-200 text-xs font-bold transition shadow-sm cursor-pointer ml-1 active:scale-95"
+              title="Exit Cinema Mode [Esc]"
+            >
+              <Minimize2 className="w-3.5 h-3.5" />
+              <span>Exit</span>
+              <kbd className="hidden md:inline px-1 py-0.2 rounded bg-slate-800 text-[9px] text-slate-400 border border-slate-700 ml-0.5">Esc</kbd>
+            </button>
+          </div>
+        </>
       )}
 
       {/* World-Class Unified Header - 100% Identical & Consistent Across All Pages */}
@@ -232,6 +313,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
       {/* Rare Achievement Unlocked Toast Banner */}
       <BadgeUnlockedToast />
+
+      {/* Priority 9: Micro-Celebration Eureka Discovery Toast */}
+      <EurekaToast />
 
       {/* Main Workspace Stage - On simulator screens: 3-column cockpit padding on desktop, 0 vertical scroll */}
       <main 

@@ -36,7 +36,15 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
-import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer, drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import { 
+  drawGripAffordance, 
+  checkMagneticSnap, 
+  GhostTrailBuffer, 
+  drawShadowDrops, 
+  CriticalEventFlareManager, 
+  drawMagnifierLoupe,
+  drawNeonLine 
+} from '../../utils/canvasFx';
 import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 import { InvariantLockBadge } from '../common/InvariantLockBadge';
 import { InlineMath } from '../common/MathFormula';
@@ -67,7 +75,14 @@ export const LimitsDerivativesSimulator: React.FC = () => {
   } = limitsDerivativesParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime, playPitchTone } = useSound();
+  const { 
+    playClick, 
+    playChime, 
+    playPitchTone, 
+    startContinuousTone, 
+    setContinuousToneFreq, 
+    stopContinuousTone 
+  } = useSound();
   const { trackEvent } = useAnalytics();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -118,6 +133,13 @@ export const LimitsDerivativesSimulator: React.FC = () => {
   const fx0_plus_h = evaluateF(x0 + hStep);
   const secantSlope = (fx0_plus_h - fx0) / hStep;
   const tangentSlope = evaluateDerivative(x0);
+
+  // Stop continuous tones when component unmounts
+  useEffect(() => {
+    return () => {
+      stopContinuousTone();
+    };
+  }, [stopContinuousTone]);
 
   // Auto Limit h → 0 Animation
   useEffect(() => {
@@ -250,6 +272,8 @@ export const LimitsDerivativesSimulator: React.FC = () => {
 
       // Draw Function Curve f(x)
       ctx.strokeStyle = '#38bdf8';
+      ctx.shadowColor = 'rgba(56, 189, 248, 0.45)';
+      ctx.shadowBlur = 8;
       ctx.lineWidth = 3;
       ctx.beginPath();
       let first = true;
@@ -266,6 +290,7 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         }
       }
       ctx.stroke();
+      ctx.shadowBlur = 0;
 
       // Points P(x0, f(x0)) and Q(x0+h, f(x0+h))
       const pScreen = toScreen(x0, fx0);
@@ -290,7 +315,7 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         });
       }
 
-      // Secant Line PQ (amber)
+      // Secant Line PQ (amber neon bloom)
       if (showSecantLine) {
         const secantX1 = x0 - 4;
         const secantY1 = fx0 + secantSlope * (secantX1 - x0);
@@ -299,12 +324,14 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         const s1 = toScreen(secantX1, secantY1);
         const s2 = toScreen(secantX2, secantY2);
 
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(s1.sx, s1.sy);
-        ctx.lineTo(s2.sx, s2.sy);
-        ctx.stroke();
+        drawNeonLine(ctx, s1.sx, s1.sy, s2.sx, s2.sy, {
+          color: '#f59e0b',
+          glowColor: '#fbbf24',
+          width: 2.5,
+          glowBlur: 10,
+          glowLayers: 2,
+          coreIntensity: 0.7,
+        });
 
         // Secant Slope Triangle (Δx and Δy)
         ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
@@ -318,7 +345,7 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         ctx.setLineDash([]);
       }
 
-      // True Tangent Line (emerald)
+      // True Tangent Line (emerald neon laser)
       if (showTangentLine) {
         const tanX1 = x0 - 4;
         const tanY1 = fx0 + tangentSlope * (tanX1 - x0);
@@ -327,14 +354,15 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         const t1 = toScreen(tanX1, tanY1);
         const t2 = toScreen(tanX2, tanY2);
 
-        ctx.strokeStyle = '#34d399';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 3]);
-        ctx.beginPath();
-        ctx.moveTo(t1.sx, t1.sy);
-        ctx.lineTo(t2.sx, t2.sy);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        drawNeonLine(ctx, t1.sx, t1.sy, t2.sx, t2.sy, {
+          color: '#10b981',
+          glowColor: '#34d399',
+          width: 2.2,
+          glowBlur: 12,
+          glowLayers: 2,
+          coreIntensity: 0.8,
+          dash: [6, 4],
+        });
       }
 
       // Point 6: Component Shadow Drops from Point P onto Cartesian Axes
@@ -365,15 +393,63 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         radius: 8,
       });
 
-      // Point 11: Microscope Loupe / Precision Magnifier Lens
+      // Priority 5: Microscope Loupe / Precision Local Linearity Lens
       if (showLoupe) {
-        const lensX = Math.max(70, Math.min(width - 70, pScreen.sx + (pScreen.sx < width / 2 ? 85 : -85)));
-        const lensY = Math.max(70, Math.min(height - 70, pScreen.sy + (pScreen.sy < height / 2 ? 85 : -85)));
+        const lensX = Math.max(75, Math.min(width - 75, pScreen.sx + (pScreen.sx < width / 2 ? 95 : -95)));
+        const lensY = Math.max(75, Math.min(height - 75, pScreen.sy + (pScreen.sy < height / 2 ? 90 : -90)));
         drawMagnifierLoupe(ctx, canvas, pScreen.sx, pScreen.sy, lensX, lensY, {
-          zoomFactor: 3.0,
-          radius: 54,
+          zoomFactor: 5.0,
+          radius: 58,
           borderColor: '#38bdf8',
-          label: `3.0x f'(${x0.toFixed(2)}) ≈ ${secantSlope.toFixed(2)}`,
+          label: `5.0x LOCAL LINEARITY m=${tangentSlope.toFixed(2)}`,
+          renderContent: (clipCtx, cx, cy, _r) => {
+            const localZoom = scale * 4.5;
+            const toLoupe = (lx: number, ly: number) => ({
+              sx: cx + (lx - x0) * localZoom,
+              sy: cy - (ly - fx0) * localZoom,
+            });
+
+            // Local zoomed curve: demonstrates curve flattening to a straight line
+            clipCtx.strokeStyle = '#38bdf8';
+            clipCtx.lineWidth = 3;
+            clipCtx.beginPath();
+            let firstPt = true;
+            for (let dx = -0.7; dx <= 0.7; dx += 0.01) {
+              const lx = x0 + dx;
+              const ly = evaluateF(lx);
+              const pt = toLoupe(lx, ly);
+              if (firstPt) {
+                clipCtx.moveTo(pt.sx, pt.sy);
+                firstPt = false;
+              } else {
+                clipCtx.lineTo(pt.sx, pt.sy);
+              }
+            }
+            clipCtx.stroke();
+
+            // Local Tangent Line
+            if (showTangentLine) {
+              clipCtx.strokeStyle = '#34d399';
+              clipCtx.lineWidth = 2;
+              clipCtx.setLineDash([4, 3]);
+              clipCtx.beginPath();
+              const pt1 = toLoupe(x0 - 0.7, fx0 + tangentSlope * -0.7);
+              const pt2 = toLoupe(x0 + 0.7, fx0 + tangentSlope * 0.7);
+              clipCtx.moveTo(pt1.sx, pt1.sy);
+              clipCtx.lineTo(pt2.sx, pt2.sy);
+              clipCtx.stroke();
+              clipCtx.setLineDash([]);
+            }
+
+            // Central P dot inside loupe
+            clipCtx.fillStyle = '#ffffff';
+            clipCtx.beginPath();
+            clipCtx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+            clipCtx.fill();
+            clipCtx.strokeStyle = '#38bdf8';
+            clipCtx.lineWidth = 1.5;
+            clipCtx.stroke();
+          },
         });
       }
 
@@ -437,11 +513,14 @@ export const LimitsDerivativesSimulator: React.FC = () => {
       setDragPoint('P');
       lightTap();
       playClick(1.2);
+      startContinuousTone(330, 0.025);
     } else if (distQ < 28) {
       e.currentTarget.setPointerCapture(e.pointerId);
       setDragPoint('Q');
       lightTap();
       playClick(1.2);
+      const closeness = Math.max(0, Math.min(1, 1 - hStep / 3.0));
+      startContinuousTone(220 + closeness * 660, 0.03);
     }
   };
 
@@ -466,6 +545,9 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         lightTap();
         playClick(1.4);
       });
+      // Priority 6: Continuous pitch modulation based on position
+      const normX = Math.max(0, Math.min(1, (snapped.value + 4) / 8));
+      setContinuousToneFreq(220 + normX * 440);
       updateLimitsDerivativesParams({ x0: snapped.value });
       return;
     }
@@ -477,6 +559,9 @@ export const LimitsDerivativesSimulator: React.FC = () => {
         lightTap();
         playClick(1.5);
       });
+      // Priority 6: Continuous pitch modulation climbing higher as h approaches 0!
+      const closeness = Math.max(0, Math.min(1, 1 - snappedH.value / 3.0));
+      setContinuousToneFreq(220 + closeness * 660);
       updateLimitsDerivativesParams({ hStep: snappedH.value });
       return;
     }
@@ -502,6 +587,7 @@ export const LimitsDerivativesSimulator: React.FC = () => {
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    stopContinuousTone();
     if (dragPoint) {
       setDragPoint(null);
       try {

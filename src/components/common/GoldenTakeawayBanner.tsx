@@ -26,7 +26,7 @@ interface GoldenTakeawayBannerProps {
 
 export const GoldenTakeawayBanner: React.FC<GoldenTakeawayBannerProps> = ({ simulatorId }) => {
   const { isZenMode, openExamPYQModal } = useSimulatorStore();
-  const { lightTap, successNotification } = useHaptics();
+  const { lightTap, successBuzz } = useHaptics();
   const { playClick, playChime } = useSound();
 
   const [isExpanded, setIsExpanded] = useState(false);

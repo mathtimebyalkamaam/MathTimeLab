@@ -29,7 +29,7 @@ import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { ConceptInsightBanner } from '../common/ConceptInsightBanner';
 import { MistakeDoctor } from '../common/MistakeDoctor';
-import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer } from '../../utils/canvasFx';
+import { drawGripAffordance, checkMagneticSnap, GhostTrailBuffer, drawNeonLine } from '../../utils/canvasFx';
 import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 
 export const DroneNavigator: React.FC = () => {
@@ -428,36 +428,46 @@ export const DroneNavigator: React.FC = () => {
           sy: originScreen.sy + (droneScreen.sy - originScreen.sy) * progress,
         };
 
-        // Horizontal Leg Δx = |x₂ - x₁|
-        ctx.beginPath();
-        ctx.moveTo(originScreen.sx, originScreen.sy);
-        ctx.lineTo(cornerScreen.sx, cornerScreen.sy);
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
+        // Horizontal Leg Δx = |x₂ - x₁| (Electric Cyan Laser)
+        drawNeonLine(ctx, originScreen.sx, originScreen.sy, cornerScreen.sx, cornerScreen.sy, {
+          color: '#06b6d4',
+          glowColor: '#22d3ee',
+          width: 3,
+          glowBlur: 14,
+          coreIntensity: 0.85,
+        });
 
-        // Horizontal Leg Label
+        // Horizontal Leg Label with Glow
         if (Math.abs(droneX - originX) > 0.8) {
-          ctx.fillStyle = '#38bdf8';
+          ctx.save();
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#06b6d4';
+          ctx.fillStyle = '#bae6fd';
           ctx.font = 'bold 10px monospace';
           const midX = (originScreen.sx + cornerScreen.sx) / 2;
           ctx.fillText(`Δx = ${Math.abs(droneX - originX)}`, midX - 18, originScreen.sy + (droneY >= 0 ? 16 : -8));
+          ctx.restore();
         }
 
-        // Vertical Leg Δy = |y₂ - y₁|
-        ctx.beginPath();
-        ctx.moveTo(cornerScreen.sx, cornerScreen.sy);
-        ctx.lineTo(cornerScreen.sx, currentTip.sy);
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
+        // Vertical Leg Δy = |y₂ - y₁| (Emerald Green Laser)
+        drawNeonLine(ctx, cornerScreen.sx, cornerScreen.sy, cornerScreen.sx, currentTip.sy, {
+          color: '#10b981',
+          glowColor: '#34d399',
+          width: 3,
+          glowBlur: 14,
+          coreIntensity: 0.85,
+        });
 
-        // Vertical Leg Label
+        // Vertical Leg Label with Glow
         if (Math.abs(droneY - originY) > 0.8) {
-          ctx.fillStyle = '#10b981';
+          ctx.save();
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#10b981';
+          ctx.fillStyle = '#a7f3d0';
           ctx.font = 'bold 10px monospace';
           const midY = (cornerScreen.sy + currentTip.sy) / 2;
           ctx.fillText(`Δy = ${Math.abs(droneY - originY)}`, cornerScreen.sx + (droneX >= 0 ? 8 : -44), midY);
+          ctx.restore();
         }
 
         // Right-Angle Square Indicator
@@ -474,16 +484,14 @@ export const DroneNavigator: React.FC = () => {
           ctx.stroke();
         }
 
-        // Hypotenuse Vector (Origin to Drone)
-        ctx.beginPath();
-        ctx.moveTo(originScreen.sx, originScreen.sy);
-        ctx.lineTo(currentTip.sx, currentTip.sy);
-        ctx.strokeStyle = '#f43f5e';
-        ctx.lineWidth = 3;
-        ctx.shadowColor = '#f43f5e';
-        ctx.shadowBlur = 8;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        // Hypotenuse Direct Distance Vector (Luminous Amber / Rose Beam)
+        drawNeonLine(ctx, originScreen.sx, originScreen.sy, currentTip.sx, currentTip.sy, {
+          color: '#f59e0b',
+          glowColor: '#fbbf24',
+          width: 3.5,
+          glowBlur: 16,
+          coreIntensity: 0.9,
+        });
 
         // Hypotenuse Distance Label
         if (distanceFromOrigin > 0.8) {
@@ -869,12 +877,17 @@ export const DroneNavigator: React.FC = () => {
           {/* Point 1 & 5: 3-Tier Live KaTeX Substitution with Synchronized Active Term Glow */}
           <LiveSubstitutionCard
             compact={true}
-            title="Euclidean Distance Progression"
+            title="3Blue1Brown Distance Progression"
             badge="Pythagorean Metric"
-            symbolicLaw="d = \sqrt{(\Delta x)^2 + (\Delta y)^2}"
-            substitutedLatex={`d = \\sqrt{${Math.abs(targetX - originX)}^2 + ${Math.abs(targetY - originY)}^2}`}
-            evaluatedLatex={`d = ${Math.hypot(targetX - originX, targetY - originY).toFixed(2)} \\text{ u}`}
-            activeTerm={isDraggingDrone ? 'Target (Δx, Δy)' : undefined}
+            symbolicLaw="\color{#f59e0b}{d} = \sqrt{(\color{#06b6d4}{\Delta x})^2 + (\color{#10b981}{\Delta y})^2}"
+            substitutedLatex={`\\color{#f59e0b}{d} = \\sqrt{(\\color{#06b6d4}{${Math.abs(targetX - originX)}})^2 + (\\color{#10b981}{${Math.abs(targetY - originY)}})^2}`}
+            evaluatedLatex={`\\color{#f59e0b}{d} = \\mathbf{\\color{#ffffff}{${Math.hypot(targetX - originX, targetY - originY).toFixed(2)}}} \\text{ units}`}
+            activeTerm={isDraggingDrone ? 'Dragging Waypoint (Δx, Δy)' : undefined}
+            legendItems={[
+              { label: 'Direct Flight', color: '#f59e0b', symbol: 'd' },
+              { label: 'Horizontal Run', color: '#06b6d4', symbol: 'Δx' },
+              { label: 'Vertical Rise', color: '#10b981', symbol: 'Δy' },
+            ]}
           />
 
           <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-900/70 border border-slate-800 rounded-xl p-2">

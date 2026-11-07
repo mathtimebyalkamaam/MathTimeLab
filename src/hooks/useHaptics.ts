@@ -10,6 +10,7 @@ export interface HapticsAPI {
   mediumImpact: () => void;
   heavyImpact: () => void;
   successBuzz: () => void;
+  successNotification: () => void;
   errorBuzz: () => void;
   selectionTick: () => void;
   snapTick: () => void;
@@ -75,6 +76,7 @@ export const useHaptics = (): HapticsAPI => {
     mediumImpact,
     heavyImpact,
     successBuzz,
+    successNotification: successBuzz,
     errorBuzz,
     selectionTick,
     snapTick,

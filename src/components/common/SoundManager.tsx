@@ -18,6 +18,9 @@ export interface SoundContextType {
   playResonance: (pitchMultiplier?: number) => void;
   playHarmonicSnap: () => void;
   playPitchTone: (normalizedVal: number, minHz?: number, maxHz?: number) => void;
+  startContinuousTone: (freq?: number, maxGain?: number) => void;
+  setContinuousToneFreq: (freq: number) => void;
+  stopContinuousTone: () => void;
 }
 
 const SoundContext = createContext<SoundContextType | null>(null);
@@ -289,6 +292,55 @@ class WebAudioSynthesizer {
     osc.start();
     osc.stop(ctx.currentTime + 0.08);
   }
+
+  // Continuous pitch glide oscillator for real-time dragging (Priority 6)
+  private continuousOsc: OscillatorNode | null = null;
+  private continuousGain: GainNode | null = null;
+
+  public startContinuousTone(freq = 440, maxGain = 0.035) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    this.stopContinuousTone();
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(Math.max(60, Math.min(2400, freq)), ctx.currentTime);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(maxGain, ctx.currentTime + 0.04);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+
+    this.continuousOsc = osc;
+    this.continuousGain = gain;
+  }
+
+  public setContinuousToneFreq(freq: number) {
+    const ctx = this.getContext();
+    if (!ctx || !this.continuousOsc) return;
+    this.continuousOsc.frequency.setTargetAtTime(Math.max(60, Math.min(2400, freq)), ctx.currentTime, 0.02);
+  }
+
+  public stopContinuousTone() {
+    if (!this.continuousGain || !this.continuousOsc) return;
+    const ctx = this.getContext();
+    if (ctx) {
+      this.continuousGain.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
+      const osc = this.continuousOsc;
+      const gain = this.continuousGain;
+      setTimeout(() => {
+        try {
+          osc.stop();
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      }, 60);
+    }
+    this.continuousOsc = null;
+    this.continuousGain = null;
+  }
 }
 
 const synthInstance = new WebAudioSynthesizer();
@@ -369,6 +421,20 @@ export const SoundManager: React.FC<{ children?: React.ReactNode }> = ({ childre
     synthInstance.pitchTone(normalizedVal, minHz, maxHz);
   }, [isMuted]);
 
+  const startContinuousTone = useCallback((freq = 440, maxGain = 0.035) => {
+    if (isMuted) return;
+    synthInstance.startContinuousTone(freq, maxGain);
+  }, [isMuted]);
+
+  const setContinuousToneFreq = useCallback((freq: number) => {
+    if (isMuted) return;
+    synthInstance.setContinuousToneFreq(freq);
+  }, [isMuted]);
+
+  const stopContinuousTone = useCallback(() => {
+    synthInstance.stopContinuousTone();
+  }, []);
+
   return (
     <SoundContext.Provider
       value={{
@@ -383,6 +449,9 @@ export const SoundManager: React.FC<{ children?: React.ReactNode }> = ({ childre
         playResonance,
         playHarmonicSnap,
         playPitchTone,
+        startContinuousTone,
+        setContinuousToneFreq,
+        stopContinuousTone,
       }}
     >
       {children}
@@ -406,6 +475,9 @@ export const useSound = (): SoundContextType => {
       playResonance: () => {},
       playHarmonicSnap: () => {},
       playPitchTone: () => {},
+      startContinuousTone: () => {},
+      setContinuousToneFreq: () => {},
+      stopContinuousTone: () => {},
     };
   }
   return ctx;
@@ -439,5 +511,14 @@ export const soundEffects = {
   },
   pitchTone: (normalizedVal: number, minHz?: number, maxHz?: number) => {
     if (localStorage.getItem('livesimulators_muted') !== 'true') synthInstance.pitchTone(normalizedVal, minHz, maxHz);
+  },
+  startContinuousTone: (freq?: number, maxGain?: number) => {
+    if (localStorage.getItem('livesimulators_muted') !== 'true') synthInstance.startContinuousTone(freq, maxGain);
+  },
+  setContinuousToneFreq: (freq: number) => {
+    if (localStorage.getItem('livesimulators_muted') !== 'true') synthInstance.setContinuousToneFreq(freq);
+  },
+  stopContinuousTone: () => {
+    synthInstance.stopContinuousTone();
   },
 };

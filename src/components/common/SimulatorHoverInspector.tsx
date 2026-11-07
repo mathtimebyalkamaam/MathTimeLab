@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Crosshair, Eye, EyeOff, Sparkles, Compass, Lightbulb, X } from 'lucide-react';
 import { SimulatorId } from '../../types/simulators';
 import { getSimulatorGuide } from '../../data/simulatorStepsData';
-import { InlineMath } from './MathFormula';
+import { InlineMath, MathText } from './MathFormula';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from './SoundManager';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
@@ -106,8 +106,8 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
 
   // Clamped positioning for HUD card so it never overflows container edges
   const containerRect = containerRef.current?.getBoundingClientRect();
-  const cardWidth = 340;
-  const cardHeight = 165;
+  const cardWidth = 380;
+  const cardHeight = 195;
 
   let leftPos = relativePos.px + 24;
   let topPos = relativePos.py + 24;
@@ -191,7 +191,7 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
 
           {/* Floating High-Tech Glassmorphic Math HUD Card */}
           <div
-            className="absolute w-[330px] sm:w-[360px] bg-slate-900/98 backdrop-blur-2xl border border-cyan-400/60 rounded-2xl p-3.5 shadow-2xl space-y-2 text-sm animate-in fade-in zoom-in-95 duration-100 pointer-events-none select-none"
+            className="absolute w-[340px] sm:w-[380px] bg-slate-900/98 backdrop-blur-2xl border border-cyan-400/60 rounded-2xl p-3.5 shadow-2xl space-y-2 text-sm animate-in fade-in zoom-in-95 duration-100 pointer-events-none select-none"
             style={{ left: `${leftPos}px`, top: `${topPos}px` }}
           >
             {/* Header: Zone & Live Coordinate in Pure Math */}
@@ -206,23 +206,23 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
             </div>
 
             {/* Live Evaluated Metric Text in Pure KaTeX */}
-            <div className="px-2.5 py-1.5 rounded-xl bg-slate-950/90 border border-slate-800 text-sm font-semibold text-slate-100 flex items-center justify-between">
+            <div className="px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-800 text-sm sm:text-base font-semibold text-slate-100 flex items-center justify-between overflow-x-auto no-scrollbar">
               <InlineMath math={insight.valueLatex} />
             </div>
 
             {/* Formula Preview in Pure KaTeX */}
             {insight.formulaLatex && (
-              <div className="px-3 py-1.5 rounded-xl bg-cyan-950/50 border border-cyan-700/60 font-mono text-sm text-cyan-200 flex items-center justify-between">
+              <div className="px-3 py-1.5 rounded-xl bg-cyan-950/50 border border-cyan-700/60 font-mono text-xs sm:text-sm text-cyan-200 flex items-center justify-between overflow-x-auto no-scrollbar">
                 <InlineMath math={insight.formulaLatex} />
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 ml-2" />
               </div>
             )}
 
-            {/* Pedagogical Micro-Tip with pure math syntax */}
-            <div className="text-xs leading-relaxed text-slate-300 flex items-start gap-1.5 pt-0.5">
+            {/* Pedagogical Micro-Tip rendered with MathText so prose retains natural spaces */}
+            <div className="text-xs sm:text-[13px] leading-relaxed text-slate-200 flex items-start gap-2 pt-1 border-t border-slate-800/80">
               <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="text-slate-200">
-                <InlineMath math={insight.tipText.replace(/\$([^$]+)\$/g, '$1')} />
+              <div className="text-slate-200 flex-1 leading-normal font-sans">
+                <MathText text={insight.tipText} />
               </div>
             </div>
           </div>

@@ -52,11 +52,11 @@ export const InvariantLockBadge: React.FC<InvariantLockBadgeProps> = ({
 
       <div className="h-3 w-[1px] bg-slate-700/80 shrink-0" />
 
-      <div className="font-mono font-bold text-xs flex items-center gap-1.5">
+      <div className="font-mono font-bold text-xs sm:text-sm flex items-center gap-2">
         <InlineMath math={invariantLatex} />
         {currentValue && (
-          <span className="text-white font-extrabold px-1.5 py-0.2 rounded bg-slate-900/90 border border-slate-700/60 text-[11px]">
-            {currentValue}
+          <span className="text-white font-bold px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700/60 text-xs sm:text-sm shadow-inner">
+            <InlineMath math={currentValue} />
           </span>
         )}
       </div>

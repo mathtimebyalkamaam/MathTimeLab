@@ -37,7 +37,14 @@ import { useAnalytics } from '../../hooks/useAnalytics';
 import { LiveSubstitutionCard } from '../common/LiveSubstitutionCard';
 import { InvariantLockBadge } from '../common/InvariantLockBadge';
 import { InlineMath } from '../common/MathFormula';
-import { drawGripAffordance, drawShadowDrops, CriticalEventFlareManager, drawMagnifierLoupe } from '../../utils/canvasFx';
+import {
+  drawGripAffordance,
+  drawShadowDrops,
+  CriticalEventFlareManager,
+  drawMagnifierLoupe,
+  drawNeonLine,
+  drawNeonCircle
+} from '../../utils/canvasFx';
 import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
 import { ExamCheatSheetModal } from '../common/ExamCheatSheetModal';
 import { DualViewInspectorModal } from '../common/DualViewInspectorModal';
@@ -269,37 +276,37 @@ export const CircleTheoremsSimulator: React.FC = () => {
         ctx.fill();
       }
 
-      // Central Circle
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(sO.sx, sO.sy, radius * scale, 0, Math.PI * 2);
-      ctx.stroke();
+      // Central Circle with Luminous Neon Bloom
+      drawNeonCircle(ctx, sO.sx, sO.sy, radius * scale, {
+        color: '#0284c7',
+        glowColor: '#38bdf8',
+        width: 2.8,
+        glowBlur: 16,
+        withRadialAura: true,
+        fillOpacity: 0.05,
+      });
 
-      // Circle Fill Glow
-      ctx.fillStyle = 'rgba(14, 165, 233, 0.04)';
-      ctx.fill();
-
-      // Radii OA and OB
+      // Radii OA and OB with Radiant Laser Glow
       if (showRadii) {
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 3]);
+        // Radius OA (Cyan Glow)
+        drawNeonLine(ctx, sO.sx, sO.sy, sA.sx, sA.sy, {
+          color: '#06b6d4',
+          glowColor: '#22d3ee',
+          width: 2.5,
+          glowBlur: 12,
+          dash: [4, 3],
+          coreIntensity: 0.8,
+        });
 
-        // Radius OA
-        ctx.strokeStyle = '#06b6d4';
-        ctx.beginPath();
-        ctx.moveTo(sO.sx, sO.sy);
-        ctx.lineTo(sA.sx, sA.sy);
-        ctx.stroke();
-
-        // Radius OB
-        ctx.strokeStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.moveTo(sO.sx, sO.sy);
-        ctx.lineTo(sB.sx, sB.sy);
-        ctx.stroke();
-
-        ctx.setLineDash([]);
+        // Radius OB (Amber Glow)
+        drawNeonLine(ctx, sO.sx, sO.sy, sB.sx, sB.sy, {
+          color: '#f59e0b',
+          glowColor: '#fbbf24',
+          width: 2.5,
+          glowBlur: 12,
+          dash: [4, 3],
+          coreIntensity: 0.8,
+        });
 
         // Right-Angle 90° glyph at contact A
         const normAP = { x: (pX - aX) / tangentLength, y: (pY - aY) / tangentLength };
@@ -329,33 +336,35 @@ export const CircleTheoremsSimulator: React.FC = () => {
         ctx.stroke();
       }
 
-      // Line OP (Hypotenuse of both right triangles)
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.moveTo(sO.sx, sO.sy);
-      ctx.lineTo(sP.sx, sP.sy);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      // Line OP (Hypotenuse Laser Guide of both right triangles)
+      drawNeonLine(ctx, sO.sx, sO.sy, sP.sx, sP.sy, {
+        color: '#94a3b8',
+        glowColor: '#cbd5e1',
+        width: 2,
+        glowBlur: 10,
+        dash: [5, 5],
+        coreIntensity: 0.75,
+      });
 
-      // Tangents PA and PB
+      // Tangents PA and PB with High-Intensity Neon Bloom
       if (showTangents) {
-        ctx.lineWidth = 3;
+        // Tangent PA (High-Energy Cyan)
+        drawNeonLine(ctx, sP.sx, sP.sy, sA.sx, sA.sy, {
+          color: '#06b6d4',
+          glowColor: '#22d3ee',
+          width: 3.5,
+          glowBlur: 18,
+          coreIntensity: 0.85,
+        });
 
-        // Tangent PA
-        ctx.strokeStyle = '#22d3ee';
-        ctx.beginPath();
-        ctx.moveTo(sP.sx, sP.sy);
-        ctx.lineTo(sA.sx, sA.sy);
-        ctx.stroke();
-
-        // Tangent PB
-        ctx.strokeStyle = '#fbbf24';
-        ctx.beginPath();
-        ctx.moveTo(sP.sx, sP.sy);
-        ctx.lineTo(sB.sx, sB.sy);
-        ctx.stroke();
+        // Tangent PB (High-Energy Amber)
+        drawNeonLine(ctx, sP.sx, sP.sy, sB.sx, sB.sy, {
+          color: '#f59e0b',
+          glowColor: '#fbbf24',
+          width: 3.5,
+          glowBlur: 18,
+          coreIntensity: 0.85,
+        });
 
         // Midpoint labels for PA and PB
         const midA = { sx: (sP.sx + sA.sx) / 2, sy: (sP.sy + sA.sy) / 2 };
@@ -850,11 +859,18 @@ export const CircleTheoremsSimulator: React.FC = () => {
         <div className="space-y-2">
           <LiveSubstitutionCard
             compact={true}
-            title="Tangent & Congruence Invariant"
+            title="3Blue1Brown Tangent Congruence"
             badge="RHS Congruence"
-            symbolicLaw="PA = PB = \sqrt{d^2 - R^2}, \quad \angle OAP = 90^\circ"
-            substitutedLatex={`PA = \\sqrt{(${d.toFixed(1)})^2 - (${radius.toFixed(1)})^2} = \\sqrt{${Math.max(0, d * d - radius * radius).toFixed(1)}}`}
-            evaluatedLatex={`PA = PB = ${tangentLength.toFixed(1)} \\text{ cm}, \\quad \\angle AOB = ${centerAngleDeg.toFixed(1)}^\\circ`}
+            symbolicLaw="\color{#06b6d4}{PA} = \color{#f59e0b}{PB} = \sqrt{\color{#cbd5e1}{d}^2 - \color{#0284c7}{R}^2}, \quad \angle OAP = 90^\circ"
+            substitutedLatex={`\\color{#06b6d4}{PA} = \\sqrt{(\\color{#cbd5e1}{${d.toFixed(1)}})^2 - (\\color{#0284c7}{${radius.toFixed(1)}})^2} = \\sqrt{${Math.max(0, d * d - radius * radius).toFixed(1)}}`}
+            evaluatedLatex={`\\color{#06b6d4}{PA} = \\color{#f59e0b}{PB} = \\mathbf{\\color{#ffffff}{${tangentLength.toFixed(1)}}} \\text{ cm}, \\quad \\angle AOB = ${centerAngleDeg.toFixed(1)}^\\circ`}
+            activeTerm={dragTarget ? `Point ${dragTarget}: d = ${d.toFixed(1)}` : undefined}
+            legendItems={[
+              { label: 'Tangent PA', color: '#06b6d4', symbol: 'PA' },
+              { label: 'Tangent PB', color: '#f59e0b', symbol: 'PB' },
+              { label: 'Circle Radius', color: '#0284c7', symbol: 'R' },
+              { label: 'Center Distance', color: '#cbd5e1', symbol: 'd' },
+            ]}
           />
 
           <div className="cockpit-slider-grid grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5 bg-slate-900/70 border border-slate-800 rounded-xl p-2">

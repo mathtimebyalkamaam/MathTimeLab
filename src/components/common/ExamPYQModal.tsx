@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { SIMULATORS } from '../../data/simulators';
-import { MathFormula, BlockMath, InlineMath } from './MathFormula';
+import { MathFormula, BlockMath, InlineMath, MathText } from './MathFormula';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from './SoundManager';
 import { PastYearExamQuestion } from '../../types/simulators';
@@ -253,9 +253,9 @@ export const ExamPYQModal: React.FC = () => {
                   <Lightbulb className="w-4 h-4 text-amber-400" />
                   <span>{"Top Ranker's 10-Second Mental Shortcut:"}</span>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  {currentPYQ.coachShortcut}
-                </p>
+                <div className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
+                  <MathText text={currentPYQ.coachShortcut} />
+                </div>
               </div>
             </>
           ) : (

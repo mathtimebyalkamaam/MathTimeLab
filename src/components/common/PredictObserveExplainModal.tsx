@@ -17,7 +17,7 @@ import {
 import confetti from 'canvas-confetti';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { SIMULATORS } from '../../data/simulators';
-import { MathFormula, BlockMath, InlineMath } from './MathFormula';
+import { MathFormula, BlockMath, InlineMath, MathText } from './MathFormula';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from './SoundManager';
 import { POEOption } from '../../types/simulators';
@@ -325,9 +325,9 @@ export const PredictObserveExplainModal: React.FC = () => {
                   <Lightbulb className="w-4 h-4 text-cyan-400" />
                   <span>{"Why Coaching Institutes Don't Teach This Intuition:"}</span>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                  {poe.coachTakeaway}
-                </p>
+                <div className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
+                  <MathText text={poe.coachTakeaway} />
+                </div>
               </div>
 
               {/* Step 2: Live In-Simulator Verification */}

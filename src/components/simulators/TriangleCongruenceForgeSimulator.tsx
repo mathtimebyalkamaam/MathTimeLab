@@ -306,14 +306,25 @@ export const TriangleCongruenceForgeSimulator: React.FC = () => {
                   stroke="#06b6d4"
                   strokeWidth="3"
                 />
-                <circle cx="60" cy="200" r="5" fill="#06b6d4" />
-                <circle cx="200" cy="200" r="5" fill="#06b6d4" />
-                <circle cx="130" cy="70" r="5" fill="#06b6d4" />
-                <text x="50" y="220" fill="#06b6d4" fontSize="12" fontWeight="bold">A</text>
-                <text x="205" y="220" fill="#06b6d4" fontSize="12" fontWeight="bold">B</text>
-                <text x="125" y="55" fill="#06b6d4" fontSize="12" fontWeight="bold">C</text>
-                <text x="110" y="218" fill="#94a3b8" fontSize="11" fontWeight="bold">{sideA} cm</text>
-                <text x="80" y="130" fill="#94a3b8" fontSize="11" fontWeight="bold">{sideB} cm</text>
+                {/* Vertex Dots & Labels */}
+                <circle cx="60" cy="200" r="6" fill="#06b6d4" />
+                <circle cx="200" cy="200" r="6" fill="#06b6d4" />
+                <circle cx="130" cy="70" r="6" fill="#06b6d4" />
+                <text x="44" y="222" fill="#38bdf8" fontSize="14" fontWeight="800">A</text>
+                <text x="210" y="222" fill="#38bdf8" fontSize="14" fontWeight="800">B</text>
+                <text x="125" y="52" fill="#38bdf8" fontSize="14" fontWeight="800">C</text>
+
+                {/* Side A Dimension Pill Badge */}
+                <g transform="translate(100, 206)">
+                  <rect x="0" y="0" width="60" height="20" rx="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="1.5" />
+                  <text x="30" y="14" fill="#38bdf8" fontSize="12" fontWeight="800" textAnchor="middle">{sideA} cm</text>
+                </g>
+
+                {/* Side B Dimension Pill Badge */}
+                <g transform="translate(64, 120)">
+                  <rect x="0" y="0" width="60" height="20" rx="6" fill="#0f172a" stroke="#06b6d4" strokeWidth="1.5" />
+                  <text x="30" y="14" fill="#38bdf8" fontSize="12" fontWeight="800" textAnchor="middle">{sideB} cm</text>
+                </g>
               </g>
 
               {/* Triangle 2 (Gold / Pink for trap) */}
@@ -325,14 +336,24 @@ export const TriangleCongruenceForgeSimulator: React.FC = () => {
                     stroke="#f59e0b"
                     strokeWidth="3"
                   />
-                  <circle cx="240" cy="200" r="5" fill="#f59e0b" />
-                  <circle cx="380" cy="200" r="5" fill="#f59e0b" />
-                  <circle cx="310" cy="70" r="5" fill="#f59e0b" />
-                  <text x="230" y="220" fill="#f59e0b" fontSize="12" fontWeight="bold">D</text>
-                  <text x="385" y="220" fill="#f59e0b" fontSize="12" fontWeight="bold">E</text>
-                  <text x="305" y="55" fill="#f59e0b" fontSize="12" fontWeight="bold">F</text>
-                  <text x="290" y="218" fill="#94a3b8" fontSize="11" fontWeight="bold">{sideA} cm</text>
-                  <text x="260" y="130" fill="#94a3b8" fontSize="11" fontWeight="bold">{sideB} cm</text>
+                  <circle cx="240" cy="200" r="6" fill="#f59e0b" />
+                  <circle cx="380" cy="200" r="6" fill="#f59e0b" />
+                  <circle cx="310" cy="70" r="6" fill="#f59e0b" />
+                  <text x="224" y="222" fill="#fbbf24" fontSize="14" fontWeight="800">D</text>
+                  <text x="390" y="222" fill="#fbbf24" fontSize="14" fontWeight="800">E</text>
+                  <text x="305" y="52" fill="#fbbf24" fontSize="14" fontWeight="800">F</text>
+
+                  {/* Side A Dimension Pill Badge */}
+                  <g transform="translate(280, 206)">
+                    <rect x="0" y="0" width="60" height="20" rx="6" fill="#0f172a" stroke="#f59e0b" strokeWidth="1.5" />
+                    <text x="30" y="14" fill="#fbbf24" fontSize="12" fontWeight="800" textAnchor="middle">{sideA} cm</text>
+                  </g>
+
+                  {/* Side B Dimension Pill Badge */}
+                  <g transform="translate(244, 120)">
+                    <rect x="0" y="0" width="60" height="20" rx="6" fill="#0f172a" stroke="#f59e0b" strokeWidth="1.5" />
+                    <text x="30" y="14" fill="#fbbf24" fontSize="12" fontWeight="800" textAnchor="middle">{sideB} cm</text>
+                  </g>
                 </g>
               ) : (
                 /* SSA Ambiguous: Triangle 2 has swinging arm in second position! */
@@ -345,13 +366,13 @@ export const TriangleCongruenceForgeSimulator: React.FC = () => {
                   />
                   {/* Dashed alternate position of side */}
                   <line x1="360" y1="90" x2="300" y2="200" stroke="#f43f5e" strokeWidth="2" strokeDasharray="4,4" />
-                  <circle cx="240" cy="200" r="5" fill="#f43f5e" />
-                  <circle cx="380" cy="200" r="5" fill="#f43f5e" />
-                  <circle cx="360" cy="90" r="5" fill="#f43f5e" />
-                  <text x="230" y="220" fill="#f43f5e" fontSize="12" fontWeight="bold">D</text>
-                  <text x="385" y="220" fill="#f43f5e" fontSize="12" fontWeight="bold">E (Acute)</text>
-                  <text x="290" y="220" fill="#f43f5e" fontSize="11" fontWeight="bold">E' (Obtuse)</text>
-                  <text x="355" y="75" fill="#f43f5e" fontSize="12" fontWeight="bold">F</text>
+                  <circle cx="240" cy="200" r="6" fill="#f43f5e" />
+                  <circle cx="380" cy="200" r="6" fill="#f43f5e" />
+                  <circle cx="360" cy="90" r="6" fill="#f43f5e" />
+                  <text x="224" y="222" fill="#fb7185" fontSize="14" fontWeight="800">D</text>
+                  <text x="390" y="222" fill="#fb7185" fontSize="13" fontWeight="800">E (Acute)</text>
+                  <text x="285" y="222" fill="#fb7185" fontSize="13" fontWeight="800">E' (Obtuse)</text>
+                  <text x="355" y="72" fill="#fb7185" fontSize="14" fontWeight="800">F</text>
                 </g>
               )}
             </svg>

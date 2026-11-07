@@ -114,8 +114,8 @@ export const HomePage: React.FC = () => {
         `ch ${ncert.chapterNumber}`.includes(q) ||
         `chapter ${ncert.chapterNumber}`.includes(q) ||
         `ch${ncert.chapterNumber}`.includes(q) ||
-        ncert.exerciseReference.toLowerCase().includes(q) ||
-        ncert.curriculumTopics.some((t) => t.toLowerCase().includes(q))
+        ncert.exerciseRef.toLowerCase().includes(q) ||
+        ncert.curriculumTopic.toLowerCase().includes(q)
       );
       const matchBoards = q === 'cbse' || q === 'icse' || q === 'state board' || q === 'ncert' || q === 'boards';
 

@@ -146,17 +146,36 @@ export const ConicIntersectionCurve: React.FC<ConicIntersectionCurveProps> = ({
     return points;
   }, [theta, alpha, h]);
 
-  const curveGeometry = useMemo(() => {
-    if (linePoints.length < 2) return null;
+  const { innerGeometry, glowGeometry } = useMemo(() => {
+    if (linePoints.length < 2) return { innerGeometry: null, glowGeometry: null };
     const curve = new THREE.CatmullRomCurve3(linePoints);
-    return new THREE.TubeGeometry(curve, 64, 0.025, 8, false);
+    return {
+      innerGeometry: new THREE.TubeGeometry(curve, 64, 0.014, 8, false),
+      glowGeometry: new THREE.TubeGeometry(curve, 64, 0.034, 8, false),
+    };
   }, [linePoints]);
 
-  if (!curveGeometry) return null;
+  if (!innerGeometry || !glowGeometry) return null;
 
   return (
-    <mesh geometry={curveGeometry}>
-      <meshBasicMaterial color="#38bdf8" />
-    </mesh>
+    <group>
+      {/* Outer Luminous Plasma Bloom Tube */}
+      <mesh geometry={glowGeometry}>
+        <meshStandardMaterial
+          color="#38bdf8"
+          emissive="#00f0ff"
+          emissiveIntensity={2.2}
+          transparent={true}
+          opacity={0.55}
+          roughness={0.1}
+          metalness={0.1}
+        />
+      </mesh>
+
+      {/* Inner White-Hot Laser Core Filament */}
+      <mesh geometry={innerGeometry}>
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+    </group>
   );
 };

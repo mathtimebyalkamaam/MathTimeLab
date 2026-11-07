@@ -7,7 +7,7 @@
  * - Live property checklist revealing the quadrilateral family hierarchy
  * - 3 Progressive Board Exam challenges
  */
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Compass, 
@@ -17,7 +17,8 @@ import {
   Eye, 
   Layers, 
   Sliders,
-  Maximize2
+  Maximize2,
+  Move
 } from 'lucide-react';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { BottomSheet } from '../layout/BottomSheet';
@@ -53,10 +54,164 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
   } = quadrilateralParams;
 
   const { lightTap, successBuzz } = useHaptics();
-  const { playClick, playChime } = useSound();
+  const { playClick, playChime, playWhoosh, playHarmonicSnap } = useSound();
   const { trackEvent } = useAnalytics();
 
   const [activeDragVertex, setActiveDragVertex] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
+  const [isMorphing, setIsMorphing] = useState(false);
+  const morphAnimRef = useRef<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // Clean up animation on unmount
+  useEffect(() => {
+    return () => {
+      if (morphAnimRef.current) cancelAnimationFrame(morphAnimRef.current);
+    };
+  }, []);
+
+  // Preset vertices for each standard quadrilateral
+  const SHAPE_PRESETS = useMemo<Record<string, { A: [number, number]; B: [number, number]; C: [number, number]; D: [number, number] }>>(() => ({
+    parallelogram: { A: [15, 75], B: [60, 75], C: [85, 25], D: [40, 25] },
+    rhombus: { A: [15, 50], B: [50, 85], C: [85, 50], D: [50, 15] },
+    rectangle: { A: [15, 75], B: [85, 75], C: [85, 25], D: [15, 25] },
+    square: { A: [25, 75], B: [75, 75], C: [75, 25], D: [25, 25] },
+    kite: { A: [18, 50], B: [50, 82], C: [82, 50], D: [50, 18] },
+    trapezium: { A: [15, 75], B: [85, 75], C: [65, 25], D: [35, 25] },
+  }), []);
+
+  // Priority 7: Fluid Cubic Bézier Vertex Morphing Transition
+  const morphToShape = useCallback((type: typeof quadType) => {
+    if (morphAnimRef.current) {
+      cancelAnimationFrame(morphAnimRef.current);
+      morphAnimRef.current = null;
+    }
+
+    const target = SHAPE_PRESETS[type];
+    if (!target) {
+      updateQuadrilateralParams({ quadType: type });
+      return;
+    }
+
+    lightTap();
+    playWhoosh();
+    setIsMorphing(true);
+    trackEvent('quadrilateral_morph', { type });
+
+    const startA: [number, number] = [...vertexA];
+    const startB: [number, number] = [...vertexB];
+    const startC: [number, number] = [...vertexC];
+    const startD: [number, number] = [...vertexD];
+
+    const startTime = performance.now();
+    const duration = 520; // 520ms smooth fluid glide
+
+    // Cubic bezier ease-in-out curve
+    const easeInOutCubic = (x: number): number => {
+      return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    };
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeInOutCubic(progress);
+
+      const lerp = (p0: [number, number], p1: [number, number], t: number): [number, number] => [
+        p0[0] + (p1[0] - p0[0]) * t,
+        p0[1] + (p1[1] - p0[1]) * t,
+      ];
+
+      const curA = lerp(startA, target.A, eased);
+      const curB = lerp(startB, target.B, eased);
+      const curC = lerp(startC, target.C, eased);
+      const curD = lerp(startD, target.D, eased);
+
+      updateQuadrilateralParams({
+        quadType: type,
+        vertexA: curA,
+        vertexB: curB,
+        vertexC: curC,
+        vertexD: curD,
+      });
+
+      if (progress < 1) {
+        morphAnimRef.current = requestAnimationFrame(step);
+      } else {
+        morphAnimRef.current = null;
+        setIsMorphing(false);
+        playHarmonicSnap();
+        lightTap();
+      }
+    };
+
+    morphAnimRef.current = requestAnimationFrame(step);
+  }, [
+    vertexA, 
+    vertexB, 
+    vertexC, 
+    vertexD, 
+    SHAPE_PRESETS, 
+    updateQuadrilateralParams, 
+    lightTap, 
+    playWhoosh, 
+    playHarmonicSnap, 
+    trackEvent
+  ]);
+
+  // Direct Interactive Pointer Dragging of Vertices
+  const getSvgCoordinates = (clientX: number, clientY: number): [number, number] | null => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return null;
+    const transformed = pt.matrixTransform(ctm.inverse());
+    return [
+      Math.max(5, Math.min(95, Math.round(transformed.x * 10) / 10)),
+      Math.max(5, Math.min(95, Math.round(transformed.y * 10) / 10)),
+    ];
+  };
+
+  const handleVertexPointerDown = (id: 'A' | 'B' | 'C' | 'D', e: React.PointerEvent) => {
+    if (morphAnimRef.current) {
+      cancelAnimationFrame(morphAnimRef.current);
+      morphAnimRef.current = null;
+      setIsMorphing(false);
+    }
+    setActiveDragVertex(id);
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    lightTap();
+    playClick(1.2);
+  };
+
+  const handleSvgPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!activeDragVertex) return;
+    const coords = getSvgCoordinates(e.clientX, e.clientY);
+    if (!coords) return;
+
+    // Magnetic snap to 5% coordinate increments
+    const snapX = Math.round(coords[0] / 5) * 5;
+    const snapY = Math.round(coords[1] / 5) * 5;
+    const finalX = Math.abs(coords[0] - snapX) < 2 ? snapX : coords[0];
+    const finalY = Math.abs(coords[1] - snapY) < 2 ? snapY : coords[1];
+    const snappedPt: [number, number] = [finalX, finalY];
+
+    switch (activeDragVertex) {
+      case 'A': updateQuadrilateralParams({ vertexA: snappedPt, quadType: 'arbitrary' }); break;
+      case 'B': updateQuadrilateralParams({ vertexB: snappedPt, quadType: 'arbitrary' }); break;
+      case 'C': updateQuadrilateralParams({ vertexC: snappedPt, quadType: 'arbitrary' }); break;
+      case 'D': updateQuadrilateralParams({ vertexD: snappedPt, quadType: 'arbitrary' }); break;
+    }
+  };
+
+  const handleSvgPointerUp = () => {
+    if (activeDragVertex) {
+      setActiveDragVertex(null);
+      playClick(0.9);
+      lightTap();
+    }
+  };
 
   // Geometric calculations
   // Side lengths
@@ -100,71 +255,9 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
     return angle > 90 ? 180 - angle : angle;
   }, [vertexA, vertexB, vertexC, vertexD]);
 
-  // Shape snap presets
+  // Shape snap alias
   const snapToShape = (type: typeof quadType) => {
-    lightTap();
-    playClick();
-    trackEvent('quadrilateral_snap', { type });
-
-    switch (type) {
-      case 'parallelogram':
-        updateQuadrilateralParams({
-          quadType: 'parallelogram',
-          vertexA: [15, 75],
-          vertexB: [60, 75],
-          vertexC: [80, 25],
-          vertexD: [35, 25],
-        });
-        break;
-      case 'rhombus':
-        updateQuadrilateralParams({
-          quadType: 'rhombus',
-          vertexA: [15, 50],
-          vertexB: [50, 85],
-          vertexC: [85, 50],
-          vertexD: [50, 15],
-        });
-        break;
-      case 'rectangle':
-        updateQuadrilateralParams({
-          quadType: 'rectangle',
-          vertexA: [15, 75],
-          vertexB: [85, 75],
-          vertexC: [85, 25],
-          vertexD: [15, 25],
-        });
-        break;
-      case 'square':
-        updateQuadrilateralParams({
-          quadType: 'square',
-          vertexA: [25, 75],
-          vertexB: [75, 75],
-          vertexC: [75, 25],
-          vertexD: [25, 25],
-        });
-        break;
-      case 'kite':
-        updateQuadrilateralParams({
-          quadType: 'kite',
-          vertexA: [20, 50],
-          vertexB: [50, 80],
-          vertexC: [80, 50],
-          vertexD: [50, 20],
-        });
-        break;
-      case 'trapezium':
-        updateQuadrilateralParams({
-          quadType: 'trapezium',
-          vertexA: [15, 75],
-          vertexB: [85, 75],
-          vertexC: [65, 25],
-          vertexD: [35, 25],
-        });
-        break;
-      default:
-        updateQuadrilateralParams({ quadType: 'arbitrary' });
-        break;
-    }
+    morphToShape(type);
   };
 
   const handleReset = () => {
@@ -351,22 +444,48 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
         </div>
 
         {/* SVG Drawing Area */}
-        <div className="w-full max-w-md h-52 sm:h-64 flex items-center justify-center">
-          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl overflow-visible">
-            {/* Background Grid */}
+        <div className="relative w-full max-w-md h-56 sm:h-68 flex items-center justify-center">
+          {/* Active Morphing Pulse Indicator */}
+          {isMorphing && (
+            <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/50 text-[10px] font-mono text-indigo-300 animate-pulse flex items-center gap-1 z-10">
+              <Sparkles className="w-3 h-3 text-indigo-400 animate-spin" />
+              Morphing...
+            </div>
+          )}
+
+          <svg 
+            ref={svgRef}
+            viewBox="0 0 100 100" 
+            onPointerMove={handleSvgPointerMove}
+            onPointerUp={handleSvgPointerUp}
+            onPointerLeave={handleSvgPointerUp}
+            className="w-full h-full drop-shadow-2xl overflow-visible select-none touch-none"
+          >
+            {/* Background Grid & Shader Filters */}
             <defs>
               <pattern id="quadGrid" width="10" height="10" patternUnits="userSpaceOnUse">
                 <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#1e293b" strokeWidth="0.5" />
               </pattern>
+              <linearGradient id="morphGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.16" />
+                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.22" />
+              </linearGradient>
+              <filter id="neonPerimeterGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="1.2" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
             </defs>
-            <rect width="100" height="100" fill="url(#quadGrid)" />
+            <rect width="100" height="100" fill="url(#quadGrid)" rx="6" />
 
-            {/* Polygon ABCD */}
+            {/* Polygon ABCD with Neon Perimeter */}
             <polygon
               points={`${vertexA[0]},${vertexA[1]} ${vertexB[0]},${vertexB[1]} ${vertexC[0]},${vertexC[1]} ${vertexD[0]},${vertexD[1]}`}
-              fill="rgba(99, 102, 241, 0.15)"
-              stroke="#6366f1"
-              strokeWidth="1.5"
+              fill="url(#morphGrad)"
+              stroke="#818cf8"
+              strokeWidth="1.8"
+              filter="url(#neonPerimeterGlow)"
+              className="transition-colors duration-300"
             />
 
             {/* Diagonals AC and BD */}
@@ -378,8 +497,9 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
                   x2={vertexC[0]}
                   y2={vertexC[1]}
                   stroke="#38bdf8"
-                  strokeWidth="1.2"
-                  strokeDasharray="2 1"
+                  strokeWidth="1.4"
+                  strokeDasharray="2.5 1.5"
+                  filter="url(#neonPerimeterGlow)"
                 />
                 <line
                   x1={vertexB[0]}
@@ -387,50 +507,120 @@ export const QuadrilateralMorpherSimulator: React.FC = () => {
                   x2={vertexD[0]}
                   y2={vertexD[1]}
                   stroke="#ec4899"
-                  strokeWidth="1.2"
-                  strokeDasharray="2 1"
+                  strokeWidth="1.4"
+                  strokeDasharray="2.5 1.5"
+                  filter="url(#neonPerimeterGlow)"
                 />
               </>
             )}
 
-            {/* Diagonal Intersection Point */}
+            {/* Diagonal Intersection Point & 90° Perpendicular Marker */}
             {intersectDiagonals && (
-              <circle
-                cx={intersectDiagonals[0]}
-                cy={intersectDiagonals[1]}
-                r="2"
-                fill={Math.abs(diagonalAngleDeg - 90) < 1 ? '#10b981' : '#f59e0b'}
-              />
+              <g>
+                <circle
+                  cx={intersectDiagonals[0]}
+                  cy={intersectDiagonals[1]}
+                  r="2.4"
+                  fill={Math.abs(diagonalAngleDeg - 90) < 1 ? '#10b981' : '#f59e0b'}
+                  stroke="#ffffff"
+                  strokeWidth="0.6"
+                />
+                {Math.abs(diagonalAngleDeg - 90) < 1 && (
+                  <rect
+                    x={intersectDiagonals[0] - 2.5}
+                    y={intersectDiagonals[1] - 2.5}
+                    width="5"
+                    height="5"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="0.8"
+                    transform={`rotate(45, ${intersectDiagonals[0]}, ${intersectDiagonals[1]})`}
+                  />
+                )}
+              </g>
             )}
 
-            {/* Draggable Vertex Handles */}
+            {/* Edge Side Length Pills */}
             {[
-              { id: 'A', pt: vertexA, label: 'A' },
-              { id: 'B', pt: vertexB, label: 'B' },
-              { id: 'C', pt: vertexC, label: 'C' },
-              { id: 'D', pt: vertexD, label: 'D' },
-            ].map((v) => (
-              <g key={v.id} transform={`translate(${v.pt[0]}, ${v.pt[1]})`}>
-                <circle
-                  r="4"
-                  fill="#ffffff"
-                  stroke="#6366f1"
-                  strokeWidth="2"
-                  className="cursor-pointer hover:scale-125 transition-transform"
-                />
-                <text
-                  x="0"
-                  y="-6"
-                  fill="#c7d2fe"
-                  fontSize="5"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  fontFamily="sans-serif"
+              { p1: vertexA, p2: vertexB, val: ab, label: 'AB' },
+              { p1: vertexB, p2: vertexC, val: bc, label: 'BC' },
+              { p1: vertexC, p2: vertexD, val: cd, label: 'CD' },
+              { p1: vertexD, p2: vertexA, val: da, label: 'DA' },
+            ].map((edge, idx) => {
+              const mx = (edge.p1[0] + edge.p2[0]) / 2;
+              const my = (edge.p1[1] + edge.p2[1]) / 2;
+              return (
+                <g key={`edge-${idx}`} transform={`translate(${mx}, ${my})`}>
+                  <rect
+                    x="-6"
+                    y="-3"
+                    width="12"
+                    height="6"
+                    rx="2"
+                    fill="#020617"
+                    stroke="#334155"
+                    strokeWidth="0.5"
+                    opacity="0.85"
+                  />
+                  <text
+                    x="0"
+                    y="1.5"
+                    fill="#94a3b8"
+                    fontSize="3"
+                    fontFamily="monospace"
+                    textAnchor="middle"
+                  >
+                    {edge.val.toFixed(0)}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Draggable Fluid Vertex Handles */}
+            {[
+              { id: 'A' as const, pt: vertexA, label: 'A' },
+              { id: 'B' as const, pt: vertexB, label: 'B' },
+              { id: 'C' as const, pt: vertexC, label: 'C' },
+              { id: 'D' as const, pt: vertexD, label: 'D' },
+            ].map((v) => {
+              const isDragging = activeDragVertex === v.id;
+              return (
+                <g 
+                  key={v.id} 
+                  transform={`translate(${v.pt[0]}, ${v.pt[1]})`}
+                  onPointerDown={(e) => handleVertexPointerDown(v.id, e)}
+                  className="cursor-grab active:cursor-grabbing"
                 >
-                  {v.label}
-                </text>
-              </g>
-            ))}
+                  {/* Outer pulsating glow ring */}
+                  <circle
+                    r={isDragging ? 7 : 5}
+                    fill="rgba(99, 102, 241, 0.25)"
+                    className="animate-ping"
+                    opacity={isDragging ? 0.7 : 0.2}
+                  />
+                  {/* Grip Handle Disc */}
+                  <circle
+                    r={isDragging ? 5 : 3.8}
+                    fill={isDragging ? '#38bdf8' : '#ffffff'}
+                    stroke="#6366f1"
+                    strokeWidth="1.8"
+                    className="transition-all"
+                  />
+                  <text
+                    x="0"
+                    y="-6"
+                    fill="#c7d2fe"
+                    fontSize="4.5"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    fontFamily="sans-serif"
+                    className="pointer-events-none select-none"
+                  >
+                    {v.label}
+                  </text>
+                </g>
+              );
+            })}
           </svg>
         </div>
 

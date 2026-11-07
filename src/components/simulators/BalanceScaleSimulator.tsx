@@ -34,6 +34,8 @@ import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from '../common/SoundManager';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { Eli13ExplainerCard } from '../common/Eli13ExplainerCard';
+import { useSpringDamped } from '../../hooks/useSpringDamped';
+import { triggerEurekaCelebration } from '../../utils/canvasFx';
 
 export const BalanceScaleSimulator: React.FC = () => {
   const {
@@ -68,12 +70,19 @@ export const BalanceScaleSimulator: React.FC = () => {
   const diff = leftTotal - rightTotal;
   const isBalanced = Math.abs(diff) < 0.001;
 
-  // Max tilt angle is 18 degrees
-  const tilt = useMemo(() => {
+  // Raw static torque tilt angle (max ±16°)
+  const rawTilt = useMemo(() => {
     if (isBalanced) return 0;
     const clampedDiff = Math.max(-25, Math.min(25, diff));
     return (clampedDiff / 25) * -16; // positive diff tilts left down (counter-clockwise)
   }, [diff, isBalanced]);
+
+  // Priority 3: Spring-Damped Harmonic Oscillator for authentic pendulum wobble & settling
+  const springTilt = useSpringDamped(rawTilt, {
+    stiffness: 85,  // soft brass pendulum spring
+    damping: 9,    // light fluid air damping for realistic oscillation
+    mass: 1.2,
+  });
 
   // Operations that preserve equality on both sides
   const handleSubtractX = () => {
@@ -214,7 +223,7 @@ export const BalanceScaleSimulator: React.FC = () => {
       if (!challengeCompleted['balance-scale-equations-1']) {
         successBuzz();
         playChime();
-        confetti({ particleCount: 35, spread: 60, origin: { y: 0.6 } });
+        triggerEurekaCelebration({ origin: { x: 0.5, y: 0.52 }, particleCount: 60 });
         completeChallenge('balance-scale-equations-1', 30);
       }
     }
@@ -225,7 +234,7 @@ export const BalanceScaleSimulator: React.FC = () => {
       if (!challengeCompleted['balance-scale-equations-3']) {
         successBuzz();
         playChime();
-        confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+        triggerEurekaCelebration({ origin: { x: 0.5, y: 0.48 }, particleCount: 75 });
         completeChallenge('balance-scale-equations-3', 50);
       }
     }
@@ -548,8 +557,8 @@ export const BalanceScaleSimulator: React.FC = () => {
             <circle cx="250" cy="60" r="10" fill="#f59e0b" stroke="#78350f" strokeWidth="2" />
             <circle cx="250" cy="60" r="4" fill="#fef3c7" />
 
-            {/* Rotating Beam Group */}
-            <g transform={`rotate(${tilt} 250 60)`} className="transition-transform duration-500 ease-out">
+            {/* Rotating Beam Group with True Spring Physics Oscillation */}
+            <g transform={`rotate(${springTilt} 250 60)`}>
               {/* Main Brass Beam */}
               <line x1="80" y1="60" x2="420" y2="60" stroke="url(#brassGrad)" strokeWidth="6" strokeLinecap="round" />
               <line x1="80" y1="58" x2="420" y2="58" stroke="#fef3c7" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
@@ -569,7 +578,7 @@ export const BalanceScaleSimulator: React.FC = () => {
 
             {/* Left Pan Chains & Plate (Positions counter-rotated to remain horizontal) */}
             {(() => {
-              const rad = (tilt * Math.PI) / 180;
+              const rad = (springTilt * Math.PI) / 180;
               const hookX = 250 + (90 - 250) * Math.cos(rad) - (60 - 60) * Math.sin(rad);
               const hookY = 60 + (90 - 250) * Math.sin(rad) + (60 - 60) * Math.cos(rad);
               const panX = hookX;
@@ -616,7 +625,7 @@ export const BalanceScaleSimulator: React.FC = () => {
 
             {/* Right Pan Chains & Plate */}
             {(() => {
-              const rad = (tilt * Math.PI) / 180;
+              const rad = (springTilt * Math.PI) / 180;
               const hookX = 250 + (410 - 250) * Math.cos(rad) - (60 - 60) * Math.sin(rad);
               const hookY = 60 + (410 - 250) * Math.sin(rad) + (60 - 60) * Math.cos(rad);
               const panX = hookX;
