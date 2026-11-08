@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { SimulatorId, SimulatorMetadata } from '../../types/simulators';
 import { SIMULATORS } from '../../data/simulators';
+import { getRelatedSimulators } from '../../data/relatedSimulators';
+import { NCERT_CHAPTER_MAP } from '../../data/ncertMappings';
 import { MathFormula, InlineMath, BlockMath, MathText } from './MathFormula';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from './SoundManager';
@@ -53,10 +55,13 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
     poePredictions,
     updateDroneParams,
     updateCatapultParams,
-    updateUnitCircleParams
+    updateUnitCircleParams,
+    navigateTo
   } = useSimulatorStore();
 
   const sim = SIMULATORS.find((s) => s.id === simulatorId);
+  const relatedSimulators = getRelatedSimulators(simulatorId);
+  const ncert = NCERT_CHAPTER_MAP[simulatorId];
   const [activeTab, setActiveTab] = useState<TheorySectionTab>('results_formula');
 
   // Smart compact insight pill switcher for 0-scroll desktop cockpit
@@ -605,6 +610,78 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
           )}
         </div>
       )}
+
+      {/* Related Simulators & Prerequisites Ribbon */}
+      {relatedSimulators.length > 0 && (
+        <div className="pt-2 border-t border-slate-800/80 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Prerequisites &amp; Related Labs</span>
+            </span>
+            <span className="text-[10px] text-slate-500 font-mono">
+              {relatedSimulators.length} interactive bridges
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5">
+            {relatedSimulators.map((rel) => (
+              <a
+                key={rel.id}
+                href={`/simulators/${rel.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  lightTap();
+                  navigateTo(rel.id);
+                }}
+                className="group p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/50 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-slate-800 text-cyan-300">
+                      {rel.grade}
+                    </span>
+                    <span className="text-[9px] text-slate-500 truncate max-w-[80px]">
+                      {rel.category}
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 transition-colors line-clamp-1">
+                    {rel.shortTitle || rel.title}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-cyan-400 font-semibold mt-1">
+                  <span>Launch Lab</span>
+                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Reciprocal Parent Website Link */}
+      <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/30 to-slate-900/50 border border-emerald-800/30 flex items-center justify-between gap-3 text-xs">
+        <div className="space-y-0.5">
+          <div className="text-[11px] font-bold text-emerald-300 flex items-center gap-1.5">
+            <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+            <span>itsmathtime.co.in Parent Portal</span>
+          </div>
+          <p className="text-[10px] text-slate-400 leading-tight">
+            {ncert 
+              ? `NCERT solutions, practice exercises & proof videos for ${ncert.chapterName}.`
+              : 'Detailed NCERT textbook solutions, theory notes & step-by-step video proofs.'}
+          </p>
+        </div>
+        <a
+          href="https://itsmathtime.co.in"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-white font-bold text-[11px] flex items-center gap-1 shrink-0 transition-colors"
+        >
+          <span>Textbook Notes</span>
+          <ArrowRight className="w-3 h-3" />
+        </a>
+      </div>
     </div>
   );
 };

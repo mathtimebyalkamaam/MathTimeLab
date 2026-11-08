@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getRouteFromUrl, syncRouteSeo } from '../utils/seo';
+import { getRouteFromUrl, getGradeFromUrl, syncRouteSeo } from '../utils/seo';
 import {
   AppRoute,
   BinomialGaltonParameters,
@@ -827,17 +827,18 @@ const loadStoredProgress = () => {
 
 const initialSaved = loadStoredProgress();
 const initialRoute = typeof window !== 'undefined' ? getRouteFromUrl() : 'home';
+const initialGrade = typeof window !== 'undefined' ? (getGradeFromUrl() || 'all') : 'all';
 const initialIsSim = initialRoute !== 'home' && initialRoute !== 'teacher' && initialRoute !== 'landing';
 
 // Initial sync of SEO and meta tags on boot
 if (typeof window !== 'undefined') {
-  syncRouteSeo(initialRoute, true);
+  syncRouteSeo(initialRoute, true, initialGrade);
 }
 
 export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
   currentRoute: initialRoute,
   activeSimulatorId: initialIsSim ? (initialRoute as SimulatorId) : null,
-  gradeFilter: 'all',
+  gradeFilter: initialGrade,
   searchQuery: '',
 
   isBottomSheetOpen: initialIsSim,
@@ -952,7 +953,10 @@ export const useSimulatorStore = create<SimulatorStoreState>((set) => ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
-  setGradeFilter: (grade) => set({ gradeFilter: grade }),
+  setGradeFilter: (grade) => {
+    syncRouteSeo('home', false, grade);
+    set({ gradeFilter: grade });
+  },
   setSearchQuery: (query) => set({ searchQuery: query }),
 
   setBottomSheetOpen: (open) => set({ isBottomSheetOpen: open }),

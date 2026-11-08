@@ -1309,7 +1309,17 @@ export const HomePage: React.FC = () => {
                 )}
               </div>
               <h3 className="font-bold text-xs text-white mt-0.5 leading-snug group-hover:text-cyan-300 transition-colors">
-                {sim.title}
+                <a
+                  href={`/simulators/${sim.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    lightTap();
+                    navigateTo(sim.id);
+                  }}
+                  className="hover:underline focus:outline-none"
+                >
+                  {sim.title}
+                </a>
               </h3>
               {ncert && (
                 <div className="text-[10px] text-emerald-400/90 font-medium truncate mt-0.5">
@@ -1354,9 +1364,10 @@ export const HomePage: React.FC = () => {
             <span>Theory</span>
           </button>
 
-          <button
-            type="button"
+          <a
+            href={`/simulators/${sim.id}`}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               lightTap();
               navigateTo(sim.id);
@@ -1365,7 +1376,7 @@ export const HomePage: React.FC = () => {
           >
             <Play className="w-3 h-3 fill-current" />
             <span>Launch Lab</span>
-          </button>
+          </a>
         </div>
       </div>
     );
@@ -1413,7 +1424,19 @@ export const HomePage: React.FC = () => {
         )}
 
         <div>
-          <h3 className="font-bold text-sm text-white leading-snug group-hover:text-cyan-300 transition-colors">{sim.title}</h3>
+          <h3 className="font-bold text-sm text-white leading-snug group-hover:text-cyan-300 transition-colors">
+            <a
+              href={`/simulators/${sim.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                lightTap();
+                navigateTo(sim.id);
+              }}
+              className="hover:underline focus:outline-none"
+            >
+              {sim.title}
+            </a>
+          </h3>
           <p className="text-xs text-slate-300 line-clamp-2 mt-1 leading-relaxed">
             {sim.description}
           </p>
@@ -1445,9 +1468,10 @@ export const HomePage: React.FC = () => {
             <BookOpen className="w-3.5 h-3.5 text-cyan-400 inline mr-1" />
             <span>Theory</span>
           </button>
-          <button
-            type="button"
+          <a
+            href={`/simulators/${sim.id}`}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               lightTap();
               navigateTo(sim.id);
@@ -1456,7 +1480,7 @@ export const HomePage: React.FC = () => {
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>Launch Lab</span>
-          </button>
+          </a>
         </div>
       </div>
     );
@@ -1908,15 +1932,26 @@ export const HomePage: React.FC = () => {
                       </span>
                     </div>
                     <h3 className="font-bold text-sm text-white truncate group-hover:text-cyan-300 transition-colors">
-                      {sim.title}
+                      <a
+                        href={`/simulators/${sim.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          lightTap();
+                          navigateTo(sim.id);
+                        }}
+                        className="hover:underline focus:outline-none"
+                      >
+                        {sim.title}
+                      </a>
                     </h3>
                     <p className="text-[11px] text-slate-400 line-clamp-1">
                       {ncert ? `Syllabus: Ch ${ncert.chapterNumber} ${ncert.chapterName} (CBSE • ICSE • State Boards) — ${sim.description}` : sim.description}
                     </p>
                   </div>
-                  <button
-                    type="button"
+                  <a
+                    href={`/simulators/${sim.id}`}
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       lightTap();
                       navigateTo(sim.id);
@@ -1925,7 +1960,7 @@ export const HomePage: React.FC = () => {
                   >
                     <Play className="w-3 h-3 fill-current" />
                     <span>Launch</span>
-                  </button>
+                  </a>
                 </div>
               );
             }
@@ -1972,7 +2007,17 @@ export const HomePage: React.FC = () => {
                   {/* Simulator Title & Description */}
                   <div>
                     <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">
-                      {sim.title}
+                      <a
+                        href={`/simulators/${sim.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          lightTap();
+                          navigateTo(sim.id);
+                        }}
+                        className="hover:underline focus:outline-none"
+                      >
+                        {sim.title}
+                      </a>
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
                       {sim.description}
@@ -2042,18 +2087,19 @@ export const HomePage: React.FC = () => {
                       <span>Theory</span>
                     </button>
 
-                    <button
-                      type="button"
+                    <a
+                      href={`/simulators/${sim.id}`}
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         lightTap();
                         navigateTo(sim.id);
                       }}
-                      className="min-h-[40px] px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 active:scale-95 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-transform touch-manipulation shadow-md shadow-cyan-500/20 cursor-pointer group-hover:bg-cyan-400"
+                      className="min-h-[40px] px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 active:scale-95 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-transform touch-manipulation shadow-md shadow-cyan-500/20 cursor-pointer group-hover:bg-cyan-400 inline-flex items-center justify-center"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
                       <span>Launch</span>
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>

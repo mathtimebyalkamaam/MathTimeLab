@@ -158,49 +158,64 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
             </h5>
             <ul className="space-y-2 text-xs">
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleGradeClick('class-8')}
-                  className="hover:text-emerald-300 transition-colors text-left text-slate-300 font-medium"
+                <a
+                  href="/classes/class-8-math-simulators"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleGradeClick('class-8');
+                  }}
+                  className="hover:text-emerald-300 transition-colors text-left text-slate-300 font-medium block"
                 >
                   Class 8: Rational Numbers &amp; Mensuration
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleGradeClick('class-9')}
-                  className="hover:text-cyan-300 transition-colors text-left text-slate-300 font-medium"
+                <a
+                  href="/classes/class-9-math-simulators"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleGradeClick('class-9');
+                  }}
+                  className="hover:text-cyan-300 transition-colors text-left text-slate-300 font-medium block"
                 >
                   Class 9: Coordinate Geometry &amp; Circles
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleGradeClick('class-10')}
-                  className="hover:text-amber-300 transition-colors text-left text-slate-300 font-medium"
+                <a
+                  href="/classes/class-10-math-simulators"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleGradeClick('class-10');
+                  }}
+                  className="hover:text-amber-300 transition-colors text-left text-slate-300 font-medium block"
                 >
                   Class 10: Quadratics &amp; Trigonometry
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleGradeClick('class-11')}
-                  className="hover:text-purple-300 transition-colors text-left text-slate-300 font-medium"
+                <a
+                  href="/classes/class-11-math-simulators"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleGradeClick('class-11');
+                  }}
+                  className="hover:text-purple-300 transition-colors text-left text-slate-300 font-medium block"
                 >
                   Class 11: 3D Conics &amp; Limits
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleGradeClick('class-12')}
-                  className="hover:text-blue-300 transition-colors text-left text-slate-300 font-medium"
+                <a
+                  href="/classes/class-12-math-simulators"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleGradeClick('class-12');
+                  }}
+                  className="hover:text-blue-300 transition-colors text-left text-slate-300 font-medium block"
                 >
                   Class 12: Calculus, Integrals &amp; 3D Vectors
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -293,14 +308,17 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
             </h5>
             <ul className="space-y-2 text-xs">
               <li>
-                <button
-                  type="button"
-                  onClick={() => handlePageClick('teacher')}
+                <a
+                  href="/teacher"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageClick('teacher');
+                  }}
                   className="hover:text-emerald-300 transition-colors text-left text-slate-300 font-medium flex items-center gap-1.5"
                 >
                   <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Teacher Analytics &amp; Gradebook</span>
-                </button>
+                </a>
               </li>
               <li>
                 <button
@@ -329,14 +347,17 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
                 </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => handlePageClick('landing')}
+                <a
+                  href="/landing"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageClick('landing');
+                  }}
                   className="hover:text-cyan-300 transition-colors text-left text-slate-300 font-medium flex items-center gap-1.5"
                 >
                   <Compass className="w-3.5 h-3.5 text-purple-400" />
                   <span>Pedagogical Overview</span>
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -350,14 +371,17 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ onOpenAuthorModal })
             <p className="text-[11px] text-slate-400 leading-snug">
               Access all 50 full-screen laboratories instantly with 0 latency, mobile touch-responsiveness, and KaTeX mathematical rigor.
             </p>
-            <button
-              type="button"
-              onClick={() => handlePageClick('home')}
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageClick('home');
+              }}
               className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-white font-bold text-xs flex items-center justify-between transition-colors cursor-pointer"
             >
               <span>Explore All 50 Labs</span>
               <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
-            </button>
+            </a>
           </div>
         </div>
 

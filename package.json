@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build:seo": "node scripts/generate_seo_assets.bundle.cjs",
-    "build": "node scripts/generate_seo_assets.bundle.cjs && vite build",
+    "prerender": "npx tsx scripts/prerender_simulators.ts",
+    "build": "node scripts/generate_seo_assets.bundle.cjs && vite build && npx tsx scripts/prerender_simulators.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

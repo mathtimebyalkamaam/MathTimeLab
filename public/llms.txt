@@ -4,9 +4,18 @@
 > Root URL: https://labs.itsmathtime.co.in/
 > Parent Platform: https://itsmathtime.co.in/
 > Author: Alka Sharma (Alka Ma'am), M.Sc. Mathematics, B.Ed., CTET Certified
+> Full Mathematical Proofs & Board Solutions: https://labs.itsmathtime.co.in/llms-full.txt
 
 ## Overview
 Math Time Lab provides 50 free, touch-responsive 2D/3D visual mathematics simulators designed to eliminate math anxiety, demonstrate proofs geometrically, and clarify CBSE board exam concepts through interactive experimentation (Predict-Observe-Explain pedagogy).
+
+## Grade-Level Curriculum Hubs
+- [Class 8 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-8-math-simulators): Linear Equations, Algebraic Tiles, Compound Interest, Pythagorean Triplets, Euler Polyhedra.
+- [Class 9 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-9-math-simulators): Distance Formula, Heron's Triangles, Polynomial Factorizer, Lines & Angles, Circle Theorems.
+- [Class 10 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-10-math-simulators): Quadratic Roots, Heights & Distances, Circle Tangents, Coordinate Section Formula, Similar Triangles.
+- [Class 11 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-11-math-simulators): 3D Conics Slicer, Unit Circle & Waves, Limits & Tangents, Linear Inequalities, Permutations.
+- [Class 12 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-12-math-simulators): Calculus Sandbox, 3D Vector Flight Lab, Argand Plane Complex Numbers, FTC Integrals, Bayes Theorem.
+
 
 ## Simulator Directory & Direct Deep-Links
 
@@ -75,3 +84,4 @@ Math Time Lab provides 50 free, touch-responsive 2D/3D visual mathematics simula
 - Step-by-step NCERT exercise references, common textbook traps, and past-year exam questions (PYQ).
 - Predict-Observe-Explain (POE) micro-challenges built into each simulation.
 - 100% free with no paywall or mandatory login requirements.
+- Complete mathematical proofs and solutions available at https://labs.itsmathtime.co.in/llms-full.txt

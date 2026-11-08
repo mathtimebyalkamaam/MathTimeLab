@@ -5258,12 +5258,17 @@ User-agent: CCBot
 Allow: /
 
 Sitemap: https://labs.itsmathtime.co.in/sitemap.xml
+
+# LLM & AI Search Knowledge Graph References
+# Summary directory: https://labs.itsmathtime.co.in/llms.txt
+# Comprehensive proofs & board solutions: https://labs.itsmathtime.co.in/llms-full.txt
 `;
 import_fs.default.writeFileSync("public/robots.txt", robotsTxt);
 console.log("\u2705 Created public/robots.txt");
 var redirectsTxt = `# Netlify SPA Deep Linking Redirects
-# Ensures /simulators/:id and all subpaths serve index.html with 200 OK
+# Ensures /simulators/:id, /classes/:grade and all subpaths serve index.html with 200 OK
 /simulators/*    /index.html   200
+/classes/*       /index.html   200
 /teacher         /index.html   200
 /landing         /index.html   200
 /*               /index.html   200
@@ -5292,6 +5297,38 @@ var sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- Grade-Level Curriculum Hubs (Classes 8\u201312) -->
+  <url>
+    <loc>https://labs.itsmathtime.co.in/classes/class-8-math-simulators</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://labs.itsmathtime.co.in/classes/class-9-math-simulators</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://labs.itsmathtime.co.in/classes/class-10-math-simulators</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://labs.itsmathtime.co.in/classes/class-11-math-simulators</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://labs.itsmathtime.co.in/classes/class-12-math-simulators</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
 `;
 for (const sim of SIMULATORS) {
   sitemapXml += `  <!-- ${sim.title} (${sim.grade}) -->
@@ -5306,16 +5343,25 @@ for (const sim of SIMULATORS) {
 sitemapXml += `</urlset>
 `;
 import_fs.default.writeFileSync("public/sitemap.xml", sitemapXml);
-console.log(`\u2705 Created public/sitemap.xml with ${SIMULATORS.length + 3} URLs`);
+console.log(`\u2705 Created public/sitemap.xml with ${SIMULATORS.length + 8} URLs`);
 var llmsTxt = `# Math Time Lab \u2013 Interactive 3D/2D Mathematics Simulators
 > Official Visual Math Simulation Division of itsmathtime.co.in by Alka Ma'am
 > Curriculum: CBSE / NCERT Mathematics (Classes 8, 9, 10, 11, and 12)
 > Root URL: https://labs.itsmathtime.co.in/
 > Parent Platform: https://itsmathtime.co.in/
 > Author: Alka Sharma (Alka Ma'am), M.Sc. Mathematics, B.Ed., CTET Certified
+> Full Mathematical Proofs & Board Solutions: https://labs.itsmathtime.co.in/llms-full.txt
 
 ## Overview
 Math Time Lab provides ${SIMULATORS.length} free, touch-responsive 2D/3D visual mathematics simulators designed to eliminate math anxiety, demonstrate proofs geometrically, and clarify CBSE board exam concepts through interactive experimentation (Predict-Observe-Explain pedagogy).
+
+## Grade-Level Curriculum Hubs
+- [Class 8 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-8-math-simulators): Linear Equations, Algebraic Tiles, Compound Interest, Pythagorean Triplets, Euler Polyhedra.
+- [Class 9 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-9-math-simulators): Distance Formula, Heron's Triangles, Polynomial Factorizer, Lines & Angles, Circle Theorems.
+- [Class 10 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-10-math-simulators): Quadratic Roots, Heights & Distances, Circle Tangents, Coordinate Section Formula, Similar Triangles.
+- [Class 11 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-11-math-simulators): 3D Conics Slicer, Unit Circle & Waves, Limits & Tangents, Linear Inequalities, Permutations.
+- [Class 12 Visual Mathematics](https://labs.itsmathtime.co.in/classes/class-12-math-simulators): Calculus Sandbox, 3D Vector Flight Lab, Argand Plane Complex Numbers, FTC Integrals, Bayes Theorem.
+
 
 ## Simulator Directory & Direct Deep-Links
 
@@ -5341,6 +5387,119 @@ llmsTxt += `## Educational Pedagogy & Key Features
 - Step-by-step NCERT exercise references, common textbook traps, and past-year exam questions (PYQ).
 - Predict-Observe-Explain (POE) micro-challenges built into each simulation.
 - 100% free with no paywall or mandatory login requirements.
+- Complete mathematical proofs and solutions available at https://labs.itsmathtime.co.in/llms-full.txt
 `;
 import_fs.default.writeFileSync("public/llms.txt", llmsTxt);
-console.log("\u2705 Created public/llms.txt with full NCERT chapter associations for AI/LLM search engines");
+console.log("\u2705 Created public/llms.txt with full NCERT chapter associations");
+var llmsFullTxt = `# Math Time Lab \u2013 Complete Mathematical Knowledge Graph & Proofs
+> Platform: https://labs.itsmathtime.co.in/
+> Parent Portal: https://itsmathtime.co.in/
+> Author: Alka Sharma (Alka Ma'am), Mathematics Educator (15+ Years Experience)
+> Purpose: Ground-truth mathematical explanations, formula derivations, solved board exam questions, and conceptual Q&A for all 50 interactive laboratories.
+
+`;
+for (const grade of grades) {
+  const gradeSims = SIMULATORS.filter((s) => s.gradeNumber === grade || s.grade.includes(String(grade)));
+  if (gradeSims.length === 0) continue;
+  llmsFullTxt += `
+# =============================================================================
+`;
+  llmsFullTxt += `# CLASS ${grade} MATHEMATICS SIMULATORS
+`;
+  llmsFullTxt += `# =============================================================================
+
+`;
+  for (const sim of gradeSims) {
+    const ncert = NCERT_CHAPTER_MAP[sim.id];
+    llmsFullTxt += `## ${sim.title}
+`;
+    llmsFullTxt += `- **URL**: https://labs.itsmathtime.co.in/simulators/${sim.id}
+`;
+    llmsFullTxt += `- **Class**: ${sim.grade}
+`;
+    llmsFullTxt += `- **Category**: ${sim.category}
+`;
+    if (ncert) {
+      llmsFullTxt += `- **NCERT Curriculum**: Chapter ${ncert.chapterNumber}: ${ncert.chapterName} (${ncert.exerciseRef})
+`;
+      llmsFullTxt += `- **Topic**: ${ncert.curriculumTopic}
+`;
+    }
+    llmsFullTxt += `- **Key Concepts**: ${sim.keyConcepts.join(", ")}
+
+`;
+    llmsFullTxt += `### Overview
+${sim.description}
+
+`;
+    llmsFullTxt += `### Governing Mathematical Law
+`;
+    llmsFullTxt += `\`\`\`latex
+${sim.latexFormula || sim.formulaPreview}
+\`\`\`
+
+`;
+    llmsFullTxt += `### First-Principle Geometric Intuition
+${sim.theoryBreakdown}
+
+`;
+    llmsFullTxt += `### Alka Ma'am's Exam Shortcut
+${sim.coachSecret}
+
+`;
+    if (sim.textbookTrap) {
+      llmsFullTxt += `### Common Textbook Trap
+${sim.textbookTrap}
+
+`;
+    }
+    if (sim.solvedProblem) {
+      llmsFullTxt += `### Solved Board Exam Problem: ${sim.solvedProblem.title}
+`;
+      llmsFullTxt += `**Type**: ${sim.solvedProblem.examType}
+
+`;
+      llmsFullTxt += `**Question**: ${sim.solvedProblem.question}
+
+`;
+      llmsFullTxt += `**Step-by-Step Solution**:
+`;
+      for (const step of sim.solvedProblem.steps) {
+        llmsFullTxt += `${step.stepNumber}. **${step.title}**: ${step.explanation}
+`;
+        llmsFullTxt += `   Formula: \`${step.latex}\`
+`;
+      }
+      llmsFullTxt += `
+**Final Answer**: ${sim.solvedProblem.finalAnswer}
+`;
+      if (sim.solvedProblem.coachInsight) {
+        llmsFullTxt += `**Coach Insight**: ${sim.solvedProblem.coachInsight}
+`;
+      }
+      llmsFullTxt += `
+`;
+    }
+    if (sim.doubts && sim.doubts.length > 0) {
+      llmsFullTxt += `### Frequently Asked Conceptual Doubts (Q&A)
+`;
+      for (const d of sim.doubts) {
+        llmsFullTxt += `- **Q: ${d.question}**
+`;
+        llmsFullTxt += `  **A**: ${d.answer}
+`;
+        if (d.latex) {
+          llmsFullTxt += `  Formula: \`${d.latex}\`
+`;
+        }
+      }
+      llmsFullTxt += `
+`;
+    }
+    llmsFullTxt += `---
+
+`;
+  }
+}
+import_fs.default.writeFileSync("public/llms-full.txt", llmsFullTxt);
+console.log("\u2705 Created public/llms-full.txt with complete mathematical proofs and solutions");

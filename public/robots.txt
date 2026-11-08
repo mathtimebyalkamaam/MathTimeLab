@@ -28,3 +28,7 @@ User-agent: CCBot
 Allow: /
 
 Sitemap: https://labs.itsmathtime.co.in/sitemap.xml
+
+# LLM & AI Search Knowledge Graph References
+# Summary directory: https://labs.itsmathtime.co.in/llms.txt
+# Comprehensive proofs & board solutions: https://labs.itsmathtime.co.in/llms-full.txt
