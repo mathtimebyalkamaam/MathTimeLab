@@ -106,8 +106,8 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
 
   // Clamped positioning for HUD card so it never overflows container edges
   const containerRect = containerRef.current?.getBoundingClientRect();
-  const cardWidth = 380;
-  const cardHeight = 195;
+  const cardWidth = 400;
+  const cardHeight = 210;
 
   let leftPos = relativePos.px + 24;
   let topPos = relativePos.py + 24;
@@ -191,37 +191,37 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
 
           {/* Floating High-Tech Glassmorphic Math HUD Card */}
           <div
-            className="absolute w-[340px] sm:w-[380px] bg-slate-900/98 backdrop-blur-2xl border border-cyan-400/60 rounded-2xl p-3.5 shadow-2xl space-y-2 text-sm animate-in fade-in zoom-in-95 duration-100 pointer-events-none select-none"
+            className="absolute w-[350px] sm:w-[400px] bg-slate-900/98 backdrop-blur-2xl border border-cyan-400/80 rounded-2xl p-4 shadow-2xl space-y-2.5 text-sm animate-in fade-in zoom-in-95 duration-100 pointer-events-none select-none"
             style={{ left: `${leftPos}px`, top: `${topPos}px` }}
           >
             {/* Header: Zone & Live Coordinate in Pure Math */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-cyan-400" />
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-cyan-400 shrink-0" />
                 <InlineMath math={insight.zone} />
               </span>
-              <span className="font-mono text-xs font-bold text-emerald-300 bg-emerald-950/70 px-2 py-0.5 rounded border border-emerald-600/50">
+              <span className="font-mono text-xs sm:text-sm font-bold text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/60 shadow-sm">
                 <InlineMath math={`(${mathPos.x.toFixed(2)}, ${mathPos.y.toFixed(2)})`} />
               </span>
             </div>
 
             {/* Live Evaluated Metric Text in Pure KaTeX */}
-            <div className="px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-800 text-sm sm:text-base font-semibold text-slate-100 flex items-center justify-between overflow-x-auto no-scrollbar">
+            <div className="px-3.5 py-2 rounded-xl bg-slate-950/95 border border-slate-700/80 text-sm sm:text-base font-bold text-slate-100 flex items-center justify-between overflow-x-auto no-scrollbar shadow-inner">
               <InlineMath math={insight.valueLatex} />
             </div>
 
             {/* Formula Preview in Pure KaTeX */}
             {insight.formulaLatex && (
-              <div className="px-3 py-1.5 rounded-xl bg-cyan-950/50 border border-cyan-700/60 font-mono text-xs sm:text-sm text-cyan-200 flex items-center justify-between overflow-x-auto no-scrollbar">
+              <div className="px-3.5 py-1.5 rounded-xl bg-cyan-950/60 border border-cyan-600/70 font-mono text-xs sm:text-sm text-cyan-200 flex items-center justify-between overflow-x-auto no-scrollbar">
                 <InlineMath math={insight.formulaLatex} />
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 ml-2" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0 ml-2" />
               </div>
             )}
 
             {/* Pedagogical Micro-Tip rendered with MathText so prose retains natural spaces */}
-            <div className="text-xs sm:text-[13px] leading-relaxed text-slate-200 flex items-start gap-2 pt-1 border-t border-slate-800/80">
+            <div className="text-xs sm:text-[13.5px] leading-relaxed text-slate-100 flex items-start gap-2 pt-1.5 border-t border-slate-800 bg-amber-950/20 px-2 py-1.5 rounded-lg border border-amber-600/25">
               <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="text-slate-200 flex-1 leading-normal font-sans">
+              <div className="text-amber-100/95 flex-1 leading-snug font-sans font-medium">
                 <MathText text={insight.tipText} />
               </div>
             </div>

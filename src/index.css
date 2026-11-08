@@ -27,9 +27,15 @@
 
 /* Enhanced Pure Math KaTeX Legibility, Academic Typography & Zero-Scrollbar Presentation */
 .katex {
-  font-size: 1.1em !important;
+  font-size: 1.15em !important;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+.katex .mord,
+.katex .mrel,
+.katex .mop {
+  letter-spacing: 0.02em;
 }
 
 .katex-display {
@@ -41,7 +47,7 @@
 }
 
 .katex-display > .katex {
-  font-size: 1.12em !important;
+  font-size: 1.2em !important;
   max-width: 100%;
 }
 

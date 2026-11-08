@@ -258,7 +258,7 @@ export const SimulatorMissionBar: React.FC<SimulatorMissionBarProps> = ({ simula
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Step 3: The Discovery</span>
                 </div>
-                <div className="text-slate-200 leading-relaxed text-xs sm:text-[13px]">
+                <div className="text-slate-100 leading-relaxed text-sm sm:text-[14px] font-medium">
                   <MathText text={instruction?.mathInsight || 'Understand why the theorem or equation remains invariant.'} />
                 </div>
               </div>
@@ -266,9 +266,9 @@ export const SimulatorMissionBar: React.FC<SimulatorMissionBarProps> = ({ simula
 
             {/* Coach's Secret callout */}
             {sim?.coachSecret && (
-              <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-800/40 text-xs sm:text-[13px] text-amber-200 flex items-start gap-2.5">
-                <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <div className="leading-relaxed flex-1">
+              <div className="p-3.5 rounded-xl bg-amber-950/40 border border-amber-700/60 text-sm sm:text-[14px] text-amber-100 flex items-start gap-2.5 shadow-sm">
+                <Lightbulb className="w-4.5 h-4.5 text-amber-300 shrink-0 mt-0.5" />
+                <div className="leading-relaxed flex-1 font-medium">
                   <strong className="text-amber-300 font-bold block mb-0.5">Alka Ma'am's Coach Note: </strong>
                   <MathText text={sim.coachSecret} />
                 </div>

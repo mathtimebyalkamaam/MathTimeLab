@@ -544,19 +544,21 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                 </span>
               </button>
 
-              {/* Active Simulator Breadcrumb Chip */}
+              {/* Active Simulator Breadcrumb Chip with H1 for SEO Heading Hierarchy */}
               {isSimulator && (
                 <div className="flex items-center gap-1.5 pl-1.5 sm:pl-2.5 border-l border-slate-800">
                   <span className="text-slate-600 text-xs hidden xs:inline">/</span>
-                  <div 
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900 border border-emerald-500/30 text-emerald-300 text-xs font-semibold shadow-inner"
-                    title={`Active Simulator: ${currentSimTitle}`}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="truncate max-w-[110px] xs:max-w-[140px] sm:max-w-[180px] font-medium text-slate-200">
-                      {currentSimTitle}
+                  <h1 className="inline-flex items-center m-0 p-0 text-xs font-semibold">
+                    <span 
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900 border border-emerald-500/30 text-emerald-300 text-xs font-semibold shadow-inner"
+                      title={`Active Simulator: ${currentSimTitle}`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="truncate max-w-[110px] xs:max-w-[140px] sm:max-w-[180px] font-medium text-slate-200">
+                        {currentSimTitle}
+                      </span>
                     </span>
-                  </div>
+                  </h1>
                 </div>
               )}
             </div>
@@ -836,27 +838,33 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
 
                       <div className="space-y-0.5">
                         {group.labs.map((sim) => (
-                          <button
+                          <a
                             key={sim.id}
-                            type="button"
-                            onClick={() => handleSelectSim(sim.id)}
-                            className="w-full text-left py-1.5 px-2 rounded hover:bg-slate-100 text-slate-700 hover:text-emerald-700 transition-colors flex items-center justify-between group cursor-pointer"
+                            href={`/simulators/${sim.id}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleSelectSim(sim.id);
+                            }}
+                            className="w-full text-left py-1.5 px-2 rounded hover:bg-slate-100 text-slate-700 hover:text-emerald-700 transition-colors flex items-center justify-between group cursor-pointer block"
                             title={sim.name}
                           >
                             <span className="text-xs font-medium truncate group-hover:font-semibold">{sim.name}</span>
                             <span className="text-[10px] text-slate-400 font-mono ml-1 shrink-0">{sim.tag}</span>
-                          </button>
+                          </a>
                         ))}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleSelectGradeFilter(group.id)}
+                      <a
+                        href={`/classes/${group.id}-math-simulators`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleSelectGradeFilter(group.id);
+                        }}
                         className="w-full pt-2 border-t border-slate-100 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center justify-between cursor-pointer"
                       >
                         <span>Explore All {group.gradeLabel}</span>
                         <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
+                      </a>
                     </div>
                   ))}
                 </div>
@@ -906,15 +914,18 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
 
                         <div className="space-y-0.5">
                           {domain.labs.slice(0, 5).map((lab) => (
-                            <button
+                            <a
                               key={lab.id}
-                              type="button"
-                              onClick={() => handleSelectSim(lab.id)}
+                              href={`/simulators/${lab.id}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleSelectSim(lab.id);
+                              }}
                               className="w-full text-left py-1 px-1.5 rounded hover:bg-slate-100 text-xs text-slate-700 hover:text-purple-700 hover:font-medium transition-colors truncate block cursor-pointer"
                               title={lab.name}
                             >
                               • {lab.name}
-                            </button>
+                            </a>
                           ))}
                         </div>
                       </div>
@@ -951,10 +962,13 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
 
                 <div className="grid grid-cols-4 gap-6">
                   {/* Quick destination cards - 100% clickable */}
-                  <button
-                    type="button"
-                    onClick={() => handleOpenPage('home')}
-                    className="w-full text-left p-4 rounded-xl bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-400 transition-all duration-200 group cursor-pointer space-y-2 flex flex-col justify-between shadow-xs hover:shadow-md"
+                  <a
+                    href="/"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleOpenPage('home');
+                    }}
+                    className="w-full text-left p-4 rounded-xl bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-400 transition-all duration-200 group cursor-pointer space-y-2 flex flex-col justify-between shadow-xs hover:shadow-md block"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1">
@@ -969,12 +983,15 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                       <span>Open 50-Lab Grid</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
-                  </button>
+                  </a>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenPage('landing')}
-                    className="w-full text-left p-4 rounded-xl bg-slate-50 hover:bg-purple-50/60 border border-slate-200 hover:border-purple-400 transition-all duration-200 group cursor-pointer space-y-2 flex flex-col justify-between shadow-xs hover:shadow-md"
+                  <a
+                    href="/landing"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleOpenPage('landing');
+                    }}
+                    className="w-full text-left p-4 rounded-xl bg-slate-50 hover:bg-purple-50/60 border border-slate-200 hover:border-purple-400 transition-all duration-200 group cursor-pointer space-y-2 flex flex-col justify-between shadow-xs hover:shadow-md block"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1">
@@ -989,7 +1006,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                       <span>Read Pedagogical Story</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
-                  </button>
+                  </a>
 
                   {/* Featured Flagship Labs */}
                   <div className="col-span-2 space-y-2">
@@ -1001,11 +1018,14 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                         { id: 'conic-sections' as SimulatorId, name: '3D Conics Double-Cone Slicer', grade: 'Class 11' },
                         { id: 'vector-flight-lab' as SimulatorId, name: '3D Vector Flight Lab', grade: 'Class 12' },
                       ].map((item) => (
-                        <button
+                        <a
                           key={item.id}
-                          type="button"
-                          onClick={() => handleSelectSim(item.id)}
-                          className="p-2.5 rounded-lg border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-left flex items-center justify-between group cursor-pointer"
+                          href={`/simulators/${item.id}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleSelectSim(item.id);
+                          }}
+                          className="p-2.5 rounded-lg border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-left flex items-center justify-between group cursor-pointer block"
                         >
                           <span className="text-xs font-medium text-slate-800 group-hover:text-emerald-800 group-hover:font-semibold truncate">
                             {item.name}
@@ -1013,7 +1033,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 ml-1 shrink-0">
                             {item.grade}
                           </span>
-                        </button>
+                        </a>
                       ))}
                     </div>
                   </div>
@@ -1245,38 +1265,45 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
 
           {/* Quick Action Navigation Grid */}
           <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => handleOpenPage('home')}
-              className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 text-center text-xs font-bold transition-colors ${
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                handleOpenPage('home');
+              }}
+              className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 text-center text-xs font-bold transition-colors block ${
                 currentRoute === 'home'
                   ? 'bg-slate-800 text-emerald-300 border-emerald-400/60 shadow-sm'
                   : 'bg-slate-900 text-white border-slate-800 hover:border-cyan-500/40'
               }`}
             >
-              <Home className="w-4 h-4 text-emerald-400" />
+              <Home className="w-4 h-4 text-emerald-400 mx-auto" />
               <span>Lab Home</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
+            </a>
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
                 handleOpenPage('home');
                 const el = document.getElementById('curriculum-directory-section');
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center gap-1 text-center text-xs font-bold text-white hover:border-cyan-500/40"
+              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center gap-1 text-center text-xs font-bold text-white hover:border-cyan-500/40 block"
             >
-              <Grid className="w-4 h-4 text-cyan-400" />
+              <Grid className="w-4 h-4 text-cyan-400 mx-auto" />
               <span>All 50 Labs</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOpenPage('landing')}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center gap-1 text-center text-xs font-bold text-white hover:border-purple-500/40"
+            </a>
+            <a
+              href="/landing"
+              onClick={(e) => {
+                e.preventDefault();
+                handleOpenPage('landing');
+              }}
+              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center gap-1 text-center text-xs font-bold text-white hover:border-purple-500/40 block"
             >
-              <Compass className="w-4 h-4 text-purple-400" />
+              <Compass className="w-4 h-4 text-purple-400 mx-auto" />
               <span>Overview</span>
-            </button>
+            </a>
           </div>
 
           {/* Section: Classes 8 to 12 Accordion */}
@@ -1291,11 +1318,14 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
 
             <div className="grid grid-cols-2 gap-2 pt-1">
               {CURRICULUM_GRADES.map((group) => (
-                <button
+                <a
                   key={group.id}
-                  type="button"
-                  onClick={() => handleSelectGradeFilter(group.id)}
-                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-left hover:border-cyan-500/40 flex flex-col justify-between"
+                  href={`/classes/${group.id}-math-simulators`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSelectGradeFilter(group.id);
+                  }}
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-left hover:border-cyan-500/40 flex flex-col justify-between block"
                 >
                   <span className={`text-xs font-bold ${group.badgeColor}`}>
                     {group.gradeLabel}
@@ -1303,7 +1333,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({ onOpenClassModal }) 
                   <span className="text-[10px] text-slate-400">
                     {group.labs.length} visual models →
                   </span>
-                </button>
+                </a>
               ))}
             </div>
           </div>

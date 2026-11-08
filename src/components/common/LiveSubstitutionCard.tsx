@@ -75,34 +75,34 @@ export const LiveSubstitutionCard: React.FC<LiveSubstitutionCardProps> = ({
       {/* 3-Tier Live Progression: Symbolic Law -> Active Substitution -> Evaluated Result */}
       <div className="flex flex-col gap-1.5 w-full">
         {/* Tier 1: General Symbolic Invariant */}
-        <div className="rounded-xl bg-slate-950/80 border border-slate-800/80 p-2 flex flex-col justify-center">
-          <span className="uppercase font-bold text-slate-400 tracking-wider text-[9px] mb-0.5 text-center">
+        <div className="rounded-xl bg-slate-950/85 border border-slate-700/80 p-2.5 flex flex-col justify-center">
+          <span className="uppercase font-bold text-slate-300 tracking-wider text-[11px] mb-1 text-center">
             1. Symbolic Law
           </span>
-          <div className="overflow-x-auto no-scrollbar py-0.5 text-center">
-            <BlockMath math={symbolicLaw} className="!my-0 text-slate-100 text-xs sm:text-sm font-semibold" />
+          <div className="overflow-x-auto no-scrollbar py-0.5 text-center text-sm sm:text-base font-semibold">
+            <BlockMath math={symbolicLaw} className="!my-0 text-slate-100 font-semibold" />
           </div>
         </div>
 
         {/* Tier 2: Live Substitution */}
-        <div className="rounded-xl bg-slate-950/90 border border-cyan-900/60 p-2 flex flex-col justify-center relative group">
-          <span className="uppercase font-bold text-cyan-400 tracking-wider flex items-center justify-center gap-1 text-[9px] mb-0.5 text-center">
+        <div className="rounded-xl bg-slate-950/95 border border-cyan-600/70 p-2.5 flex flex-col justify-center relative group shadow-sm">
+          <span className="uppercase font-bold text-cyan-300 tracking-wider flex items-center justify-center gap-1.5 text-[11px] mb-1 text-center">
             <span>2. Live Substitution</span>
-            <ArrowRight className="w-2.5 h-2.5 text-cyan-400" />
+            <ArrowRight className="w-3 h-3 text-cyan-400" />
           </span>
-          <div className="overflow-x-auto no-scrollbar py-0.5 text-center">
-            <BlockMath math={substitutedLatex} className="!my-0 text-cyan-200 text-xs sm:text-sm font-bold" />
+          <div className="overflow-x-auto no-scrollbar py-0.5 text-center text-sm sm:text-base font-bold">
+            <BlockMath math={substitutedLatex} className="!my-0 text-cyan-200 font-bold" />
           </div>
         </div>
 
         {/* Tier 3: Evaluated Result */}
         {evaluatedLatex && (
-          <div className="rounded-xl bg-emerald-950/40 border border-emerald-700/60 p-2 flex flex-col justify-center">
-            <span className="uppercase font-bold text-emerald-400 tracking-wider text-[9px] mb-0.5 text-center">
+          <div className="rounded-xl bg-emerald-950/50 border border-emerald-500/70 p-2.5 flex flex-col justify-center shadow-sm">
+            <span className="uppercase font-bold text-emerald-300 tracking-wider text-[11px] mb-1 text-center">
               3. Evaluated Result
             </span>
-            <div className="overflow-x-auto no-scrollbar py-0.5 text-center">
-              <BlockMath math={evaluatedLatex} className="!my-0 text-emerald-200 text-xs sm:text-sm md:text-base font-extrabold" />
+            <div className="overflow-x-auto no-scrollbar py-0.5 text-center text-sm sm:text-base md:text-lg font-black">
+              <BlockMath math={evaluatedLatex} className="!my-0 text-emerald-200 font-extrabold" />
             </div>
           </div>
         )}

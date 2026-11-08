@@ -164,6 +164,7 @@ export function syncRouteSeo(route: AppRoute, replace = false, grade?: GradeLeve
   document.title = title;
 
   updateMetaTag('name', 'description', description);
+  updateMetaTag('name', 'robots', 'index, follow');
   updateMetaTag('property', 'og:title', title);
   updateMetaTag('property', 'og:description', description);
   updateMetaTag('property', 'og:url', canonicalUrl);

@@ -81,10 +81,10 @@ export const MathFormula: React.FC<MathFormulaProps> = ({
 
       {/* Tutor Coaching Insight */}
       {coachTip && (
-        <div className="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/50 text-xs sm:text-[13px] text-cyan-200 flex items-start gap-2">
-          <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-3 rounded-xl bg-cyan-950/50 border border-cyan-700/60 text-sm sm:text-[14px] text-cyan-100 flex items-start gap-2.5 shadow-sm font-medium">
+          <Lightbulb className="w-4.5 h-4.5 text-amber-300 shrink-0 mt-0.5" />
           <div className="flex-1 leading-relaxed">
-            <strong className="text-amber-300">Coach Intuition: </strong>
+            <strong className="text-amber-300 font-bold">Coach Intuition: </strong>
             <MathText text={coachTip} />
           </div>
         </div>

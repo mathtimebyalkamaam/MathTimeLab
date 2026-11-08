@@ -30,6 +30,7 @@ import { SimulatorId, SimulatorMetadata } from '../../types/simulators';
 import { SIMULATORS } from '../../data/simulators';
 import { getRelatedSimulators } from '../../data/relatedSimulators';
 import { NCERT_CHAPTER_MAP } from '../../data/ncertMappings';
+import { SIMULATOR_GUIDES } from '../../data/guides';
 import { MathFormula, InlineMath, BlockMath, MathText } from './MathFormula';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useSound } from './SoundManager';
@@ -41,7 +42,7 @@ interface CoachTheoryModuleProps {
   extraLiveDetails?: React.ReactNode;
 }
 
-type TheorySectionTab = 'results_formula' | 'proof_ladder' | 'solved_problem' | 'traps_doubts';
+type TheorySectionTab = 'results_formula' | 'lab_guide' | 'proof_ladder' | 'solved_problem' | 'traps_doubts';
 
 export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
   simulatorId,
@@ -60,6 +61,7 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
   } = useSimulatorStore();
 
   const sim = SIMULATORS.find((s) => s.id === simulatorId);
+  const guide = SIMULATOR_GUIDES[simulatorId];
   const relatedSimulators = getRelatedSimulators(simulatorId);
   const ncert = NCERT_CHAPTER_MAP[simulatorId];
   const [activeTab, setActiveTab] = useState<TheorySectionTab>('results_formula');
@@ -99,7 +101,7 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
   return (
     <div className="space-y-3 text-xs sm:text-sm text-slate-300">
       {/* Top Segmented Navigation Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 rounded-xl bg-slate-950/90 border border-slate-800/80 shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 p-1 rounded-xl bg-slate-950/90 border border-slate-800/80 shrink-0">
         <button
           type="button"
           onClick={() => {
@@ -107,7 +109,7 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
             playClick(1.0);
             setActiveTab('results_formula');
           }}
-          className={`py-2 px-2.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer truncate ${
+          className={`py-2 px-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer truncate ${
             activeTab === 'results_formula'
               ? 'bg-cyan-500 text-slate-950 font-bold shadow-md'
               : 'text-slate-400 hover:text-slate-200'
@@ -115,8 +117,28 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
           title="Live Results & Governing Equation"
         >
           <Calculator className="w-4 h-4 shrink-0" />
-          <span className="truncate">Results & Math</span>
+          <span className="truncate">Results &amp; Math</span>
         </button>
+
+        {guide && (
+          <button
+            type="button"
+            onClick={() => {
+              selectionTick();
+              playClick(1.02);
+              setActiveTab('lab_guide');
+            }}
+            className={`py-2 px-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer truncate ${
+              activeTab === 'lab_guide'
+                ? 'bg-cyan-600 text-white font-bold shadow-md shadow-cyan-950'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+            title="Interactive Lab Guide, Controls &amp; Real-World STEM"
+          >
+            <BookOpen className="w-4 h-4 shrink-0 text-cyan-300" />
+            <span className="truncate">Lab Guide</span>
+          </button>
+        )}
 
         {sim.derivationLadder && (
           <button
@@ -273,21 +295,21 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
             </div>
 
             {/* Selected Insight Display Card with Pure KaTeX formatting */}
-            <div className="text-xs sm:text-sm leading-relaxed min-h-[50px] flex items-center px-1.5 py-1">
+            <div className="text-sm sm:text-base leading-relaxed min-h-[50px] flex items-center px-2 py-1.5 bg-slate-950/60 rounded-xl border border-slate-800/80">
               {insightPill === 'coach' && (
-                <div className="text-amber-200/95 leading-relaxed font-sans">
+                <div className="text-amber-100 leading-relaxed font-sans font-medium">
                   <strong className="text-amber-300 font-bold block sm:inline mb-0.5 sm:mb-0 sm:mr-1">Exam Shortcut: </strong>
                   <MathText text={sim.coachSecret || 'Master the invariant relation to solve problems in under 30 seconds.'} />
                 </div>
               )}
               {insightPill === 'trap' && sim.textbookTrap && (
-                <div className="text-rose-200/95 leading-relaxed font-sans">
+                <div className="text-rose-100 leading-relaxed font-sans font-medium">
                   <strong className="text-rose-400 font-bold block sm:inline mb-0.5 sm:mb-0 sm:mr-1">Common Misconception: </strong>
                   <MathText text={sim.textbookTrap} />
                 </div>
               )}
               {insightPill === 'core' && (
-                <div className="text-cyan-200/95 leading-relaxed font-sans">
+                <div className="text-cyan-100 leading-relaxed font-sans font-medium">
                   <strong className="text-cyan-300 font-bold block sm:inline mb-0.5 sm:mb-0 sm:mr-1">First Principle: </strong>
                   <MathText text={sim.theoryBreakdown || sim.description} />
                 </div>
@@ -345,6 +367,124 @@ export const CoachTheoryModule: React.FC<CoachTheoryModuleProps> = ({
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 1B: LAB GUIDE, CONTROLS & REAL-WORLD STEM APPLICATION                 */}
+      {/* ========================================================================= */}
+      {activeTab === 'lab_guide' && guide && (
+        <div className="space-y-3 animate-fade-in max-h-[520px] overflow-y-auto custom-scrollbar pr-1">
+          {/* Header & Introduction */}
+          <div className="p-3.5 rounded-xl bg-slate-950/90 border border-cyan-800/50 space-y-2 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+              <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-cyan-400" />
+                <span>Lab Guide &amp; Objectives</span>
+              </span>
+              <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-700/60 px-2 py-0.5 rounded font-semibold">
+                Class {sim?.grade.replace('Class ', '')}
+              </span>
+            </div>
+            <h3 className="text-sm font-bold text-white">{guide.h1Heading}</h3>
+            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed font-sans">{guide.introduction}</p>
+          </div>
+
+          {/* Learning Objectives */}
+          {guide.learningObjectives && guide.learningObjectives.length > 0 && (
+            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Learning Objectives</span>
+              </span>
+              <ul className="space-y-1.5 text-xs sm:text-[13px] text-slate-200">
+                {guide.learningObjectives.map((obj, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{obj}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Controls & Parameters Guide */}
+          {guide.controlsGuide && guide.controlsGuide.length > 0 && (
+            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Simulator Controls &amp; Parameters</span>
+              </span>
+              <div className="grid grid-cols-1 gap-2">
+                {guide.controlsGuide.map((ctrl, idx) => (
+                  <div key={idx} className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800/90 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <strong className="text-slate-100 font-semibold">{ctrl.name}</strong>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
+                        {ctrl.type}
+                      </span>
+                    </div>
+                    {ctrl.range && (
+                      <div className="text-[11px] text-amber-300 font-mono">Range: {ctrl.range}</div>
+                    )}
+                    <p className="text-slate-300 leading-normal">{ctrl.description}</p>
+                    <div className="text-emerald-300 font-medium">
+                      <strong className="text-emerald-400">Effect: </strong>
+                      {ctrl.effect}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step-by-Step Instructions Protocol */}
+          {guide.stepByStepInstructions && guide.stepByStepInstructions.length > 0 && (
+            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+                <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Step-by-Step Instructions</span>
+              </span>
+              <ol className="space-y-1.5 text-xs sm:text-[13px] text-slate-200 list-decimal list-inside">
+                {guide.stepByStepInstructions.map((step, idx) => (
+                  <li key={idx} className="leading-relaxed">
+                    <span className="font-sans">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {/* Expected Output */}
+          {guide.expectedOutput && (
+            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-800/40 space-y-1.5 text-xs sm:text-[13px]">
+              <strong className="text-emerald-300 block font-bold">Expected Output &amp; Visual Invariants:</strong>
+              <p className="text-emerald-100/95 leading-relaxed font-sans">{guide.expectedOutput}</p>
+            </div>
+          )}
+
+          {/* Practical Real-World STEM Application */}
+          {guide.realWorldApplication && (
+            <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-800/50 space-y-2 text-xs sm:text-[13px]">
+              <div className="flex items-center justify-between border-b border-cyan-800/40 pb-1">
+                <span className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
+                  Real-World STEM Application
+                </span>
+                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-900/60 px-1.5 py-0.5 rounded">
+                  {guide.realWorldApplication.field || guide.realWorldApplication.domain || 'Engineering & STEM'}
+                </span>
+              </div>
+              <p className="text-slate-200 leading-relaxed font-sans">
+                {guide.realWorldApplication.description || guide.realWorldApplication.scenario}
+              </p>
+              <div className="p-2.5 rounded-lg bg-slate-950/90 border border-cyan-900/60 text-cyan-100">
+                <strong className="text-cyan-300">Practical Example: </strong>
+                <span className="font-sans">
+                  {guide.realWorldApplication.example || guide.realWorldApplication.mathematicalConnection}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

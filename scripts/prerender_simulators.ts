@@ -20,6 +20,7 @@ import { NCERT_CHAPTER_MAP } from '../src/data/ncertMappings.ts';
 import { getRelatedSimulators } from '../src/data/relatedSimulators.ts';
 import { GRADE_METADATA } from '../src/utils/seo.ts';
 import { GradeLevel } from '../src/types/simulators.ts';
+import { SIMULATOR_GUIDES } from '../src/data/guides/index.ts';
 
 const DIST_DIR = path.resolve('dist');
 const BASE_URL = 'https://labs.itsmathtime.co.in';
@@ -36,6 +37,16 @@ if (!fs.existsSync(templateHtmlPath)) {
 }
 
 const templateHtml = fs.readFileSync(templateHtmlPath, 'utf8');
+
+// Ensure root homepage dist/index.html has its self-referencing canonical & robots tags
+let rootHtml = templateHtml;
+if (!rootHtml.includes('<link rel="canonical"')) {
+  rootHtml = rootHtml.replace('</head>', `    <link rel="canonical" href="${BASE_URL}/" />\n  </head>`);
+}
+if (!rootHtml.includes('<meta name="robots"')) {
+  rootHtml = rootHtml.replace('</head>', `    <meta name="robots" content="index, follow" />\n  </head>`);
+}
+fs.writeFileSync(templateHtmlPath, rootHtml, 'utf8');
 
 console.log(`[Prerender] Starting SSG generation for ${SIMULATORS.length} simulators + core routes...`);
 
@@ -59,14 +70,15 @@ for (const sim of SIMULATORS) {
   const ncert = (NCERT_CHAPTER_MAP as any)[sim.id];
   const simUrl = `${BASE_URL}/simulators/${sim.id}`;
   const relatedSims = getRelatedSimulators(sim.id);
+  const guide = (SIMULATOR_GUIDES as any)[sim.id];
   
   const pageTitle = ncert
     ? `${sim.title} | NCERT Class ${ncert.gradeNumber} Ch ${ncert.chapterNumber} – Math Time Lab`
     : `${sim.title} | ${sim.grade} – Math Time Lab`;
 
   const metaDesc = ncert
-    ? `${sim.description} NCERT Class ${ncert.gradeNumber} Chapter ${ncert.chapterNumber} (${ncert.chapterName}). Visual proof, formula derivation & board exam solved problems by Alka Ma'am.`
-    : `${sim.description} Visual math proof, formula derivation & board exam solved problems by Alka Ma'am.`;
+    ? `${guide?.introduction || sim.description} NCERT Class ${ncert.gradeNumber} Chapter ${ncert.chapterNumber} (${ncert.chapterName}). Visual proof, formula derivation & board exam solved problems by Alka Ma'am.`
+    : `${guide?.introduction || sim.description} Visual math proof, formula derivation & board exam solved problems by Alka Ma'am.`;
 
   // Build Breadcrumb JSON-LD
   const breadcrumbLd = {
@@ -169,16 +181,35 @@ for (const sim of SIMULATORS) {
           ${ncert ? `<span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #4ade80; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 6px;">NCERT Ch ${ncert.chapterNumber}: ${escapeHtml(ncert.chapterName)} (${escapeHtml(ncert.exerciseRef)})</span>` : ''}
           <span style="color: #94a3b8; font-size: 11px; padding: 3px 0;">${escapeHtml(sim.category)} • CBSE • ICSE • State Boards</span>
         </div>
-        <h1 style="font-size: 28px; font-weight: 800; color: #ffffff; margin: 0 0 10px 0;">${escapeHtml(sim.title)}</h1>
-        <p style="font-size: 15px; color: #cbd5e1; line-height: 1.6; margin: 0;">${escapeHtml(sim.description)}</p>
+        <h1 style="font-size: 28px; font-weight: 800; color: #ffffff; margin: 0 0 10px 0;">${escapeHtml(guide?.h1Heading || sim.title)}</h1>
+        <p style="font-size: 15px; color: #cbd5e1; line-height: 1.6; margin: 0;">${escapeHtml(guide?.introduction || sim.description)}</p>
       </header>
 
-      <!-- Governing Mathematical Law -->
+      <!-- Learning Objectives -->
+      ${guide?.learningObjectives && guide.learningObjectives.length > 0 ? `
       <section style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
-        <h2 style="font-size: 14px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0;">Governing Mathematical Law</h2>
-        <div style="font-family: monospace; font-size: 16px; color: #a5f3fc; text-align: center; padding: 14px; background: #020617; border-radius: 8px; overflow-x: auto;">
+        <h2 style="font-size: 15px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px 0;">🎯 Learning Objectives</h2>
+        <ul style="padding-left: 20px; margin: 0; color: #cbd5e1; font-size: 14px; line-height: 1.7;">
+          ${guide.learningObjectives.map((obj: string) => `<li style="margin-bottom: 6px;">${escapeHtml(obj)}</li>`).join('')}
+        </ul>
+      </section>` : ''}
+
+      <!-- Governing Mathematical Law & Principles -->
+      <section style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+        <h2 style="font-size: 15px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0;">📐 Governing Mathematical Laws &amp; Formulas</h2>
+        <div style="font-family: monospace; font-size: 16px; color: #a5f3fc; text-align: center; padding: 14px; background: #020617; border-radius: 8px; overflow-x: auto; margin-bottom: 14px;">
           ${escapeHtml(sim.latexFormula || sim.formulaPreview || '')}
         </div>
+        ${guide?.mathematicalPrinciples && guide.mathematicalPrinciples.length > 0 ? `
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${guide.mathematicalPrinciples.map((mp: any) => `
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 12px;">
+              <h3 style="font-size: 14px; font-weight: 700; color: #e2e8f0; margin: 0 0 4px 0;">${escapeHtml(mp.title)}</h3>
+              <p style="font-size: 13px; color: #94a3b8; margin: 0 0 8px 0;">${escapeHtml(mp.description)}</p>
+              ${mp.formulaLatex ? `<div style="font-family: monospace; font-size: 14px; color: #38bdf8; background: #0f172a; padding: 6px 10px; border-radius: 6px; overflow-x: auto;">${escapeHtml(mp.formulaLatex)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>` : ''}
       </section>
 
       <!-- Geometric & First-Principle Intuition -->
@@ -186,6 +217,52 @@ for (const sim of SIMULATORS) {
         <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0 0 10px 0;">Geometric &amp; First-Principle Intuition</h2>
         <p style="font-size: 14px; color: #cbd5e1; line-height: 1.7;">${escapeHtml(sim.theoryBreakdown)}</p>
       </section>
+
+      <!-- Simulator Controls & Input Parameters -->
+      ${guide?.controlsGuide && guide.controlsGuide.length > 0 ? `
+      <section style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+        <h2 style="font-size: 15px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 14px 0;">🎛️ Simulator Controls &amp; Input Parameters</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+          ${guide.controlsGuide.map((ctrl: any) => `
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <strong style="font-size: 13px; color: #f8fafc;">${escapeHtml(ctrl.name)}</strong>
+                <span style="font-size: 10px; font-family: monospace; background: #1e293b; color: #38bdf8; padding: 2px 6px; border-radius: 4px;">${escapeHtml(ctrl.type)}</span>
+              </div>
+              ${ctrl.range ? `<div style="font-size: 11px; color: #fbbf24; font-family: monospace; margin-bottom: 4px;">Range: ${escapeHtml(ctrl.range)}</div>` : ''}
+              <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px 0; line-height: 1.4;">${escapeHtml(ctrl.description)}</p>
+              <div style="font-size: 11px; color: #a7f3d0; line-height: 1.4;"><strong>Effect:</strong> ${escapeHtml(ctrl.effect)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </section>` : ''}
+
+      <!-- Step-by-Step Instructions Protocol -->
+      ${guide?.stepByStepInstructions && guide.stepByStepInstructions.length > 0 ? `
+      <section style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+        <h2 style="font-size: 15px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px 0;">📋 Step-by-Step Instructions for Using the Simulator</h2>
+        <ol style="padding-left: 20px; margin: 0; color: #cbd5e1; font-size: 14px; line-height: 1.7;">
+          ${guide.stepByStepInstructions.map((st: string) => `<li style="margin-bottom: 8px;">${escapeHtml(st)}</li>`).join('')}
+        </ol>
+      </section>` : ''}
+
+      <!-- Expected Output & Visual Invariants -->
+      ${guide?.expectedOutput ? `
+      <section style="background: #0b1120; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+        <h2 style="font-size: 15px; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px 0;">📊 Expected Output &amp; Visual Invariants</h2>
+        <p style="font-size: 14px; color: #e2e8f0; line-height: 1.6; margin: 0;">${escapeHtml(guide.expectedOutput)}</p>
+      </section>` : ''}
+
+      <!-- Practical Real-World STEM Application -->
+      ${guide?.realWorldApplication ? `
+      <section style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+        <span style="font-size: 11px; font-weight: bold; color: #34d399; text-transform: uppercase;">Real-World STEM Application • ${escapeHtml(guide.realWorldApplication.field || guide.realWorldApplication.domain || 'Engineering & STEM')}</span>
+        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 6px 0 8px 0;">How Professionals Use This Mathematical Concept</h3>
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6; margin: 0 0 8px 0;">${escapeHtml(guide.realWorldApplication.description || guide.realWorldApplication.scenario)}</p>
+        <div style="background: #020617; border-radius: 6px; padding: 10px; font-size: 13px; color: #a7f3d0; line-height: 1.5;">
+          <strong>Practical Example:</strong> ${escapeHtml(guide.realWorldApplication.example || guide.realWorldApplication.mathematicalConnection)}
+        </div>
+      </section>` : ''}
 
       <!-- Coach Secret & Misconception -->
       <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
