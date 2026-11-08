@@ -20,7 +20,13 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
   const { lightTap } = useHaptics();
   const { playClick } = useSound();
 
-  const [isInspectorEnabled, setIsInspectorEnabled] = useState(true);
+  const [isInspectorEnabled, setIsInspectorEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      // Default enabled on desktop fine mouse, disabled on touch mobile to prevent touch drag occlusion
+      return window.matchMedia ? window.matchMedia('(pointer: fine)').matches : true;
+    }
+    return true;
+  });
   const [cursorPos, setCursorPos] = useState<{ clientX: number; clientY: number } | null>(null);
   const [mathPos, setMathPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [relativePos, setRelativePos] = useState<{ px: number; py: number }>({ px: 0, py: 0 });
@@ -36,6 +42,8 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
 
     const handlePointerMove = (e: PointerEvent) => {
       if (!isInspectorEnabled || isZenMode) return;
+      // Do not trigger hover popup during touch drags on mobile to keep canvas clear
+      if (e.pointerType === 'touch') return;
 
       const rect = container.getBoundingClientRect();
       const px = e.clientX - rect.left;
@@ -127,7 +135,7 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
   return (
     <>
       {/* Sleek Floating Inspector Toggle Button (Pinned to Top-Right of Simulator Stage) */}
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 flex items-center gap-2 select-none pointer-events-auto">
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 flex items-center gap-2 select-none pointer-events-auto">
         <button
           type="button"
           onClick={() => {
@@ -135,7 +143,7 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
             playClick();
             setIsInspectorEnabled(!isInspectorEnabled);
           }}
-          className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 backdrop-blur-xl border shadow-xl transition-all active:scale-95 cursor-pointer ${
+          className={`px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 backdrop-blur-xl border shadow-xl transition-all active:scale-95 cursor-pointer ${
             isInspectorEnabled
               ? 'bg-cyan-500/25 border-cyan-400/60 text-cyan-200 hover:bg-cyan-500/35 shadow-cyan-500/20'
               : 'bg-slate-900/90 border-slate-700 text-slate-300 hover:text-white'
@@ -143,8 +151,9 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
           title={isInspectorEnabled ? 'Click to disable hover math inspector' : 'Click to enable live hover math inspector'}
           aria-label="Toggle hover inspector"
         >
-          <Crosshair className={`w-4 h-4 ${isInspectorEnabled ? 'text-cyan-300 animate-pulse' : 'text-slate-400'}`} />
-          <span>{isInspectorEnabled ? 'Math Inspector ON' : 'Math Inspector OFF'}</span>
+          <Crosshair className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isInspectorEnabled ? 'text-cyan-300 animate-pulse' : 'text-slate-400'}`} />
+          <span className="hidden sm:inline">{isInspectorEnabled ? 'Math Inspector ON' : 'Math Inspector OFF'}</span>
+          <span className="sm:hidden text-[11px] font-mono">{isInspectorEnabled ? 'Inspector ON' : 'Inspector'}</span>
         </button>
       </div>
 
@@ -191,7 +200,7 @@ export const SimulatorHoverInspector: React.FC<SimulatorHoverInspectorProps> = (
 
           {/* Floating High-Tech Glassmorphic Math HUD Card */}
           <div
-            className="absolute w-[350px] sm:w-[400px] bg-slate-900/98 backdrop-blur-2xl border border-cyan-400/80 rounded-2xl p-4 shadow-2xl space-y-2.5 text-sm animate-in fade-in zoom-in-95 duration-100 pointer-events-none select-none"
+            className="absolute w-[calc(100vw-2rem)] max-w-sm sm:w-[400px] bg-slate-900/98 backdrop-blur-2xl border border-cyan-400/80 rounded-2xl p-3.5 sm:p-4 shadow-2xl space-y-2 sm:space-y-2.5 text-xs sm:text-sm animate-in fade-in zoom-in-95 duration-100 pointer-events-none select-none"
             style={{ left: `${leftPos}px`, top: `${topPos}px` }}
           >
             {/* Header: Zone & Live Coordinate in Pure Math */}

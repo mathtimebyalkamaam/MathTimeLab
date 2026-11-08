@@ -11,6 +11,23 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/katex')) {
+              return 'vendor-katex';
+            }
+            if (id.includes('node_modules/three') || id.includes('node_modules/@react-three')) {
+              return 'vendor-three';
+            }
+            if (id.includes('node_modules/lucide-react')) {
+              return 'vendor-lucide';
+            }
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.

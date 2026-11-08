@@ -41,12 +41,14 @@ export const SimulatorStepWalkthrough: React.FC<SimulatorStepWalkthroughProps> =
 
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
 
   if (isZenMode || isDismissed || !steps || steps.length === 0) {
     if (isDismissed && !isZenMode) {
       return (
-        <div className="absolute bottom-12 sm:bottom-14 left-4 z-30 select-none pointer-events-auto">
+        <div className="absolute bottom-13 sm:bottom-16 left-3 sm:left-4 z-25 select-none pointer-events-auto">
           <button
             type="button"
             onClick={() => {
@@ -54,11 +56,11 @@ export const SimulatorStepWalkthrough: React.FC<SimulatorStepWalkthroughProps> =
               playClick();
               setIsDismissed(false);
             }}
-            className="px-4 py-2 rounded-full bg-slate-900/95 hover:bg-slate-800 text-cyan-200 border border-cyan-500/50 shadow-2xl text-sm font-bold flex items-center gap-2 backdrop-blur-xl active:scale-95 transition-all cursor-pointer group"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-slate-900/95 hover:bg-slate-800 text-cyan-200 border border-cyan-500/50 shadow-2xl text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 backdrop-blur-xl active:scale-95 transition-all cursor-pointer group"
             title="Open Step-by-Step Guided Walkthrough"
           >
-            <Layers className="w-4 h-4 text-cyan-400 group-hover:rotate-12 transition-transform" />
-            <span>Step-by-Step Walkthrough</span>
+            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 group-hover:rotate-12 transition-transform" />
+            <span>Walkthrough</span>
           </button>
         </div>
       );
@@ -94,7 +96,7 @@ export const SimulatorStepWalkthrough: React.FC<SimulatorStepWalkthroughProps> =
   };
 
   return (
-    <div className="absolute bottom-12 sm:bottom-14 inset-x-2 sm:inset-x-auto sm:left-4 sm:max-w-xl z-30 select-none pointer-events-auto transition-all duration-300">
+    <div className="absolute bottom-13 sm:bottom-16 inset-x-2 sm:inset-x-auto sm:left-4 sm:max-w-xl z-25 select-none pointer-events-auto transition-all duration-300">
       {/* ------------------------------------------------------------- */}
       {/* COMPACT STEPPER BAR (Default Non-Intrusive Dock)               */}
       {/* ------------------------------------------------------------- */}

@@ -166,23 +166,25 @@ export const ArgandPlanePlayground: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const rect = canvas.getBoundingClientRect();
-    const w = rect.width;
-    const h = rect.height;
+    const draw = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      if (w === 0 || h === 0) return;
 
-    if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-    }
+      if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+      }
 
-    ctx.save();
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
 
-    // Deep Dark Argand Grid Background
-    ctx.fillStyle = '#020617';
-    ctx.fillRect(0, 0, w, h);
+      // Deep Dark Argand Grid Background
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, w, h);
 
     const scale = Math.min(w, h) / 16; // Grid scale (~16 units visible)
     const cx = w / 2;
@@ -389,7 +391,14 @@ export const ArgandPlanePlayground: React.FC = () => {
     // Point 7: Critical Event Flares
     flareManagerRef.current.draw(ctx);
 
-    ctx.restore();
+      ctx.restore();
+    };
+
+    draw();
+    window.addEventListener('resize', draw);
+    return () => {
+      window.removeEventListener('resize', draw);
+    };
   }, [z1, z2, showZ2, showAddition, showPolar, showGridNumbers, challengeActive, targetPoint, challengeSuccess, toScreen, activeDragPoint]);
 
   // Helper to draw clean vector arrow tips
@@ -421,8 +430,9 @@ export const ArgandPlanePlayground: React.FC = () => {
     const scale = Math.min(rect.width, rect.height) / 16;
     const p1 = toScreen(z1.r, z1.i, rect.width, rect.height, scale);
     const d1 = Math.hypot(sx - p1.x, sy - p1.y);
+    const hitRadius = e.pointerType === 'touch' ? 40 : 28;
 
-    if (d1 < 30) {
+    if (d1 < hitRadius) {
       setActiveDragPoint('z1');
       lightTap();
       canvas.setPointerCapture(e.pointerId);
@@ -432,7 +442,7 @@ export const ArgandPlanePlayground: React.FC = () => {
     if (showZ2) {
       const p2 = toScreen(z2.r, z2.i, rect.width, rect.height, scale);
       const d2 = Math.hypot(sx - p2.x, sy - p2.y);
-      if (d2 < 30) {
+      if (d2 < hitRadius) {
         setActiveDragPoint('z2');
         lightTap();
         canvas.setPointerCapture(e.pointerId);

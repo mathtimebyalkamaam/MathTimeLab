@@ -5230,12 +5230,27 @@ var NCERT_CHAPTER_MAP = {
 console.log(`Loaded ${SIMULATORS.length} simulators directly from TypeScript source.`);
 var robotsTxt = `# Math Time Lab Robots & AI Search Indexer Rules
 # Website: https://labs.itsmathtime.co.in/
-# Parent Platform: https://itsmathtime.co.in by Alka Ma'am
+# Parent Platform: https://itsmathtime.co.in/ by Alka Ma'am
 
 User-agent: *
 Allow: /
+Disallow: /*?*
 
-# Allow AI Search & Citation Engines (Perplexity, ChatGPT Search, Claude, Gemini, Apple Intelligence)
+# Mainstream Web Search Engines (Google, Bing, Yahoo, DuckDuckGo)
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Educational AI Search & Citation Engines (Perplexity, ChatGPT Search, Claude, Gemini, Apple Intelligence)
+# Explicitly allowed to enable direct source citation of interactive simulations for student homework queries
 User-agent: GPTBot
 Allow: /
 

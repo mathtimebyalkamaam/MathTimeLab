@@ -209,7 +209,7 @@ export const CircleTheoremsSimulator: React.FC = () => {
     const render = () => {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
         canvas.width = width * dpr;
@@ -510,12 +510,13 @@ export const CircleTheoremsSimulator: React.FC = () => {
 
     const distP = Math.hypot(sx - sP.sx, sy - sP.sy);
     const distC = Math.hypot(sx - sC.sx, sy - sC.sy);
+    const hitRadius = e.pointerType === 'touch' ? 40 : 26;
 
-    if (distP < 30) {
+    if (distP < hitRadius) {
       setDragTarget('P');
       canvas.setPointerCapture(e.pointerId);
       lightTap();
-    } else if (distC < 30 && showInscribedAngle) {
+    } else if (distC < hitRadius && showInscribedAngle) {
       setDragTarget('C');
       canvas.setPointerCapture(e.pointerId);
       lightTap();

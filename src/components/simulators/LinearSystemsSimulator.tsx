@@ -198,7 +198,7 @@ export const LinearSystemsSimulator: React.FC = () => {
     const render = () => {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
         canvas.width = width * dpr;

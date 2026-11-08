@@ -30,7 +30,9 @@ export const UniversalGripAndMove: React.FC<UniversalGripAndMoveProps> = ({
   const [isGripMode, setIsGripMode] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => 
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
   const [showHelpHint, setShowHelpHint] = useState<boolean>(false);
 
   const dragStartRef = useRef<{ x: number; y: number; startPanX: number; startPanY: number } | null>(null);

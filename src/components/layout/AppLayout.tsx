@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { 
   Sparkles, 
   Flame, 
@@ -28,8 +28,6 @@ import {
   Award,
   LucideIcon
 } from 'lucide-react';
-import { GlobalSearchModal } from '../common/GlobalSearchModal';
-import { AuthorProfileModal } from '../modals/AuthorProfileModal';
 import { useSimulatorStore } from '../../store/useSimulatorStore';
 import { SimulatorId } from '../../types/simulators';
 import { useSound } from '../common/SoundManager';
@@ -42,20 +40,24 @@ import { EurekaToast } from '../common/EurekaToast';
 import { useProgressStore, getCurrentRank } from '../../store/useProgressStore';
 import { ClassCodeInput } from '../common/ClassCodeInput';
 import { useClassStore } from '../../store/useClassStore';
-import { PredictObserveExplainModal } from '../common/PredictObserveExplainModal';
-import { ExamPYQModal } from '../common/ExamPYQModal';
-import { BreakTheMathModal } from '../common/BreakTheMathModal';
-import { IntuitionSpeedDrillModal } from '../common/IntuitionSpeedDrillModal';
-import { DerivationLadderModal } from '../common/DerivationLadderModal';
-import { Class8OdysseyModal } from '../modals/Class8OdysseyModal';
-import { SecretShortcutsModal } from '../modals/SecretShortcutsModal';
-import { Class8BadgesModal } from '../modals/Class8BadgesModal';
-import { ConceptLightningQuizModal } from '../modals/ConceptLightningQuizModal';
-import { MobileToolsDrawerModal } from '../modals/MobileToolsDrawerModal';
 import { MobileBottomNav } from './MobileBottomNav';
 import { GlobalHeader } from './GlobalHeader';
 import { GlobalFooter } from './GlobalFooter';
 import { trackPageView } from '../../utils/analytics';
+
+// Lazy-load all on-demand modals to keep critical initial JavaScript bundle lightweight on mobile
+const PredictObserveExplainModal = lazy(() => import('../common/PredictObserveExplainModal').then((m) => ({ default: m.PredictObserveExplainModal })));
+const ExamPYQModal = lazy(() => import('../common/ExamPYQModal').then((m) => ({ default: m.ExamPYQModal })));
+const BreakTheMathModal = lazy(() => import('../common/BreakTheMathModal').then((m) => ({ default: m.BreakTheMathModal })));
+const IntuitionSpeedDrillModal = lazy(() => import('../common/IntuitionSpeedDrillModal').then((m) => ({ default: m.IntuitionSpeedDrillModal })));
+const DerivationLadderModal = lazy(() => import('../common/DerivationLadderModal').then((m) => ({ default: m.DerivationLadderModal })));
+const Class8OdysseyModal = lazy(() => import('../modals/Class8OdysseyModal').then((m) => ({ default: m.Class8OdysseyModal })));
+const SecretShortcutsModal = lazy(() => import('../modals/SecretShortcutsModal').then((m) => ({ default: m.SecretShortcutsModal })));
+const Class8BadgesModal = lazy(() => import('../modals/Class8BadgesModal').then((m) => ({ default: m.Class8BadgesModal })));
+const ConceptLightningQuizModal = lazy(() => import('../modals/ConceptLightningQuizModal').then((m) => ({ default: m.ConceptLightningQuizModal })));
+const MobileToolsDrawerModal = lazy(() => import('../modals/MobileToolsDrawerModal').then((m) => ({ default: m.MobileToolsDrawerModal })));
+const AuthorProfileModal = lazy(() => import('../modals/AuthorProfileModal').then((m) => ({ default: m.AuthorProfileModal })));
+const GlobalSearchModal = lazy(() => import('../common/GlobalSearchModal').then((m) => ({ default: m.GlobalSearchModal })));
 
 const SIMULATOR_TITLES: Record<string, string> = {
   'drone-navigator': 'Drone Navigator',
@@ -146,6 +148,17 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     openConceptQuizModal,
     setIsSearchModalOpen,
     setIsAuthorModalOpen,
+    isPOEModalOpen,
+    isExamPYQModalOpen,
+    isStressTestModalOpen,
+    isSpeedDrillModalOpen,
+    isDerivationLadderModalOpen,
+    isClass8OdysseyOpen,
+    isSecretShortcutsOpen,
+    isClass8BadgesOpen,
+    isConceptQuizOpen,
+    isSearchModalOpen,
+    isAuthorModalOpen,
   } = useSimulatorStore();
 
   const { totalXp, streakDays, checkDailyStreak } = useProgressStore();
@@ -344,53 +357,58 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Mobile Fixed Bottom Navigation Bar - Only visible on Home/Landing/Teacher, NEVER during active simulator */}
       <MobileBottomNav />
 
-      {/* Simulator Mobile Tools Drawer Action Sheet Modal */}
-      <MobileToolsDrawerModal 
-        isOpen={isMobileToolsOpen} 
-        onClose={() => setIsMobileToolsOpen(false)} 
-      />
+      {/* Mobile & Desktop Modals: Lazy-loaded & strictly mounted on-demand to save mobile RAM */}
+      <Suspense fallback={null}>
+        {/* Simulator Mobile Tools Drawer Action Sheet Modal */}
+        {isMobileToolsOpen && (
+          <MobileToolsDrawerModal 
+            isOpen={isMobileToolsOpen} 
+            onClose={() => setIsMobileToolsOpen(false)} 
+          />
+        )}
 
-      {/* Class Code Input Modal Dialog */}
-      {showClassModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md animate-scale-up">
-            <ClassCodeInput onClose={() => setShowClassModal(false)} />
+        {/* Class Code Input Modal Dialog */}
+        {showClassModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-md animate-scale-up">
+              <ClassCodeInput onClose={() => setShowClassModal(false)} />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Priority 1 Pedagogy: Predict-Observe-Explain Modal */}
-      <PredictObserveExplainModal />
+        {/* Priority 1 Pedagogy: Predict-Observe-Explain Modal */}
+        {isPOEModalOpen && <PredictObserveExplainModal />}
 
-      {/* Priority 1 Pedagogy: Real Past-Year Exam Questions Modal */}
-      <ExamPYQModal />
+        {/* Priority 1 Pedagogy: Real Past-Year Exam Questions Modal */}
+        {isExamPYQModalOpen && <ExamPYQModal />}
 
-      {/* Priority 2 Pedagogy: Break the Math / Extreme Degenerate Modes */}
-      <BreakTheMathModal />
+        {/* Priority 2 Pedagogy: Break the Math / Extreme Degenerate Modes */}
+        {isStressTestModalOpen && <BreakTheMathModal />}
 
-      {/* Priority 2 Pedagogy: 60-Second Rapid Intuition Drill */}
-      <IntuitionSpeedDrillModal />
+        {/* Priority 2 Pedagogy: 60-Second Rapid Intuition Drill */}
+        {isSpeedDrillModalOpen && <IntuitionSpeedDrillModal />}
 
-      {/* Priority 3 Pedagogy: Interactive Derivation Ladder Modal */}
-      <DerivationLadderModal />
+        {/* Priority 3 Pedagogy: Interactive Derivation Ladder Modal */}
+        {isDerivationLadderModalOpen && <DerivationLadderModal />}
 
-      {/* Class 8 Student Odyssey Hub Modal */}
-      <Class8OdysseyModal />
+        {/* Class 8 Student Odyssey Hub Modal */}
+        {isClass8OdysseyOpen && <Class8OdysseyModal />}
 
-      {/* Class 8 Topper's Secret Cheat-Sheet Modal */}
-      <SecretShortcutsModal />
+        {/* Class 8 Topper's Secret Cheat-Sheet Modal */}
+        {isSecretShortcutsOpen && <SecretShortcutsModal />}
 
-      {/* Class 8 Mastery Passport & Badges Modal */}
-      <Class8BadgesModal />
+        {/* Class 8 Mastery Passport & Badges Modal */}
+        {isClass8BadgesOpen && <Class8BadgesModal />}
 
-      {/* 1-Minute Concept Lightning Quiz Modal */}
-      <ConceptLightningQuizModal />
+        {/* 1-Minute Concept Lightning Quiz Modal */}
+        {isConceptQuizOpen && <ConceptLightningQuizModal />}
 
-      {/* Educator Profile Modal (Alka Sharma / itsmathtime.co.in) */}
-      <AuthorProfileModal />
+        {/* Educator Profile Modal (Alka Sharma / itsmathtime.co.in) */}
+        {isAuthorModalOpen && <AuthorProfileModal />}
 
-      {/* Global Command Palette (⌘K) Search Modal */}
-      <GlobalSearchModal />
+        {/* Global Command Palette (⌘K) Search Modal */}
+        {isSearchModalOpen && <GlobalSearchModal />}
+      </Suspense>
     </div>
   );
 };

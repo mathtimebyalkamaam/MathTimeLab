@@ -141,7 +141,7 @@ export const CircleChordsCyclicSimulator: React.FC = () => {
     let animId = 0;
 
     const render = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 

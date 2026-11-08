@@ -421,7 +421,7 @@ export const RollercoasterArchitect: React.FC = () => {
     let animId: number;
 
     const render = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = canvas.getBoundingClientRect();
       const width = rect.width;
       const height = rect.height;

@@ -199,7 +199,7 @@ export const DifferentialEquationsSimulator: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
     canvas.width = width * dpr;

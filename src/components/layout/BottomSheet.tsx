@@ -127,18 +127,18 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     }
   };
 
-  // Mobile ergonomic heights: half height is capped at 34vh so 66% of viewport is always visible canvas!
+  // Mobile ergonomic heights: half height is capped at 38vh so majority of viewport is always visible canvas!
   const getMobileHeightClass = () => {
     if (!isBottomSheetOpen || isZenMode) return 'translate-y-full';
     switch (bottomSheetSnap) {
       case 'peek':
         return 'h-10 sm:h-11';
       case 'half':
-        return 'h-[34vh] sm:h-[38vh]';
+        return 'h-[38vh] sm:h-[40vh]';
       case 'full':
-        return 'h-[80vh] sm:h-[75vh]';
+        return 'h-[82vh] sm:h-[78vh]';
       default:
-        return 'h-[34vh]';
+        return 'h-[38vh]';
     }
   };
 
@@ -480,6 +480,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       {/* ========================================================================= */}
       <div
         ref={sheetRef}
+        role="region"
+        aria-label={`${cleanTitle} Mobile Drawer`}
         className={`lg:hidden fixed inset-x-0 bottom-0 z-30 bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/80 rounded-t-2xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${getMobileHeightClass()} safe-bottom select-none`}
       >
         {/* Drag Handle & Compact Bar Header */}

@@ -176,7 +176,7 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
           aria-label={`Decrease ${label}`}
           title={`Decrease ${label} (Hold for fast scroll)`}
           className={`${
-            compact ? 'w-7 h-7 rounded-lg' : 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl'
+            compact ? 'w-8 h-8 sm:w-7 sm:h-7 min-w-[32px] min-h-[32px] rounded-lg' : 'w-9 h-9 sm:w-8 sm:h-8 min-w-[36px] min-h-[36px] rounded-xl'
           } bg-slate-800 hover:bg-slate-700 active:bg-cyan-500/30 active:border-cyan-400 active:scale-95 text-slate-200 hover:text-white flex items-center justify-center shrink-0 touch-manipulation cursor-pointer border border-slate-700 hover:border-slate-500 transition-all shadow-md select-none`}
         >
           <Minus className={`${compact ? 'w-3 h-3 stroke-[2.5]' : 'w-4 h-4 stroke-[2.5]'}`} />
@@ -184,7 +184,7 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
 
         {/* Sleek Touch Range Scrub Slider Track (Fills all available width) */}
         <div 
-          className={`relative flex-1 flex items-center min-w-[40px] ${compact ? 'h-7 py-0.5' : 'h-8 sm:h-9 py-1'}`}
+          className={`relative flex-1 flex items-center min-w-[40px] touch-manipulation ${compact ? 'h-7 py-0.5' : 'h-8 sm:h-9 py-1'}`}
           onPointerDown={() => setIsInteracting(true)}
           onPointerUp={() => setIsInteracting(false)}
           onPointerCancel={() => setIsInteracting(false)}
@@ -202,6 +202,11 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
             max={max}
             step={step}
             value={value}
+            aria-label={label}
+            aria-valuetext={displayVal}
+            aria-valuenow={value}
+            aria-valuemin={min}
+            aria-valuemax={max}
             onFocus={() => setIsInteracting(true)}
             onBlur={() => setIsInteracting(false)}
             onChange={(e) => {
@@ -236,7 +241,7 @@ export const TouchSlider: React.FC<TouchSliderProps> = ({
           aria-label={`Increase ${label}`}
           title={`Increase ${label} (Hold for fast scroll)`}
           className={`${
-            compact ? 'w-7 h-7 rounded-lg' : 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl'
+            compact ? 'w-8 h-8 sm:w-7 sm:h-7 min-w-[32px] min-h-[32px] rounded-lg' : 'w-9 h-9 sm:w-8 sm:h-8 min-w-[36px] min-h-[36px] rounded-xl'
           } bg-slate-800 hover:bg-slate-700 active:bg-cyan-500/30 active:border-cyan-400 active:scale-95 text-slate-200 hover:text-white flex items-center justify-center shrink-0 touch-manipulation cursor-pointer border border-slate-700 hover:border-slate-500 transition-all shadow-md select-none`}
         >
           <Plus className={`${compact ? 'w-3 h-3 stroke-[2.5]' : 'w-4 h-4 stroke-[2.5]'}`} />

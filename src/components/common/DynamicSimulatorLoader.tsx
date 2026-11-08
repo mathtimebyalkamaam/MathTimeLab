@@ -536,7 +536,7 @@ export const DynamicSimulatorLoader: React.FC<DynamicSimulatorLoaderProps> = ({ 
 
   return (
     <MathErrorBoundary key={simulatorId} simulatorId={simulatorId}>
-      <div ref={containerRef} className="relative w-full h-full flex-1 flex flex-col overflow-hidden">
+      <div ref={containerRef} className="relative w-full h-full flex-1 flex flex-col overflow-hidden pb-10 sm:pb-11 lg:pb-0">
         {/* Phase 2: Top Guided Mission Ribbon, NCERT Tag, Reset Button & Pulsing Touch Hint */}
         <SimulatorMissionBar simulatorId={simulatorId} />
 

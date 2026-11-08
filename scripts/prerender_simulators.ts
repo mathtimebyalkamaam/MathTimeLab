@@ -80,80 +80,166 @@ for (const sim of SIMULATORS) {
     ? `${guide?.introduction || sim.description} NCERT Class ${ncert.gradeNumber} Chapter ${ncert.chapterNumber} (${ncert.chapterName}). Visual proof, formula derivation & board exam solved problems by Alka Ma'am.`
     : `${guide?.introduction || sim.description} Visual math proof, formula derivation & board exam solved problems by Alka Ma'am.`;
 
-  // Build Breadcrumb JSON-LD
-  const breadcrumbLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Math Time Lab',
-        item: BASE_URL,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: sim.grade,
-        item: `${BASE_URL}/#${sim.grade.toLowerCase().replace(/\s+/g, '-')}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: sim.category,
-        item: `${BASE_URL}/#${sim.category.toLowerCase().replace(/\s+/g, '-')}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 4,
-        name: sim.title,
-        item: simUrl,
-      },
-    ],
-  };
+  const gradeNum = sim.gradeNumber || (sim.grade.includes('8') ? 8 : sim.grade.includes('9') ? 9 : sim.grade.includes('10') ? 10 : sim.grade.includes('11') ? 11 : 12);
+  const gradeHubUrl = `${BASE_URL}/classes/class-${gradeNum}-math-simulators`;
 
-  // Build LearningResource JSON-LD
-  const learningResourceLd: Record<string, any> = {
-    '@context': 'https://schema.org',
-    '@type': 'LearningResource',
-    name: sim.title,
-    description: sim.description,
-    url: simUrl,
-    learningResourceType: 'Interactive Simulation',
-    educationalLevel: sim.grade,
-    teaches: sim.keyConcepts.join(', '),
-    author: {
-      '@type': 'Person',
-      name: "Alka Sharma (Alka Ma'am)",
-      jobTitle: 'Mathematics Educator',
-      url: 'https://itsmathtime.co.in/',
-    },
-    publisher: {
+  // Build interconnected Schema.org @graph
+  const graphEntities: any[] = [
+    {
       '@type': 'EducationalOrganization',
-      name: 'MathTime',
+      '@id': `${BASE_URL}/#organization`,
+      name: 'Math Time',
+      alternateName: 'Math Time Lab',
       url: 'https://itsmathtime.co.in/',
+      logo: `${BASE_URL}/math-time-logo.png`,
+      founder: {
+        '@type': 'Person',
+        '@id': 'https://itsmathtime.co.in/#author',
+        name: 'Alka Sharma',
+        alternateName: "Alka Ma'am",
+        jobTitle: 'Senior Mathematics Educator',
+        url: 'https://itsmathtime.co.in/',
+        sameAs: ['https://www.youtube.com/@its.mathtime']
+      },
+      sameAs: [
+        'https://itsmathtime.co.in/',
+        'https://www.youtube.com/@its.mathtime'
+      ]
     },
-    isPartOf: {
+    {
       '@type': 'WebSite',
+      '@id': `${BASE_URL}/#website`,
       name: 'Math Time Lab',
       url: BASE_URL,
+      publisher: {
+        '@id': `${BASE_URL}/#organization`
+      },
+      inLanguage: 'en'
     },
-  };
+    {
+      '@type': 'WebPage',
+      '@id': `${simUrl}#webpage`,
+      url: simUrl,
+      name: pageTitle,
+      description: metaDesc,
+      inLanguage: 'en',
+      isPartOf: {
+        '@id': `${BASE_URL}/#website`
+      },
+      breadcrumb: {
+        '@id': `${simUrl}#breadcrumb`
+      },
+      mainEntity: {
+        '@id': `${simUrl}#learningresource`
+      }
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': `${simUrl}#breadcrumb`,
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Math Time Lab',
+          item: BASE_URL,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: `${sim.grade} Math Simulators`,
+          item: gradeHubUrl,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: sim.category,
+          item: `${BASE_URL}/#${sim.category.toLowerCase().replace(/\s+/g, '-')}`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 4,
+          name: sim.title,
+          item: simUrl,
+        },
+      ],
+    },
+    {
+      '@type': 'LearningResource',
+      '@id': `${simUrl}#learningresource`,
+      name: guide?.h1Heading || sim.title,
+      description: guide?.introduction || sim.description,
+      url: simUrl,
+      learningResourceType: 'Interactive Simulation',
+      educationalLevel: sim.grade,
+      inLanguage: 'en',
+      teaches: sim.keyConcepts.join(', '),
+      educationalUse: ['Interactive Simulation', 'Conceptual Demonstration', 'Guided Practice'],
+      author: {
+        '@type': 'Person',
+        '@id': 'https://itsmathtime.co.in/#author',
+        name: "Alka Sharma (Alka Ma'am)",
+        jobTitle: 'Senior Mathematics Educator',
+        url: 'https://itsmathtime.co.in/',
+        sameAs: ['https://www.youtube.com/@its.mathtime']
+      },
+      publisher: {
+        '@type': 'EducationalOrganization',
+        '@id': `${BASE_URL}/#organization`,
+        name: 'Math Time',
+        url: 'https://itsmathtime.co.in/'
+      },
+      isPartOf: {
+        '@type': 'WebSite',
+        '@id': `${BASE_URL}/#website`,
+        name: 'Math Time Lab',
+        url: BASE_URL
+      },
+      about: [
+        {
+          '@type': 'Thing',
+          name: 'Mathematical Principles Taught',
+          description: guide?.mathematicalPrinciples?.map((p: any) => `${p.title}: ${p.description}`).join('; ') || sim.keyConcepts.join(', ')
+        },
+        {
+          '@type': 'Thing',
+          name: 'Interactive Exploration Scope',
+          description: guide?.introduction || sim.description
+        },
+        {
+          '@type': 'Thing',
+          name: 'Available Simulator Inputs & Controls',
+          description: guide?.controlsGuide?.map((c: any) => `${c.name} (${c.type}${c.range ? `, range: ${c.range}` : ''}): ${c.effect}`).join('; ') || 'Interactive controls, sliders, and parameter toggles'
+        },
+        {
+          '@type': 'Thing',
+          name: 'Expected Mathematical Outputs',
+          description: guide?.expectedOutput || 'Live visual geometric recalculation and mathematical telemetry readout'
+        },
+        {
+          '@type': 'Thing',
+          name: 'Supported Learning Outcomes',
+          description: guide?.learningObjectives?.join('; ') || sim.keyConcepts.join(', ')
+        }
+      ],
+      ...(ncert ? {
+        educationalAlignment: {
+          '@type': 'AlignmentObject',
+          alignmentType: 'educationalSubject',
+          targetName: `NCERT Class ${ncert.gradeNumber} Chapter ${ncert.chapterNumber}: ${ncert.chapterName} (${ncert.exerciseRef})`,
+          educationalFramework: 'CBSE / NCERT Mathematics'
+        }
+      } : {})
+    }
+  ];
 
-  if (ncert) {
-    learningResourceLd.educationalAlignment = {
-      '@type': 'AlignmentObject',
-      alignmentType: 'educationalSubject',
-      targetName: `NCERT Class ${ncert.gradeNumber} Chapter ${ncert.chapterNumber}: ${ncert.chapterName}`,
-    };
-  }
-
-  // Build FAQPage JSON-LD if doubts exist
-  let faqLd: Record<string, any> | null = null;
+  // Add FAQPage Schema if doubts exist
   if (sim.doubts && sim.doubts.length > 0) {
-    faqLd = {
-      '@context': 'https://schema.org',
+    graphEntities.push({
       '@type': 'FAQPage',
+      '@id': `${simUrl}#faq`,
+      isPartOf: {
+        '@id': `${simUrl}#webpage`
+      },
       mainEntity: sim.doubts.map((d) => ({
         '@type': 'Question',
         name: d.question,
@@ -162,8 +248,13 @@ for (const sim of SIMULATORS) {
           text: d.latex ? `${d.answer} Formula: ${d.latex}` : d.answer,
         },
       })),
-    };
+    });
   }
+
+  const simulatorJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': graphEntities
+  };
 
   // Semantic Pre-Rendered DOM for <div id="root">
   const prerenderedBody = `
@@ -386,10 +477,11 @@ for (const sim of SIMULATORS) {
     `<meta name="twitter:description" content="${escapeHtml(metaDesc)}" />`
   );
 
-  // Inject JSON-LD Schema
-  const schemas = [breadcrumbLd, learningResourceLd];
-  if (faqLd) schemas.push(faqLd);
-  const schemasHtml = schemas.map(s => `    <script type="application/ld+json">${JSON.stringify(s)}</script>`).join('\n');
+  // Strip root template's default JSON-LD so simulator gets its custom @graph
+  html = html.replace(/<script type="application\/ld\+json">.*?<\/script>\s*/s, '');
+
+  // Inject unified Simulator Schema.org @graph
+  const schemasHtml = `    <script type="application/ld+json">${JSON.stringify(simulatorJsonLd)}</script>`;
   html = html.replace('</head>', `${schemasHtml}\n  </head>`);
 
   // Inject prerendered body into <div id="root"></div>
@@ -413,6 +505,30 @@ for (const sim of SIMULATORS) {
   const teacherTitle = "Educator Cockpit & Curriculum Guide | Math Time Lab by Alka Ma'am";
   const teacherDesc = "Classroom smartboard presets, pedagogical inquiry prompts, and multi-board CBSE/ICSE curriculum alignment for mathematics educators.";
 
+  const teacherJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${teacherUrl}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Math Time Lab', item: BASE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Educator Cockpit', item: teacherUrl }
+        ]
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${teacherUrl}#webpage`,
+        name: teacherTitle,
+        description: teacherDesc,
+        url: teacherUrl,
+        inLanguage: 'en',
+        isPartOf: { '@id': `${BASE_URL}/#website` },
+        breadcrumb: { '@id': `${teacherUrl}#breadcrumb` }
+      }
+    ]
+  };
+
   let html = templateHtml;
   html = html.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(teacherTitle)}</title>`);
   html = html.replace(/<meta name="description" content=".*?" \/>/s, `<meta name="description" content="${escapeHtml(teacherDesc)}" />`);
@@ -420,6 +536,8 @@ for (const sim of SIMULATORS) {
   html = html.replace(/<meta property="og:title" content=".*?" \/>/s, `<meta property="og:title" content="${escapeHtml(teacherTitle)}" />`);
   html = html.replace(/<meta property="og:description" content=".*?" \/>/s, `<meta property="og:description" content="${escapeHtml(teacherDesc)}" />`);
   html = html.replace(/<meta property="og:url" content=".*?" \/>/s, `<meta property="og:url" content="${teacherUrl}" />`);
+  html = html.replace(/<script type="application\/ld\+json">.*?<\/script>\s*/s, '');
+  html = html.replace('</head>', `    <script type="application/ld+json">${JSON.stringify(teacherJsonLd)}</script>\n  </head>`);
 
   const teacherDir = path.join(DIST_DIR, 'teacher');
   fs.mkdirSync(teacherDir, { recursive: true });
@@ -435,6 +553,30 @@ for (const sim of SIMULATORS) {
   const landingTitle = "Math Time Lab – Interactive 3D Math Platform for Classes 8–12";
   const landingDesc = "Touch-responsive, tactile 2D and 3D visual math labs designed by Alka Ma'am to banish textbook anxiety.";
 
+  const landingJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${landingUrl}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Math Time Lab', item: BASE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Platform Overview', item: landingUrl }
+        ]
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${landingUrl}#webpage`,
+        name: landingTitle,
+        description: landingDesc,
+        url: landingUrl,
+        inLanguage: 'en',
+        isPartOf: { '@id': `${BASE_URL}/#website` },
+        breadcrumb: { '@id': `${landingUrl}#breadcrumb` }
+      }
+    ]
+  };
+
   let html = templateHtml;
   html = html.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(landingTitle)}</title>`);
   html = html.replace(/<meta name="description" content=".*?" \/>/s, `<meta name="description" content="${escapeHtml(landingDesc)}" />`);
@@ -442,6 +584,8 @@ for (const sim of SIMULATORS) {
   html = html.replace(/<meta property="og:title" content=".*?" \/>/s, `<meta property="og:title" content="${escapeHtml(landingTitle)}" />`);
   html = html.replace(/<meta property="og:description" content=".*?" \/>/s, `<meta property="og:description" content="${escapeHtml(landingDesc)}" />`);
   html = html.replace(/<meta property="og:url" content=".*?" \/>/s, `<meta property="og:url" content="${landingUrl}" />`);
+  html = html.replace(/<script type="application\/ld\+json">.*?<\/script>\s*/s, '');
+  html = html.replace('</head>', `    <script type="application/ld+json">${JSON.stringify(landingJsonLd)}</script>\n  </head>`);
 
   const landingDir = path.join(DIST_DIR, 'landing');
   fs.mkdirSync(landingDir, { recursive: true });
@@ -465,36 +609,70 @@ for (const g of grades) {
   const gradeSims = SIMULATORS.filter(s => s.gradeNumber === g.gradeNum);
   const hubUrl = `${BASE_URL}${gm.path}`;
 
-  const breadcrumbLd = {
+  const hubJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Math Time Lab', item: BASE_URL },
-      { '@type': 'ListItem', position: 2, name: `${g.gradeName} Math Simulators`, item: hubUrl }
+    '@graph': [
+      {
+        '@type': 'EducationalOrganization',
+        '@id': `${BASE_URL}/#organization`,
+        name: 'Math Time',
+        alternateName: 'Math Time Lab',
+        url: 'https://itsmathtime.co.in/',
+        logo: `${BASE_URL}/math-time-logo.png`
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${BASE_URL}/#website`,
+        name: 'Math Time Lab',
+        url: BASE_URL
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${hubUrl}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Math Time Lab', item: BASE_URL },
+          { '@type': 'ListItem', position: 2, name: `${g.gradeName} Math Simulators`, item: hubUrl }
+        ]
+      },
+      {
+        '@type': 'CollectionPage',
+        '@id': `${hubUrl}#collection`,
+        name: gm.title,
+        description: gm.description,
+        url: hubUrl,
+        isPartOf: { '@id': `${BASE_URL}/#website` },
+        breadcrumb: { '@id': `${hubUrl}#breadcrumb` },
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: gradeSims.length,
+          itemListElement: gradeSims.map((s, idx) => ({
+            '@type': 'ListItem',
+            position: idx + 1,
+            name: s.title,
+            url: `${BASE_URL}/simulators/${s.id}`
+          }))
+        }
+      },
+      {
+        '@type': 'Article',
+        '@id': `${hubUrl}#article`,
+        headline: `${g.gradeName} Mathematics Interactive Visual Curriculum Guide`,
+        description: gm.description,
+        url: hubUrl,
+        inLanguage: 'en',
+        author: {
+          '@type': 'Person',
+          '@id': 'https://itsmathtime.co.in/#author',
+          name: "Alka Sharma (Alka Ma'am)",
+          jobTitle: 'Senior Mathematics Educator',
+          url: 'https://itsmathtime.co.in/',
+          sameAs: ['https://www.youtube.com/@its.mathtime']
+        },
+        publisher: {
+          '@id': `${BASE_URL}/#organization`
+        }
+      }
     ]
-  };
-
-  const collectionLd = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: gm.title,
-    description: gm.description,
-    url: hubUrl,
-    publisher: {
-      '@type': 'EducationalOrganization',
-      name: 'MathTime',
-      url: 'https://itsmathtime.co.in'
-    },
-    mainEntity: {
-      '@type': 'ItemList',
-      numberOfItems: gradeSims.length,
-      itemListElement: gradeSims.map((s, idx) => ({
-        '@type': 'ListItem',
-        position: idx + 1,
-        name: s.title,
-        url: `${BASE_URL}/simulators/${s.id}`
-      }))
-    }
   };
 
   const hubBody = `
@@ -577,8 +755,8 @@ for (const g of grades) {
   html = html.replace(/<meta name="twitter:title" content=".*?" \/>/s, `<meta name="twitter:title" content="${escapeHtml(gm.title)}" />`);
   html = html.replace(/<meta name="twitter:description" content=".*?" \/>/s, `<meta name="twitter:description" content="${escapeHtml(gm.description)}" />`);
 
-  const schemasHtml = [breadcrumbLd, collectionLd].map(s => `    <script type="application/ld+json">${JSON.stringify(s)}</script>`).join('\n');
-  html = html.replace('</head>', `${schemasHtml}\n  </head>`);
+  html = html.replace(/<script type="application\/ld\+json">.*?<\/script>\s*/s, '');
+  html = html.replace('</head>', `    <script type="application/ld+json">${JSON.stringify(hubJsonLd)}</script>\n  </head>`);
   html = html.replace('<div id="root"></div>', `<div id="root">${hubBody}</div>`);
 
   // Save to dist/classes/class-X-math-simulators/index.html

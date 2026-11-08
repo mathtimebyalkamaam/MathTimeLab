@@ -30,32 +30,60 @@
     <meta name="twitter:description" content="Mobile-first, touch-responsive 3D and 2D math simulators for Classes 8–12." />
     <meta name="twitter:image" content="https://labs.itsmathtime.co.in/math-time-logo.png" />
 
-    <!-- Core JSON-LD Schema.org Structured Data -->
+    <!-- Schema.org EducationalOrganization & WebSite Structured Data -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Math Time Lab",
-        "url": "https://labs.itsmathtime.co.in/",
-        "applicationCategory": "EducationalApplication",
-        "operatingSystem": "All",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "INR"
-        },
-        "author": {
-          "@type": "Person",
-          "name": "Alka Sharma (Alka Ma'am)",
-          "jobTitle": "Mathematics Educator",
-          "url": "https://itsmathtime.co.in/"
-        },
-        "publisher": {
-          "@type": "EducationalOrganization",
-          "name": "MathTime",
-          "url": "https://itsmathtime.co.in/"
-        },
-        "description": "50+ Free interactive visual 3D and 2D math laboratories covering NCERT and CBSE curricula for Classes 8–12."
+        "@graph": [
+          {
+            "@type": "EducationalOrganization",
+            "@id": "https://labs.itsmathtime.co.in/#organization",
+            "name": "Math Time",
+            "alternateName": "Math Time Lab",
+            "url": "https://itsmathtime.co.in/",
+            "logo": "https://labs.itsmathtime.co.in/math-time-logo.png",
+            "founder": {
+              "@type": "Person",
+              "@id": "https://itsmathtime.co.in/#author",
+              "name": "Alka Sharma",
+              "alternateName": "Alka Ma'am",
+              "jobTitle": "Senior Mathematics Educator",
+              "url": "https://itsmathtime.co.in/",
+              "sameAs": [
+                "https://www.youtube.com/@its.mathtime"
+              ]
+            },
+            "description": "Interactive mathematics education platform providing 50+ visual 3D and 2D laboratories covering CBSE and NCERT curricula for Classes 8–12.",
+            "sameAs": [
+              "https://itsmathtime.co.in/",
+              "https://www.youtube.com/@its.mathtime"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://labs.itsmathtime.co.in/#website",
+            "url": "https://labs.itsmathtime.co.in/",
+            "name": "Math Time Lab",
+            "description": "50+ Free interactive visual 3D and 2D mathematics laboratories for CBSE and NCERT Classes 8–12.",
+            "publisher": {
+              "@id": "https://labs.itsmathtime.co.in/#organization"
+            },
+            "inLanguage": "en"
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://labs.itsmathtime.co.in/#webpage",
+            "url": "https://labs.itsmathtime.co.in/",
+            "name": "Math Time Lab – 50+ Interactive Visual Math Simulators",
+            "isPartOf": {
+              "@id": "https://labs.itsmathtime.co.in/#website"
+            },
+            "about": {
+              "@id": "https://labs.itsmathtime.co.in/#organization"
+            },
+            "description": "Mobile-first, touch-responsive 3D and 2D math simulators for Classes 8–12 covering Algebra, Geometry, Trigonometry, Calculus, and Coordinate Geometry."
+          }
+        ]
       }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

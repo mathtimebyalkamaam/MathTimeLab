@@ -1,6 +1,7 @@
 import { AppRoute, SimulatorId, GradeLevel } from '../types/simulators';
 import { SIMULATORS } from '../data/simulators';
 import { NCERT_CHAPTER_MAP } from '../data/ncertMappings';
+import { SIMULATOR_GUIDES } from '../data/guides';
 
 const DEFAULT_TITLE = "Math Time Lab – 50+ Interactive Simulators | itsmathtime.co.in by Alka Ma'am";
 const DEFAULT_DESC = "Official Interactive Math Simulator Division of itsmathtime.co.in by Alka Ma'am. Mobile-first, touch-responsive 3D and 2D math simulators for Classes 8–12: Algebra Tiles, Balance Scale, Conic Sections, Calculus, and 3D Geometry.";
@@ -209,12 +210,36 @@ function updateStructuredData(route: AppRoute, title: string, description: strin
   if (isSim) {
     const metadata = SIMULATORS.find((s) => s.id === route);
     const ncert = NCERT_CHAPTER_MAP[route as SimulatorId];
+    const guide = SIMULATOR_GUIDES[route as SimulatorId];
+    const gradeNum = metadata?.gradeNumber || 10;
 
     const graph: any[] = [];
 
-    // 1. BreadcrumbList Schema
+    // 1. WebPage Schema
+    graph.push({
+      '@type': 'WebPage',
+      '@id': `${url}#webpage`,
+      url: url,
+      name: metadata?.title || title,
+      description: guide?.introduction || description,
+      isPartOf: {
+        '@type': 'WebSite',
+        '@id': `${BASE_URL}/#website`,
+        name: 'Math Time Lab',
+        url: BASE_URL,
+      },
+      breadcrumb: {
+        '@id': `${url}#breadcrumb`,
+      },
+      mainEntity: {
+        '@id': `${url}#learningresource`,
+      },
+    });
+
+    // 2. BreadcrumbList Schema
     graph.push({
       '@type': 'BreadcrumbList',
+      '@id': `${url}#breadcrumb`,
       itemListElement: [
         {
           '@type': 'ListItem',
@@ -225,8 +250,8 @@ function updateStructuredData(route: AppRoute, title: string, description: strin
         {
           '@type': 'ListItem',
           position: 2,
-          name: metadata?.grade || 'Curriculum',
-          item: `${BASE_URL}/#${(metadata?.grade || 'curriculum').toLowerCase().replace(/\s+/g, '-')}`,
+          name: `${metadata?.grade || 'Class 10'} Math Simulators`,
+          item: `${BASE_URL}/classes/class-${gradeNum}-math-simulators`,
         },
         {
           '@type': 'ListItem',
@@ -243,45 +268,84 @@ function updateStructuredData(route: AppRoute, title: string, description: strin
       ],
     });
 
-    // 2. LearningResource Schema
+    // 3. LearningResource Schema
     const simSchema: Record<string, any> = {
       '@type': 'LearningResource',
-      name: metadata?.title || title,
-      description: description,
+      '@id': `${url}#learningresource`,
+      name: guide?.h1Heading || metadata?.title || title,
+      description: guide?.introduction || description,
       url: url,
       learningResourceType: 'Interactive Simulation',
       educationalLevel: metadata?.grade || 'CBSE High School',
+      inLanguage: 'en',
       teaches: metadata?.keyConcepts?.join(', ') || 'Mathematics',
+      educationalUse: ['Interactive Simulation', 'Conceptual Demonstration', 'Guided Practice'],
       author: {
         '@type': 'Person',
+        '@id': 'https://itsmathtime.co.in/#author',
         name: "Alka Sharma (Alka Ma'am)",
         jobTitle: 'Mathematics Educator',
         url: 'https://itsmathtime.co.in',
+        sameAs: ['https://www.youtube.com/@its.mathtime'],
       },
       publisher: {
         '@type': 'EducationalOrganization',
-        name: 'MathTime',
+        '@id': `${BASE_URL}/#organization`,
+        name: 'Math Time',
         url: 'https://itsmathtime.co.in',
       },
       isPartOf: {
         '@type': 'WebSite',
+        '@id': `${BASE_URL}/#website`,
         name: 'Math Time Lab',
         url: BASE_URL,
       },
+      about: [
+        {
+          '@type': 'Thing',
+          name: 'Mathematical Principles Taught',
+          description: guide?.mathematicalPrinciples?.map((p: any) => `${p.title}: ${p.description}`).join('; ') || metadata?.keyConcepts?.join(', '),
+        },
+        {
+          '@type': 'Thing',
+          name: 'Interactive Exploration Scope',
+          description: guide?.introduction || metadata?.description,
+        },
+        {
+          '@type': 'Thing',
+          name: 'Available Simulator Inputs & Controls',
+          description: guide?.controlsGuide?.map((c: any) => `${c.name} (${c.type}${c.range ? `, range: ${c.range}` : ''}): ${c.effect}`).join('; ') || 'Interactive canvas and control sliders',
+        },
+        {
+          '@type': 'Thing',
+          name: 'Expected Mathematical Outputs',
+          description: guide?.expectedOutput || 'Live visual recalculation and mathematical telemetry readout',
+        },
+        {
+          '@type': 'Thing',
+          name: 'Supported Learning Outcomes',
+          description: guide?.learningObjectives?.join('; ') || metadata?.keyConcepts?.join(', '),
+        },
+      ],
       ...(ncert && {
         educationalAlignment: {
           '@type': 'AlignmentObject',
           alignmentType: 'educationalSubject',
-          targetName: `NCERT Class ${ncert.gradeNumber} Chapter ${ncert.chapterNumber}: ${ncert.chapterName}`,
+          targetName: `NCERT Class ${ncert.gradeNumber} Chapter ${ncert.chapterNumber}: ${ncert.chapterName} (${ncert.exerciseRef})`,
+          educationalFramework: 'CBSE / NCERT Mathematics',
         },
       }),
     };
     graph.push(simSchema);
 
-    // 3. FAQPage Schema for doubts/Q&As
+    // 4. FAQPage Schema for doubts/Q&As
     if (metadata?.doubts && metadata.doubts.length > 0) {
       graph.push({
         '@type': 'FAQPage',
+        '@id': `${url}#faq`,
+        isPartOf: {
+          '@id': `${url}#webpage`,
+        },
         mainEntity: metadata.doubts.map((d) => ({
           '@type': 'Question',
           name: d.question,
@@ -315,7 +379,8 @@ function updateStructuredData(route: AppRoute, title: string, description: strin
         url: url,
         publisher: {
           '@type': 'EducationalOrganization',
-          name: 'MathTime',
+          '@id': `${BASE_URL}/#organization`,
+          name: 'Math Time',
           url: 'https://itsmathtime.co.in',
         },
         mainEntity: {
@@ -329,6 +394,26 @@ function updateStructuredData(route: AppRoute, title: string, description: strin
           })),
         },
       },
+      {
+        '@type': 'Article',
+        headline: gm.title,
+        description: gm.description,
+        url: url,
+        inLanguage: 'en',
+        author: {
+          '@type': 'Person',
+          '@id': 'https://itsmathtime.co.in/#author',
+          name: "Alka Sharma (Alka Ma'am)",
+          jobTitle: 'Mathematics Educator',
+          url: 'https://itsmathtime.co.in',
+        },
+        publisher: {
+          '@type': 'EducationalOrganization',
+          '@id': `${BASE_URL}/#organization`,
+          name: 'Math Time',
+          url: 'https://itsmathtime.co.in',
+        },
+      },
     ];
     script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
   } else {
@@ -336,29 +421,44 @@ function updateStructuredData(route: AppRoute, title: string, description: strin
       '@context': 'https://schema.org',
       '@graph': [
         {
+          '@type': 'EducationalOrganization',
+          '@id': `${BASE_URL}/#organization`,
+          name: 'Math Time',
+          alternateName: 'Math Time Lab',
+          url: 'https://itsmathtime.co.in/',
+          logo: `${BASE_URL}/math-time-logo.png`,
+          founder: {
+            '@type': 'Person',
+            '@id': 'https://itsmathtime.co.in/#author',
+            name: 'Alka Sharma',
+            alternateName: "Alka Ma'am",
+            jobTitle: 'Senior Mathematics Educator',
+            url: 'https://itsmathtime.co.in/',
+            sameAs: ['https://www.youtube.com/@its.mathtime'],
+          },
+          description: 'Interactive mathematics education platform providing 50+ visual 3D and 2D laboratories covering CBSE and NCERT curricula for Classes 8–12.',
+          sameAs: ['https://itsmathtime.co.in/', 'https://www.youtube.com/@its.mathtime'],
+        },
+        {
           '@type': 'WebSite',
+          '@id': `${BASE_URL}/#website`,
           name: 'Math Time Lab',
           url: BASE_URL,
           description: description,
           publisher: {
-            '@type': 'EducationalOrganization',
-            name: 'MathTime',
-            url: 'https://itsmathtime.co.in',
+            '@id': `${BASE_URL}/#organization`,
           },
+          inLanguage: 'en',
         },
         {
-          '@type': 'WebApplication',
-          name: 'Math Time Lab',
+          '@type': 'WebPage',
+          '@id': `${BASE_URL}/#webpage`,
           url: BASE_URL,
-          applicationCategory: 'EducationalApplication',
-          operatingSystem: 'All',
-          author: {
-            '@type': 'Person',
-            name: "Alka Sharma (Alka Ma'am)",
-            jobTitle: 'Mathematics Educator',
-            url: 'https://itsmathtime.co.in',
-          },
+          name: title,
           description: description,
+          isPartOf: {
+            '@id': `${BASE_URL}/#website`,
+          },
         },
       ],
     };
